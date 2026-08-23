@@ -11,16 +11,24 @@ dotenv.config();
 const app = express();
 
 const PORT = Number(process.env.PORT || 8787);
-const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || 'http://localhost:5173';
+
+const CLIENT_ORIGINS = [
+  'http://localhost:5173',
+  'https://the-p-remium-client.vercel.app',
+  'https://the-p-remium-client-qyog2l9zu-meonly24.vercel.app'
+];
 
 app.set('trust proxy', 1);
 
-app.use(helmet());
-app.use(express.json({ limit: '64kb' }));
-
 app.use(
   cors({
-    origin: CLIENT_ORIGIN,
+    origin: (origin, callback) => {
+      if (!origin || CLIENT_ORIGINS.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     methods: ['POST', 'GET', 'OPTIONS'],
     allowedHeaders: ['Content-Type']
   })
@@ -47,5 +55,5 @@ app.use((_req, res) => {
 
 app.listen(PORT, '0.0.0.0', () => {
   logger.info(`Server running on port ${PORT}`);
-  logger.info(`CORS allowed origin: ${CLIENT_ORIGIN}`);
+ logger.info(`CORS allowed origins: ${CLIENT_ORIGINS.join(', ')}`);
 });
