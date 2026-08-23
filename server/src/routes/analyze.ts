@@ -17,10 +17,13 @@ analyzeRouter.post('/', async (req, res) => {
   console.log('REQUEST BODY:', req.body);
 
   const parsed = bodySchema.safeParse(req.body);
-  
+
   if (!parsed.success) {
-    return res.status(400).json({ error: 'Invalid request. Please provide a word and target language.' });
-  }
+  return res.status(400).json({
+    error: 'Invalid request',
+    details: parsed.error.issues
+  });
+}
 
   const term = normalizeTerm(parsed.data.word);
   if (!isLikelyValidTerm(term)) {
