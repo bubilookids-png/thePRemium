@@ -1,4 +1,6 @@
-const API_BASE = import.meta.env.VITE_API_BASE?.toString().trim() || '';
+ const API_BASE =
+  import.meta.env.VITE_API_BASE?.toString().trim() ||
+  'thepremium-production.up.railway.app';
 
 type ApiErrorDetails = {
   status: number;
