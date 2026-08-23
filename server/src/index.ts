@@ -45,7 +45,7 @@ app.use((_req, res) => {
   res.status(404).json({ error: 'Not found' });
 });
 
-app.listen(PORT, () => {
-  logger.info(`Server running on http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  logger.info(`Server running on port ${PORT}`);
   logger.info(`CORS allowed origin: ${CLIENT_ORIGIN}`);
 });
