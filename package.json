@@ -1,0 +1,17 @@
+{
+  "name": "english-vocabulary-trainer",
+  "private": true,
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "dev": "concurrently -n server,client -c blue,green \"npm --workspace server run dev\" \"npm --workspace client run dev\"",
+    "build": "npm --workspace server run build && npm --workspace client run build",
+    "start": "npm --workspace server run start",
+    "lint": "npm --workspace client run lint || true"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0"
+  }
+}
