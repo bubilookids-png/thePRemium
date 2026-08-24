@@ -20,6 +20,8 @@ const CLIENT_ORIGINS = [
 
 app.set('trust proxy', 1);
 
+app.use(express.json({ limit: '64kb' }));
+
 app.use(
   cors({
     origin: (origin, callback) => {
