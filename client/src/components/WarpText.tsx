@@ -1,6 +1,60 @@
 import { useEffect, useRef } from 'react';
-import { Renderer, Program, Mesh, Triangle, Texture } from 'ogl';
+import type { CSSProperties } from 'react';
+import {
+  Renderer,
+  Program,
+  Mesh,
+  Triangle,
+  Texture
+} from 'ogl';
 import './WarpText.css';
+
+type WarpTextProps = {
+  text?: string;
+  color?: string;
+  warpStrength?: number;
+  warpScale?: number;
+  speed?: number;
+  pointerInfluence?: number;
+  pointerStrength?: number;
+  refraction?: number;
+  ripple?: boolean;
+  fontSize?: string | number;
+  fontWeight?: number | string;
+  fontFamily?: string;
+  letterSpacing?: string | number;
+  lineHeight?: string | number;
+  className?: string;
+  style?: CSSProperties;
+};
+
+type TextCanvasProps = {
+  container: HTMLElement;
+  width: number;
+  height: number;
+  dpr: number;
+  props: Required<
+    Pick<
+      WarpTextProps,
+      | 'text'
+      | 'color'
+      | 'fontSize'
+      | 'fontWeight'
+      | 'fontFamily'
+      | 'letterSpacing'
+      | 'lineHeight'
+      | 'warpStrength'
+      | 'warpScale'
+      | 'speed'
+      | 'pointerInfluence'
+      | 'pointerStrength'
+      | 'refraction'
+      | 'ripple'
+    >
+  >;
+};
+
+type WarpProps = TextCanvasProps['props'];
 
 const vertex = `#version 300 es
 in vec2 position;
@@ -97,9 +151,6 @@ void main() {
   float scale =
     max(uWarpScale, 0.001);
 
-  /*
-   * Ambient movement
-   */
   vec2 drift =
     vec2(
       time * 0.055,
@@ -126,9 +177,6 @@ void main() {
     0.045 *
     uMotion;
 
-  /*
-   * Subtle idle breathing
-   */
   float breathe =
     sin(time * 1.15) * 0.5 + 0.5;
 
@@ -142,9 +190,6 @@ void main() {
 
   ambient += idleWarp;
 
-  /*
-   * Mouse lens
-   */
   vec2 pointerDelta =
     uv - uPointer;
 
@@ -193,9 +238,6 @@ void main() {
         ) / dist
       : vec2(0.0);
 
-  /*
-   * Ripple
-   */
   float rippleWave =
     sin(
       dist * 28.0 -
@@ -221,17 +263,11 @@ void main() {
     uPointerStrength *
     0.016;
 
-  /*
-   * Final displacement
-   */
   vec2 displaced =
     uv +
     ambient +
     pointerWarp;
 
-  /*
-   * Refraction
-   */
   vec2 splitDir =
     ambient +
     pointerWarp;
@@ -256,9 +292,6 @@ void main() {
       lens * 1.65
     );
 
-  /*
-   * Text samples
-   */
   vec4 base =
     sampleText(displaced);
 
@@ -288,11 +321,6 @@ void main() {
       ).a
     );
 
-  /*
-   * Premium gradient
-   *
-   * Purple -> violet -> blue
-   */
   float gradient =
     clamp(
       uv.x * 0.72 +
@@ -345,9 +373,6 @@ void main() {
       )
     );
 
-  /*
-   * Keep RGB refraction but tint it
-   */
   vec3 refracted =
     vec3(r, g, b);
 
@@ -362,18 +387,12 @@ void main() {
     gradientColor *
     textStrength;
 
-  /*
-   * Soft glass highlight
-   */
   color +=
     gradientColor *
     lens *
     base.a *
     0.18;
 
-  /*
-   * Subtle idle glow
-   */
   float glowPulse =
     0.75 +
     0.25 *
@@ -385,9 +404,6 @@ void main() {
     0.035 *
     glowPulse;
 
-  /*
-   * Mouse highlight
-   */
   color +=
     vec3(
       0.20,
@@ -406,16 +422,18 @@ void main() {
 }
 `;
 
-const getFontValue = (value) =>
+const getFontValue = (
+  value: string | number
+): string =>
   typeof value === 'number'
     ? `${value}px`
     : value;
 
 const measureLine = (
-  ctx,
-  line,
-  letterSpacing
-) => {
+  ctx: CanvasRenderingContext2D,
+  line: string,
+  letterSpacing: number
+): number => {
   const chars = Array.from(line);
 
   const textWidth =
@@ -437,14 +455,13 @@ const measureLine = (
 };
 
 const drawLine = (
-  ctx,
-  line,
-  x,
-  y,
-  letterSpacing
-) => {
-  const chars =
-    Array.from(line);
+  ctx: CanvasRenderingContext2D,
+  line: string,
+  x: number,
+  y: number,
+  letterSpacing: number
+): void => {
+  const chars = Array.from(line);
 
   let cursor =
     x -
@@ -464,8 +481,7 @@ const drawLine = (
       );
 
       cursor +=
-        ctx.measureText(char)
-          .width +
+        ctx.measureText(char).width +
         (
           index ===
           chars.length - 1
@@ -482,26 +498,20 @@ const buildTextCanvas = ({
   height,
   dpr,
   props
-}) => {
+}: TextCanvasProps): HTMLCanvasElement => {
   const canvas =
-    document.createElement(
-      'canvas'
-    );
+    document.createElement('canvas');
 
   canvas.width =
     Math.max(
       1,
-      Math.floor(
-        width * dpr
-      )
+      Math.floor(width * dpr)
     );
 
   canvas.height =
     Math.max(
       1,
-      Math.floor(
-        height * dpr
-      )
+      Math.floor(height * dpr)
     );
 
   const ctx =
@@ -512,12 +522,9 @@ const buildTextCanvas = ({
   }
 
   const probe =
-    document.createElement(
-      'span'
-    );
+    document.createElement('span');
 
-  probe.textContent =
-    props.text;
+  probe.textContent = props.text;
 
   Object.assign(
     probe.style,
@@ -526,79 +533,48 @@ const buildTextCanvas = ({
       visibility: 'hidden',
       pointerEvents: 'none',
       whiteSpace: 'pre',
-      inset:
-        '0 auto auto 0',
-      fontFamily:
-        props.fontFamily,
-      fontSize:
-        getFontValue(
-          props.fontSize
-        ),
-      fontWeight:
-        String(
-          props.fontWeight
-        ),
-      letterSpacing:
-        getFontValue(
-          props.letterSpacing
-        ),
+      inset: '0 auto auto 0',
+      fontFamily: props.fontFamily,
+      fontSize: getFontValue(props.fontSize),
+      fontWeight: String(props.fontWeight),
+      letterSpacing: getFontValue(props.letterSpacing),
       lineHeight:
-        typeof props.lineHeight ===
-        'number'
-          ? String(
-              props.lineHeight
-            )
+        typeof props.lineHeight === 'number'
+          ? String(props.lineHeight)
           : props.lineHeight
     }
   );
 
-  container.appendChild(
-    probe
-  );
+  container.appendChild(probe);
 
   const computed =
-    window.getComputedStyle(
-      probe
-    );
+    window.getComputedStyle(probe);
 
   let fontSizePx =
-    parseFloat(
-      computed.fontSize
-    ) || 96;
+    parseFloat(computed.fontSize) || 96;
 
   const fontFamily =
-    computed.fontFamily ||
-    'sans-serif';
+    computed.fontFamily || 'sans-serif';
 
   const fontWeight =
     computed.fontWeight ||
-    String(
-      props.fontWeight
-    );
+    String(props.fontWeight);
 
   let letterSpacing =
-    computed.letterSpacing ===
-    'normal'
+    computed.letterSpacing === 'normal'
       ? 0
       : parseFloat(
           computed.letterSpacing
         ) || 0;
 
   let lineHeight =
-    parseFloat(
-      computed.lineHeight
-    );
+    parseFloat(computed.lineHeight);
 
-  if (
-    !Number.isFinite(
-      lineHeight
-    )
-  ) {
+  if (!Number.isFinite(lineHeight)) {
     lineHeight =
       fontSizePx *
       (
-        typeof props.lineHeight ===
-        'number'
+        typeof props.lineHeight === 'number'
           ? props.lineHeight
           : 0.92
       );
@@ -623,27 +599,13 @@ const buildTextCanvas = ({
   );
 
   ctx.textAlign = 'left';
-  ctx.textBaseline =
-    'middle';
-
-  /*
-   * White base texture.
-   * The WebGL shader handles
-   * the premium gradient.
-   */
-  ctx.fillStyle =
-    '#ffffff';
-
-  ctx.imageSmoothingEnabled =
-    true;
-
-  ctx.imageSmoothingQuality =
-    'high';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#ffffff';
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
 
   const lines =
-    String(
-      props.text || ''
-    ).split('\n');
+    String(props.text || '').split('\n');
 
   const applyFont = () => {
     ctx.font =
@@ -652,11 +614,8 @@ const buildTextCanvas = ({
 
   applyFont();
 
-  const maxWidth =
-    width * 0.86;
-
-  const maxHeight =
-    height * 0.78;
+  const maxWidth = width * 0.86;
+  const maxHeight = height * 0.78;
 
   const widest =
     Math.max(
@@ -673,18 +632,15 @@ const buildTextCanvas = ({
 
   const blockHeight =
     Math.max(
-      lineHeight *
-        lines.length,
+      lineHeight * lines.length,
       1
     );
 
   const fit =
     Math.min(
       1,
-      maxWidth /
-        widest,
-      maxHeight /
-        blockHeight
+      maxWidth / widest,
+      maxHeight / blockHeight
     );
 
   if (fit < 1) {
@@ -721,11 +677,10 @@ const buildTextCanvas = ({
 };
 
 const syncUniforms = (
-  program,
-  props
-) => {
-  const uniforms =
-    program.uniforms;
+  program: Program,
+  props: WarpProps
+): void => {
+  const uniforms = program.uniforms;
 
   uniforms.uWarpStrength.value =
     props.warpStrength;
@@ -746,9 +701,7 @@ const syncUniforms = (
     props.refraction;
 
   uniforms.uRipple.value =
-    props.ripple
-      ? 1
-      : 0;
+    props.ripple ? 1 : 0;
 };
 
 const WarpText = ({
@@ -761,20 +714,19 @@ const WarpText = ({
   pointerStrength = 0.38,
   refraction = 0.018,
   ripple = true,
-  fontSize =
-    'clamp(3rem, 10vw, 9rem)',
+  fontSize = 'clamp(3rem, 10vw, 9rem)',
   fontWeight = 800,
   fontFamily = 'inherit',
   letterSpacing = '-0.06em',
   lineHeight = 0.9,
   className = '',
   style
-}) => {
+}: WarpTextProps) => {
   const containerRef =
-    useRef(null);
+    useRef<HTMLDivElement | null>(null);
 
   const propsRef =
-    useRef({
+    useRef<WarpProps>({
       text,
       color,
       fontSize,
@@ -792,7 +744,10 @@ const WarpText = ({
     });
 
   const contextRef =
-    useRef(null);
+    useRef<{
+      program: Program;
+      rasterize: () => Promise<void>;
+    } | null>(null);
 
   useEffect(() => {
     propsRef.current = {
@@ -814,13 +769,11 @@ const WarpText = ({
 
     if (contextRef.current) {
       syncUniforms(
-        contextRef.current
-          .program,
+        contextRef.current.program,
         propsRef.current
       );
 
-      contextRef.current
-        .rasterize();
+      void contextRef.current.rasterize();
     }
   }, [
     text,
@@ -840,33 +793,32 @@ const WarpText = ({
   ]);
 
   useEffect(() => {
-    const container =
-      containerRef.current;
+    const container = containerRef.current;
 
     if (
       !container ||
-      typeof window ===
-        'undefined'
+      typeof window === 'undefined'
     ) {
       return undefined;
     }
 
-    let renderer;
-    let gl;
-    let program;
-    let geometry;
-    let mesh;
-    let texture;
-    let resizeObserver;
-    let intersectionObserver;
+    let renderer: Renderer;
+    let gl: Renderer['gl'];
+    let program: Program;
+    let geometry: Triangle;
+    let mesh: Mesh;
+    let texture: Texture;
+    let resizeObserver: ResizeObserver | undefined;
+    let intersectionObserver:
+      | IntersectionObserver
+      | undefined;
 
     let raf = 0;
     let disposed = false;
     let contextLost = false;
     let visible = true;
 
-    let pageVisible =
-      !document.hidden;
+    let pageVisible = !document.hidden;
 
     let reduceMotion =
       window
@@ -894,12 +846,10 @@ const WarpText = ({
         new Renderer({
           webgl: 2,
           alpha: true,
-          premultipliedAlpha:
-            false,
+          premultipliedAlpha: false,
           antialias: true,
           dpr: Math.min(
-            window.devicePixelRatio ||
-              1,
+            window.devicePixelRatio || 1,
             2
           )
         });
@@ -914,56 +864,33 @@ const WarpText = ({
       return undefined;
     }
 
-    gl.clearColor(
-      0,
-      0,
-      0,
-      0
-    );
+    gl.clearColor(0, 0, 0, 0);
 
-    const canvas =
-      gl.canvas;
+    const canvas = gl.canvas;
 
-    canvas.style.position =
-      'absolute';
-
-    canvas.style.inset =
-      '0';
-
-    canvas.style.width =
-      '100%';
-
-    canvas.style.height =
-      '100%';
-
-    canvas.style.display =
-      'block';
+    canvas.style.position = 'absolute';
+    canvas.style.inset = '0';
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+    canvas.style.display = 'block';
 
     canvas.setAttribute(
       'aria-hidden',
       'true'
     );
 
-    container.appendChild(
-      canvas
-    );
+    container.appendChild(canvas);
 
     texture =
       new Texture(gl, {
-        generateMipmaps:
-          false,
-        minFilter:
-          gl.LINEAR,
-        magFilter:
-          gl.LINEAR,
-        wrapS:
-          gl.CLAMP_TO_EDGE,
-        wrapT:
-          gl.CLAMP_TO_EDGE
+        generateMipmaps: false,
+        minFilter: gl.LINEAR,
+        magFilter: gl.LINEAR,
+        wrapS: gl.CLAMP_TO_EDGE,
+        wrapT: gl.CLAMP_TO_EDGE
       });
 
-    geometry =
-      new Triangle(gl);
+    geometry = new Triangle(gl);
 
     program =
       new Program(gl, {
@@ -980,18 +907,12 @@ const WarpText = ({
 
           uResolution: {
             value:
-              new Float32Array([
-                1,
-                1
-              ])
+              new Float32Array([1, 1])
           },
 
           uPointer: {
             value:
-              new Float32Array([
-                0.5,
-                0.5
-              ])
+              new Float32Array([0.5, 0.5])
           },
 
           uPointerActive: {
@@ -1004,38 +925,32 @@ const WarpText = ({
 
           uWarpStrength: {
             value:
-              propsRef.current
-                .warpStrength
+              propsRef.current.warpStrength
           },
 
           uWarpScale: {
             value:
-              propsRef.current
-                .warpScale
+              propsRef.current.warpScale
           },
 
           uSpeed: {
             value:
-              propsRef.current
-                .speed
+              propsRef.current.speed
           },
 
           uPointerInfluence: {
             value:
-              propsRef.current
-                .pointerInfluence
+              propsRef.current.pointerInfluence
           },
 
           uPointerStrength: {
             value:
-              propsRef.current
-                .pointerStrength
+              propsRef.current.pointerStrength
           },
 
           uRefraction: {
             value:
-              propsRef.current
-                .refraction
+              propsRef.current.refraction
           },
 
           uRipple: {
@@ -1074,16 +989,13 @@ const WarpText = ({
     };
 
     const rasterize =
-      async () => {
+      async (): Promise<void> => {
         const version =
           ++rasterVersion;
 
-        if (
-          document.fonts?.ready
-        ) {
+        if (document.fonts?.ready) {
           try {
-            await document
-              .fonts.ready;
+            await document.fonts.ready;
           } catch (error) {
             void error;
           }
@@ -1092,8 +1004,7 @@ const WarpText = ({
         if (
           disposed ||
           contextLost ||
-          version !==
-            rasterVersion
+          version !== rasterVersion
         ) {
           return;
         }
@@ -1110,8 +1021,7 @@ const WarpText = ({
 
         const dpr =
           Math.min(
-            window.devicePixelRatio ||
-              1,
+            window.devicePixelRatio || 1,
             2
           );
 
@@ -1121,15 +1031,11 @@ const WarpText = ({
             width: rect.width,
             height: rect.height,
             dpr,
-            props:
-              propsRef.current
+            props: propsRef.current
           });
 
-        texture.image =
-          textCanvas;
-
-        texture.needsUpdate =
-          true;
+        texture.image = textCanvas;
+        texture.needsUpdate = true;
 
         renderOnce();
       };
@@ -1154,8 +1060,7 @@ const WarpText = ({
 
       renderer.dpr =
         Math.min(
-          window.devicePixelRatio ||
-            1,
+          window.devicePixelRatio || 1,
           2
         );
 
@@ -1164,24 +1069,24 @@ const WarpText = ({
         rect.height
       );
 
-      program.uniforms
-        .uResolution
-        .value[0] =
+      const resolution =
+        program.uniforms
+          .uResolution
+          .value as Float32Array;
+
+      resolution[0] =
         gl.drawingBufferWidth;
 
-      program.uniforms
-        .uResolution
-        .value[1] =
+      resolution[1] =
         gl.drawingBufferHeight;
 
-      rasterize();
+      void rasterize();
     };
 
     const onPointerMove =
-      (event) => {
+      (event: PointerEvent) => {
         if (
-          event.pointerType ===
-          'touch'
+          event.pointerType === 'touch'
         ) {
           return;
         }
@@ -1211,58 +1116,46 @@ const WarpText = ({
           ) /
             rect.height;
 
-        pointer.activeTarget =
-          1;
+        pointer.activeTarget = 1;
       };
 
-    const onPointerLeave =
-      () => {
-        pointer.activeTarget =
-          0;
-      };
+    const onPointerLeave = () => {
+      pointer.activeTarget = 0;
+    };
 
     const onContextLost =
-      (event) => {
+      (event: Event) => {
         event.preventDefault();
 
         contextLost = true;
 
         if (raf) {
-          cancelAnimationFrame(
-            raf
-          );
+          cancelAnimationFrame(raf);
         }
 
         raf = 0;
       };
 
-    const onVisibility =
-      () => {
-        pageVisible =
-          !document.hidden;
+    const onVisibility = () => {
+      pageVisible = !document.hidden;
 
-        if (
-          pageVisible &&
-          visible &&
-          !raf
-        ) {
-          raf =
-            requestAnimationFrame(
-              loop
-            );
-        }
+      if (
+        pageVisible &&
+        visible &&
+        !raf
+      ) {
+        raf =
+          requestAnimationFrame(loop);
+      }
 
-        if (
-          !pageVisible &&
-          raf
-        ) {
-          cancelAnimationFrame(
-            raf
-          );
-
-          raf = 0;
-        }
-      };
+      if (
+        !pageVisible &&
+        raf
+      ) {
+        cancelAnimationFrame(raf);
+        raf = 0;
+      }
+    };
 
     const mediaQuery =
       window.matchMedia?.(
@@ -1270,9 +1163,8 @@ const WarpText = ({
       );
 
     const onReducedMotion =
-      (event) => {
-        reduceMotion =
-          event.matches;
+      (event: MediaQueryListEvent) => {
+        reduceMotion = event.matches;
 
         program.uniforms
           .uMotion
@@ -1284,7 +1176,7 @@ const WarpText = ({
         renderOnce();
       };
 
-    const loop = (now) => {
+    const loop = (now: number) => {
       if (
         disposed ||
         contextLost
@@ -1293,12 +1185,8 @@ const WarpText = ({
       }
 
       const elapsed =
-        (now - startTime) *
-        0.001;
+        (now - startTime) * 0.001;
 
-      /*
-       * Idle movement
-       */
       const idleX =
         0.5 +
         Math.sin(
@@ -1314,38 +1202,32 @@ const WarpText = ({
           0.1;
 
       const targetX =
-        pointer.activeTarget >
-        0
+        pointer.activeTarget > 0
           ? pointer.tx
           : idleX;
 
       const targetY =
-        pointer.activeTarget >
-        0
+        pointer.activeTarget > 0
           ? pointer.ty
           : idleY;
 
       const damping =
-        pointer.activeTarget >
-        0
+        pointer.activeTarget > 0
           ? 0.12
           : 0.035;
 
       pointer.x +=
-        (targetX -
-          pointer.x) *
+        (targetX - pointer.x) *
         damping;
 
       pointer.y +=
-        (targetY -
-          pointer.y) *
+        (targetY - pointer.y) *
         damping;
 
       pointer.active +=
         (
           (
-            pointer.activeTarget >
-            0
+            pointer.activeTarget > 0
               ? 1
               : 0.18
           ) -
@@ -1353,22 +1235,22 @@ const WarpText = ({
         ) *
         0.06;
 
-      program.uniforms
-        .uPointer
-        .value[0] =
+      const pointerUniform =
+        program.uniforms
+          .uPointer
+          .value as Float32Array;
+
+      pointerUniform[0] =
         pointer.x;
 
-      program.uniforms
-        .uPointer
-        .value[1] =
+      pointerUniform[1] =
         pointer.y;
 
       program.uniforms
         .uPointerActive
         .value =
         reduceMotion
-          ? pointer.active *
-            0.35
+          ? pointer.active * 0.35
           : pointer.active;
 
       program.uniforms
@@ -1381,15 +1263,11 @@ const WarpText = ({
       renderOnce();
 
       raf =
-        requestAnimationFrame(
-          loop
-        );
+        requestAnimationFrame(loop);
     };
 
     resizeObserver =
-      new ResizeObserver(
-        resize
-      );
+      new ResizeObserver(resize);
 
     resizeObserver.observe(
       container
@@ -1416,10 +1294,7 @@ const WarpText = ({
             !visible &&
             raf
           ) {
-            cancelAnimationFrame(
-              raf
-            );
-
+            cancelAnimationFrame(raf);
             raf = 0;
           }
         },
@@ -1471,20 +1346,15 @@ const WarpText = ({
     resize();
 
     raf =
-      requestAnimationFrame(
-        loop
-      );
+      requestAnimationFrame(loop);
 
     return () => {
       disposed = true;
 
-      contextRef.current =
-        null;
+      contextRef.current = null;
 
       if (raf) {
-        cancelAnimationFrame(
-          raf
-        );
+        cancelAnimationFrame(raf);
       }
 
       resizeObserver?.disconnect();
@@ -1517,16 +1387,14 @@ const WarpText = ({
 
       if (!contextLost) {
         try {
-          if (
-            texture?.texture
-          ) {
+          if (texture.texture) {
             gl.deleteTexture(
               texture.texture
             );
           }
 
-          geometry?.remove?.();
-          program?.remove?.();
+          geometry.remove?.();
+          program.remove?.();
 
           gl
             .getExtension(
