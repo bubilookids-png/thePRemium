@@ -95,6 +95,10 @@ Goals:
 - Provide 2-3 natural example sentences.
 - Provide a short "usage" explanation.
 - Provide 2-5 common mistakes/usage notes if relevant.
+- IMPORTANT: pronunciation MUST ALWAYS be an object.
+- Use exactly this format: "pronunciation": { "ipa": "/teɪk/" }
+- NEVER return pronunciation as a plain string.
+- If IPA is unavailable, use: "pronunciation": { "ipa": "" }
 - Generate a short quiz (3-6 questions) with mixed types:
   - multiple_choice
   - select_synonym
