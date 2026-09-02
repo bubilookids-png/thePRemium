@@ -14,8 +14,8 @@ const PORT = Number(process.env.PORT || 8787);
 
 const CLIENT_ORIGINS = [
   'http://localhost:5173',
-  'https://the-p-remium-client.vercel.app',
-  'https://the-p-remium-client-qyog2l9zu-meonly24.vercel.app'
+  'https://vacabbro.vercel.app',
+  'https://vacabbro-h8oj4gy7t-meonly24.vercel.app'
 ];
 
 app.set('trust proxy', 1);
