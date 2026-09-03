@@ -3033,3 +3033,301 @@ input[type="radio"] {
   }
 }
 
+/* =========================================
+   VACABBRO — AI SERVER STATUS
+   ========================================= */
+
+.server-status {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  min-width: 142px;
+
+  padding: 8px 11px;
+
+  border: 1px solid rgba(192, 132, 252, 0.14);
+  border-radius: 15px;
+
+  color: #f8f5ff;
+  background: rgba(124, 58, 237, 0.07);
+
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  cursor: pointer;
+
+  text-align: left;
+
+  transition:
+    transform 0.3s ease,
+    border-color 0.3s ease,
+    background 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.server-status:not(:disabled):hover {
+  transform: translateY(-2px);
+
+  border-color: rgba(192, 132, 252, 0.32);
+
+  background: rgba(124, 58, 237, 0.12);
+
+  box-shadow:
+    0 8px 28px rgba(82, 39, 255, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.server-status:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* Icon */
+
+.server-status-icon {
+  position: relative;
+
+  width: 31px;
+  height: 31px;
+  flex: 0 0 31px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 10px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(192, 132, 252, 0.2),
+      rgba(82, 39, 255, 0.12)
+    );
+
+  border: 1px solid rgba(192, 132, 252, 0.12);
+}
+
+.server-spark {
+  color: #c084fc;
+  font-size: 14px;
+
+  text-shadow:
+    0 0 10px rgba(192, 132, 252, 0.8);
+
+  animation: serverSpark 2.5s ease-in-out infinite;
+}
+
+@keyframes serverSpark {
+  0%,
+  100% {
+    transform: scale(0.9);
+    opacity: 0.65;
+  }
+
+  50% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+}
+
+/* Spinner */
+
+.server-spinner {
+  width: 15px;
+  height: 15px;
+
+  border: 2px solid rgba(192, 132, 252, 0.2);
+  border-top-color: #c084fc;
+  border-right-color: #38bdf8;
+
+  border-radius: 50%;
+
+  animation: serverSpin 0.8s linear infinite;
+}
+
+@keyframes serverSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Text */
+
+.server-status-text {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.server-status-label {
+  color: rgba(226, 232, 240, 0.48);
+
+  font-size: 8px;
+  font-weight: 800;
+
+  letter-spacing: 0.12em;
+}
+
+.server-status-message {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  color: rgba(248, 245, 255, 0.88);
+
+  font-size: 11px;
+  font-weight: 650;
+}
+
+/* Status dot */
+
+.server-status-dot {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 6px;
+
+  border-radius: 50%;
+
+  background: #a78bfa;
+
+  box-shadow:
+    0 0 7px rgba(167, 139, 250, 0.8);
+}
+
+/* Sleeping */
+
+.server-status-sleeping .server-status-dot {
+  opacity: 0.65;
+}
+
+/* Waking */
+
+.server-status-waking {
+  cursor: wait;
+
+  border-color: rgba(192, 132, 252, 0.24);
+
+  background: rgba(124, 58, 237, 0.11);
+}
+
+.server-status-waking .server-status-dot {
+  animation: serverDotPulse 1s ease-in-out infinite;
+}
+
+@keyframes serverDotPulse {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.8);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+/* Live */
+
+.server-status-live {
+  cursor: default;
+
+  border-color: rgba(74, 222, 128, 0.2);
+
+  background: rgba(34, 197, 94, 0.06);
+}
+
+.server-status-live .server-status-icon {
+  background: rgba(34, 197, 94, 0.08);
+  border-color: rgba(74, 222, 128, 0.15);
+}
+
+.server-status-live .server-spark {
+  color: #86efac;
+
+  text-shadow:
+    0 0 10px rgba(74, 222, 128, 0.7);
+}
+
+.server-status-live .server-status-dot {
+  background: #4ade80;
+
+  box-shadow:
+    0 0 7px rgba(74, 222, 128, 0.9),
+    0 0 14px rgba(74, 222, 128, 0.35);
+
+  animation: serverLivePulse 2s ease-in-out infinite;
+}
+
+@keyframes serverLivePulse {
+  0%,
+  100% {
+    opacity: 0.7;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Error */
+
+.server-status-error {
+  border-color: rgba(248, 113, 113, 0.2);
+}
+
+.server-status-error .server-status-dot {
+  background: #f87171;
+
+  box-shadow:
+    0 0 8px rgba(248, 113, 113, 0.7);
+}
+
+.server-status-error .server-spark {
+  color: #fca5a5;
+}
+
+/* Arrow */
+
+.server-status-arrow {
+  margin-left: auto;
+
+  color: rgba(226, 232, 240, 0.4);
+
+  font-size: 15px;
+
+  transition:
+    transform 0.3s ease,
+    color 0.3s ease;
+}
+
+.server-status:hover .server-status-arrow {
+  transform: translateX(3px);
+  color: #c084fc;
+}
+
+/* Mobile */
+
+@media (max-width: 640px) {
+  .server-status {
+    min-width: 0;
+    padding: 7px 9px;
+  }
+
+  .server-status-label {
+    font-size: 7px;
+  }
+
+  .server-status-message {
+    font-size: 10px;
+  }
+
+  .server-status-icon {
+    width: 28px;
+    height: 28px;
+    flex-basis: 28px;
+  }
+}
