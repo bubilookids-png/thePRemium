@@ -3331,3 +3331,68 @@ input[type="radio"] {
     flex-basis: 28px;
   }
 }
+
+.try-first-word {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  margin: 0 auto 22px;
+
+  padding: 10px 17px;
+
+  border: 1px solid rgba(196, 181, 253, 0.28);
+  border-radius: 999px;
+
+  background: rgba(82, 39, 255, 0.12);
+  color: #d8ccff;
+
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 8px 30px rgba(82, 39, 255, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+
+  backdrop-filter: blur(10px);
+
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.try-first-word:hover {
+  transform: translateY(-2px);
+
+  background: rgba(82, 39, 255, 0.2);
+  border-color: rgba(196, 181, 253, 0.5);
+
+  box-shadow:
+    0 12px 35px rgba(82, 39, 255, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.try-first-word:active {
+  transform: translateY(0);
+}
+
+.try-first-word-icon {
+  font-size: 11px;
+  color: #c4b5fd;
+}
+
+.try-first-arrow {
+  font-size: 16px;
+  margin-left: 2px;
+  transition: transform 0.2s ease;
+}
+
+.try-first-word:hover .try-first-arrow {
+  transform: translateX(3px);
+}

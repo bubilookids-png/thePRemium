@@ -6,18 +6,24 @@ import { Footer } from './components/Footer';
 import { Card } from './components/Card';
 import { WordForm } from './components/WordForm';
 import { Alert } from './components/Alert';
-import { SkeletonBlock } from './components/Skeleton';
 import { AnalysisView } from './components/AnalysisView';
 import { QuizView } from './components/QuizView';
-import type { AnalyzeResponse, SupportedLanguageCode } from './types/vocab';
+import type {
+  AnalyzeResponse,
+  SupportedLanguageCode
+} from './types/vocab';
 import { analyzeWord } from './services/vocabApi';
-import { isLikelyValidTerm, normalizeTerm } from './utils/string';
+import {
+  isLikelyValidTerm,
+  normalizeTerm
+} from './utils/string';
 
 type View = 'analysis' | 'quiz';
 
 export default function App() {
   const [word, setWord] = useState('');
-  const [langCode, setLangCode] = useState<SupportedLanguageCode>('es');
+  const [langCode, setLangCode] =
+    useState<SupportedLanguageCode>('es');
   const [langLabel, setLangLabel] = useState('Spanish');
 
   const [loading, setLoading] = useState(false);
@@ -26,7 +32,10 @@ export default function App() {
   const [data, setData] = useState<AnalyzeResponse | null>(null);
   const [view, setView] = useState<View>('analysis');
 
-  const normalized = useMemo(() => normalizeTerm(word), [word]);
+  const normalized = useMemo(
+    () => normalizeTerm(word),
+    [word]
+  );
 
   async function onAnalyze() {
     setError(null);
@@ -57,10 +66,37 @@ export default function App() {
 
       setData(res);
     } catch (e: any) {
-      setError(e?.message || 'Something went wrong. Please try again.');
+      setError(
+        e?.message ||
+          'Something went wrong. Please try again.'
+      );
     } finally {
       setLoading(false);
     }
+  }
+
+  // Scroll directly to the word input and focus it
+  function handleTryFirstWord() {
+    const section = document.getElementById(
+      'analyze-word-section'
+    );
+
+    if (!section) return;
+
+    section.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center'
+    });
+
+    window.setTimeout(() => {
+      const input = section.querySelector(
+        'input'
+      ) as HTMLInputElement | null;
+
+      if (input) {
+        input.focus();
+      }
+    }, 500);
   }
 
   return (
@@ -98,11 +134,33 @@ export default function App() {
         <main className="page">
           <section className="hero">
             <div>
-              <div className="eyebrow">✦ AI vocabulary lab</div>
+              <div className="eyebrow">
+                ✦ AI vocabulary lab
+              </div>
 
+              {/* TRY YOUR FIRST WORD */}
+              <button
+                type="button"
+                className="try-first-word"
+                onClick={handleTryFirstWord}
+              >
+                <span className="try-first-word-icon">
+                  ✦
+                </span>
+
+                <span>Try your first word</span>
+
+                <span className="try-first-arrow">
+                  →
+                </span>
+              </button>
+
+              {/* MAIN HEADING */}
               <h1>
                 <WarpText
-                  text={'Turn one word into\nreal knowledge.'}
+                  text={
+                    'Turn one word into\nreal knowledge.'
+                  }
                   color="#f8f5ff"
                   warpStrength={0.08}
                   warpScale={1.7}
@@ -118,13 +176,11 @@ export default function App() {
               </h1>
 
               <p className="hero-copy">
-                Get a clear definition, natural translation, CEFR level,
-                collocations, examples and a quick quiz — all in one focused
-                workspace.
+                Get a clear definition, natural translation,
+                CEFR level, collocations, examples and a quick
+                quiz — all in one focused workspace.
               </p>
             </div>
-
-            
 
             <div className="hero-panel">
               <div className="hero-panel-title">
@@ -156,81 +212,92 @@ export default function App() {
           </section>
 
           <div className="grid gap-4">
-            <Card
-              title="Analyze a word"
-              subtitle="Enter a word or short phrase and let AI build your study card"
-              className="form-card"
-            >
-              <WordForm
-                word={word}
-                onWordChange={setWord}
-                languageCode={langCode}
-                onLanguageChange={(code, label) => {
-                  setLangCode(code);
-                  setLangLabel(label);
-                }}
-                onSubmit={onAnalyze}
-                disabled={loading}
-              />
 
-              <div className="entered-line">
-                You entered: <strong>{normalized || '—'}</strong>
-              </div>
+            {/* ANALYZE WORD SECTION */}
+            <div id="analyze-word-section">
+              <Card
+                title="Analyze a word"
+                subtitle="Enter a word or short phrase and let AI build your study card"
+                className="form-card"
+              >
+                <WordForm
+                  word={word}
+                  onWordChange={setWord}
+                  languageCode={langCode}
+                  onLanguageChange={(code, label) => {
+                    setLangCode(code);
+                    setLangLabel(label);
+                  }}
+                  onSubmit={onAnalyze}
+                  disabled={loading}
+                />
 
-              {error ? (
-                <div className="mt-4">
-                  <Alert
-                    variant="error"
-                    title="Couldn’t analyze the word"
-                  >
-                    {error}
-                  </Alert>
+                <div className="entered-line">
+                  You entered:{' '}
+                  <strong>
+                    {normalized || '—'}
+                  </strong>
                 </div>
-              ) : null}
-            </Card>
 
+                {error ? (
+                  <div className="mt-4">
+                    <Alert
+                      variant="error"
+                      title="Couldn’t analyze the word"
+                    >
+                      {error}
+                    </Alert>
+                  </div>
+                ) : null}
+              </Card>
+            </div>
+
+            {/* AI LOADING */}
             {loading ? (
-  <Card title="AI is thinking">
-    <div className="ai-loading">
-      <div className="ai-loading-orb">
-        <div className="ai-loading-ring ai-loading-ring-1" />
-        <div className="ai-loading-ring ai-loading-ring-2" />
-        <div className="ai-loading-core">
-          ✦
-        </div>
-      </div>
+              <Card title="AI is thinking">
+                <div className="ai-loading">
+                  <div className="ai-loading-orb">
+                    <div className="ai-loading-ring ai-loading-ring-1" />
+                    <div className="ai-loading-ring ai-loading-ring-2" />
 
-      <div className="ai-loading-content">
-        <div className="ai-loading-title">
-          Analyzing your word
-          <span className="ai-dots">
-            <span>.</span>
-            <span>.</span>
-            <span>.</span>
-          </span>
-        </div>
+                    <div className="ai-loading-core">
+                      ✦
+                    </div>
+                  </div>
 
-        <div className="ai-loading-steps">
-          <div className="ai-step active">
-            <span>✦</span>
-            Understanding meaning
-          </div>
+                  <div className="ai-loading-content">
+                    <div className="ai-loading-title">
+                      Analyzing your word
 
-          <div className="ai-step active">
-            <span>✦</span>
-            Building natural examples
-          </div>
+                      <span className="ai-dots">
+                        <span>.</span>
+                        <span>.</span>
+                        <span>.</span>
+                      </span>
+                    </div>
 
-          <div className="ai-step active">
-            <span>✦</span>
-            Preparing your quiz
-          </div>
-        </div>
-      </div>
-    </div>
-  </Card>
-) : null}
+                    <div className="ai-loading-steps">
+                      <div className="ai-step active">
+                        <span>✦</span>
+                        Understanding meaning
+                      </div>
 
+                      <div className="ai-step active">
+                        <span>✦</span>
+                        Building natural examples
+                      </div>
+
+                      <div className="ai-step active">
+                        <span>✦</span>
+                        Preparing your quiz
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            ) : null}
+
+            {/* QUICK START */}
             {!loading && !data ? (
               <Card
                 title="Your study workflow"
@@ -238,42 +305,71 @@ export default function App() {
               >
                 <div className="quick-start">
                   <div className="quick-item">
-                    <div className="quick-icon">01</div>
+                    <div className="quick-icon">
+                      01
+                    </div>
+
                     <strong>Enter</strong>
-                    <span>Type one word or phrase.</span>
+
+                    <span>
+                      Type one word or phrase.
+                    </span>
                   </div>
 
                   <div className="quick-item">
-                    <div className="quick-icon">02</div>
+                    <div className="quick-icon">
+                      02
+                    </div>
+
                     <strong>Understand</strong>
-                    <span>Read meaning and translation.</span>
+
+                    <span>
+                      Read meaning and translation.
+                    </span>
                   </div>
 
                   <div className="quick-item">
-                    <div className="quick-icon">03</div>
+                    <div className="quick-icon">
+                      03
+                    </div>
+
                     <strong>See it</strong>
-                    <span>Use examples and collocations.</span>
+
+                    <span>
+                      Use examples and collocations.
+                    </span>
                   </div>
 
                   <div className="quick-item">
-                    <div className="quick-icon">04</div>
+                    <div className="quick-icon">
+                      04
+                    </div>
+
                     <strong>Recall</strong>
-                    <span>Finish the mini quiz.</span>
+
+                    <span>
+                      Finish the mini quiz.
+                    </span>
                   </div>
                 </div>
               </Card>
             ) : null}
 
+            {/* RESULTS */}
             {!loading && data ? (
               view === 'analysis' ? (
                 <AnalysisView
                   analysis={data.analysis}
-                  onStartQuiz={() => setView('quiz')}
+                  onStartQuiz={() =>
+                    setView('quiz')
+                  }
                 />
               ) : (
                 <QuizView
                   quiz={data.quiz}
-                  onBackToAnalysis={() => setView('analysis')}
+                  onBackToAnalysis={() =>
+                    setView('analysis')
+                  }
                 />
               )
             ) : null}
