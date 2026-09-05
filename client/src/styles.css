@@ -4618,3 +4618,25 @@ input[type="radio"] {
     width: 100%;
   }
 }
+
+/* FIX: keep submit button inside the scrollable questions pane */
+
+.reading-questions-pane {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto !important;
+  overflow-x: hidden;
+}
+
+.reading-question-content {
+  flex: 0 0 auto;
+  overflow: visible !important;
+  max-height: none !important;
+}
+
+.reading-submit-area {
+  flex: 0 0 auto;
+  margin-top: 28px;
+  margin-bottom: 28px;
+}
