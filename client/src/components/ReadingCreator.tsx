@@ -1,31 +1,53 @@
-import React, { useMemo, useState } from 'react';
-import { createReading } from '../services/readingApi';
+import React, {
+  useMemo,
+  useState
+} from 'react';
+
+import {
+  createReading,
+  submitReading
+} from '../services/readingApi';
+
 import type {
   ReadingResponse,
-  ReadingQuestionType
+  ReadingQuestionType,
+  ReadingSubmitResponse
 } from '../types/reading';
 
 type Props = {
   onBack: () => void;
 };
 
-function typeLabel(type: ReadingQuestionType) {
+function typeLabel(
+  type: ReadingQuestionType
+) {
   const labels: Record<
     ReadingQuestionType,
     string
   > = {
     multiple_choice: 'Multiple Choice',
-    true_false_not_given: 'True / False / Not Given',
-    yes_no_not_given: 'Yes / No / Not Given',
-    matching_headings: 'Matching Headings',
-    matching_information: 'Matching Information',
-    matching_features: 'Matching Features',
-    sentence_completion: 'Sentence Completion',
-    summary_completion: 'Summary Completion',
-    note_completion: 'Note Completion',
-    table_completion: 'Table Completion',
-    flow_chart_completion: 'Flow-chart Completion',
-    short_answer: 'Short Answer'
+    true_false_not_given:
+      'True / False / Not Given',
+    yes_no_not_given:
+      'Yes / No / Not Given',
+    matching_headings:
+      'Matching Headings',
+    matching_information:
+      'Matching Information',
+    matching_features:
+      'Matching Features',
+    sentence_completion:
+      'Sentence Completion',
+    summary_completion:
+      'Summary Completion',
+    note_completion:
+      'Note Completion',
+    table_completion:
+      'Table Completion',
+    flow_chart_completion:
+      'Flow-chart Completion',
+    short_answer:
+      'Short Answer'
   };
 
   return labels[type];
@@ -34,30 +56,65 @@ function typeLabel(type: ReadingQuestionType) {
 export function ReadingCreator({
   onBack
 }: Props) {
-  const [title, setTitle] = useState('');
-  const [passage, setPassage] = useState('');
+  const [title, setTitle] =
+    useState('');
+
+  const [passage, setPassage] =
+    useState('');
+
   const [questions, setQuestions] =
     useState('');
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] =
+    useState(false);
+
+  const [submitting, setSubmitting] =
+    useState(false);
+
   const [error, setError] =
     useState<string | null>(null);
 
   const [reading, setReading] =
-    useState<ReadingResponse | null>(null);
+    useState<ReadingResponse | null>(
+      null
+    );
+
+  const [answers, setAnswers] =
+    useState<Record<
+      number,
+      string
+    >>({});
+
+  const [result, setResult] =
+    useState<ReadingSubmitResponse | null>(
+      null
+    );
 
   const questionCount = useMemo(() => {
     if (!reading) return 0;
 
     return reading.groups.reduce(
       (total, group) =>
-        total + group.questions.length,
+        total +
+        group.questions.length,
       0
     );
   }, [reading]);
 
+  function updateAnswer(
+    number: number,
+    value: string
+  ) {
+    setAnswers((current) => ({
+      ...current,
+      [number]: value
+    }));
+  }
+
   async function handleCreate() {
     setError(null);
+    setResult(null);
+    setAnswers({});
 
     if (passage.trim().length < 50) {
       setError(
@@ -76,17 +133,22 @@ export function ReadingCreator({
     setLoading(true);
 
     try {
-      const result = await createReading({
-        title: title.trim() || undefined,
-        passage,
-        questions
-      });
+      const created =
+        await createReading({
+          title:
+            title.trim() ||
+            undefined,
+          passage,
+          questions
+        });
 
-      setReading(result);
+      setReading(created);
 
       window.setTimeout(() => {
         document
-          .getElementById('reading-workspace')
+          .getElementById(
+            'reading-workspace'
+          )
           ?.scrollIntoView({
             behavior: 'smooth',
             block: 'start'
@@ -102,19 +164,263 @@ export function ReadingCreator({
     }
   }
 
+  async function handleSubmit() {
+    if (!reading) return;
+
+    setError(null);
+    setSubmitting(true);
+
+    try {
+      const allAnswers =
+        reading.groups.flatMap(
+          (group) =>
+            group.questions.map(
+              (question) => ({
+                number:
+                  question.number,
+
+                answer:
+                  (
+                    answers[
+                      question.number
+                    ] || ''
+                  ).trim()
+              })
+            )
+        );
+
+      const checked =
+        await submitReading({
+          title: reading.title,
+          passage: reading.passage,
+          groups: reading.groups,
+          answers: allAnswers
+        });
+
+      setResult(checked);
+
+      window.setTimeout(() => {
+        document
+          .getElementById(
+            'reading-results'
+          )
+          ?.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+      }, 80);
+    } catch (e: any) {
+      setError(
+        e?.message ||
+          'Could not check the Reading answers.'
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   function handleReset() {
     setReading(null);
+    setResult(null);
+    setAnswers({});
     setError(null);
 
     window.setTimeout(() => {
       document
-        .getElementById('reading-creator-input')
+        .getElementById(
+          'reading-creator-input'
+        )
         ?.scrollIntoView({
           behavior: 'smooth',
           block: 'center'
         });
     }, 50);
   }
+
+  /* =========================
+     RESULTS
+  ========================= */
+
+  if (reading && result) {
+    return (
+      <div className="reading-page fade-in">
+        <div
+          id="reading-results"
+          className="reading-results-card section-card"
+        >
+          <div className="reading-results-top">
+            <div>
+              <div className="reading-eyebrow">
+                ✦ IELTS reading results
+              </div>
+
+              <h2 className="reading-title">
+                {reading.title}
+              </h2>
+
+              <p className="reading-results-subtitle">
+                Your answers have been checked
+                against the passage by AI.
+              </p>
+            </div>
+
+            <div className="reading-score-card">
+              <span>Band</span>
+
+              <strong>
+                {result.band.toFixed(1)}
+              </strong>
+            </div>
+          </div>
+
+          <div className="reading-result-stats">
+            <div className="reading-result-stat">
+              <span>Score</span>
+              <strong>
+                {result.score}/
+                {result.total}
+              </strong>
+            </div>
+
+            <div className="reading-result-stat">
+              <span>Percentage</span>
+              <strong>
+                {result.percentage}%
+              </strong>
+            </div>
+
+            <div className="reading-result-stat">
+              <span>Correct</span>
+              <strong>
+                {
+                  result.results.filter(
+                    (item) =>
+                      item.isCorrect
+                  ).length
+                }
+              </strong>
+            </div>
+
+            <div className="reading-result-stat">
+              <span>Incorrect</span>
+              <strong>
+                {
+                  result.results.filter(
+                    (item) =>
+                      !item.isCorrect
+                  ).length
+                }
+              </strong>
+            </div>
+          </div>
+
+          <div className="reading-result-list">
+            {result.results.map(
+              (item) => (
+                <div
+                  key={item.number}
+                  className={`reading-result-item ${
+                    item.isCorrect
+                      ? 'is-correct'
+                      : 'is-incorrect'
+                  }`}
+                >
+                  <div className="reading-result-number">
+                    {item.number}
+                  </div>
+
+                  <div className="reading-result-body">
+                    <div className="reading-result-question">
+                      {item.question}
+                    </div>
+
+                    <div className="reading-result-answers">
+                      <div>
+                        <span>
+                          Your answer
+                        </span>
+
+                        <strong>
+                          {item.userAnswer ||
+                            'No answer'}
+                        </strong>
+                      </div>
+
+                      <div>
+                        <span>
+                          Correct answer
+                        </span>
+
+                        <strong>
+                          {
+                            item.correctAnswer
+                          }
+                        </strong>
+                      </div>
+                    </div>
+
+                    <p className="reading-result-explanation">
+                      {item.explanation}
+                    </p>
+                  </div>
+
+                  <div className="reading-result-status">
+                    {item.isCorrect
+                      ? '✓'
+                      : '✕'}
+                  </div>
+                </div>
+              )
+            )}
+          </div>
+
+          <div className="reading-results-actions">
+            <button
+              type="button"
+              className="reading-secondary-btn"
+              onClick={() => {
+                setResult(null);
+                setError(null);
+                window.setTimeout(() => {
+                  document
+                    .getElementById(
+                      'reading-workspace'
+                    )
+                    ?.scrollIntoView({
+                      behavior:
+                        'smooth',
+                      block: 'start'
+                    });
+                }, 50);
+              }}
+            >
+              ← Review Answers
+            </button>
+
+            <button
+              type="button"
+              className="reading-primary-btn"
+              onClick={handleReset}
+            >
+              New Reading
+            </button>
+
+            <button
+              type="button"
+              className="reading-primary-btn"
+              onClick={onBack}
+            >
+              Vocabulary
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /* =========================
+     WORKSPACE
+  ========================= */
 
   if (reading) {
     return (
@@ -136,7 +442,8 @@ export function ReadingCreator({
               </span>
 
               <span className="reading-pill">
-                {reading.groups.length} sections
+                {reading.groups.length}{' '}
+                sections
               </span>
             </div>
           </div>
@@ -184,11 +491,16 @@ export function ReadingCreator({
             <article className="reading-passage">
               {reading.passage
                 .split(/\n\s*\n/)
-                .map((paragraph, index) => (
-                  <p key={index}>
-                    {paragraph}
-                  </p>
-                ))}
+                .map(
+                  (
+                    paragraph,
+                    index
+                  ) => (
+                    <p key={index}>
+                      {paragraph}
+                    </p>
+                  )
+                )}
             </article>
           </section>
 
@@ -205,10 +517,9 @@ export function ReadingCreator({
               </div>
 
               <span className="reading-pane-number">
-                {String(questionCount).padStart(
-                  2,
-                  '0'
-                )}
+                {String(
+                  questionCount
+                ).padStart(2, '0')}
               </span>
             </div>
 
@@ -221,22 +532,39 @@ export function ReadingCreator({
                   >
                     <div className="reading-group-top">
                       <span>
-                        {typeLabel(group.type)}
+                        {typeLabel(
+                          group.type
+                        )}
                       </span>
                     </div>
 
                     {group.instruction ? (
                       <p className="reading-instruction">
-                        {group.instruction}
+                        {
+                          group.instruction
+                        }
                       </p>
                     ) : null}
 
                     {group.questions.map(
-                      (question) => (
+                      (
+                        question
+                      ) => (
                         <ReadingQuestion
                           key={`${group.id}-${question.number}`}
-                          question={question}
+                          question={
+                            question
+                          }
                           group={group}
+                          value={
+                            answers[
+                              question
+                                .number
+                            ] || ''
+                          }
+                          onChange={
+                            updateAnswer
+                          }
                         />
                       )
                     )}
@@ -244,11 +572,60 @@ export function ReadingCreator({
                 )
               )}
             </div>
+
+            {error ? (
+              <div className="reading-error">
+                <strong>
+                  Couldn’t submit Reading
+                </strong>
+
+                <span>
+                  {error}
+                </span>
+              </div>
+            ) : null}
+
+            <div className="reading-submit-area">
+              <div>
+                <strong>
+                  Ready to finish?
+                </strong>
+
+                <span>
+                  AI will check every answer
+                  against the passage.
+                </span>
+              </div>
+
+              <button
+                type="button"
+                className="reading-create-btn"
+                onClick={handleSubmit}
+                disabled={submitting}
+              >
+                {submitting ? (
+                  <>
+                    <span className="reading-btn-spinner" />
+                    Checking answers...
+                  </>
+                ) : (
+                  <>
+                    <span>✓</span>
+                    Submit Answers
+                    <span>→</span>
+                  </>
+                )}
+              </button>
+            </div>
           </section>
         </div>
       </div>
     );
   }
+
+  /* =========================
+     CREATE SCREEN
+  ========================= */
 
   return (
     <div className="reading-page fade-in">
@@ -268,40 +645,57 @@ export function ReadingCreator({
 
           <h2 className="reading-hero-title">
             Turn your passage into
-            <span> a real Reading workspace.</span>
+            <span>
+              {' '}
+              a real Reading workspace.
+            </span>
           </h2>
 
           <p className="reading-hero-copy">
-            Paste your own IELTS-style passage and
-            its questions. AI will structure them
-            into a clean two-pane reading interface
+            Paste your own IELTS-style
+            passage and its questions. AI
+            will structure them into a clean
+            two-pane reading interface
             without generating new content.
           </p>
         </div>
 
         <div className="reading-feature-card">
           <span>01</span>
-          <strong>Paste your content</strong>
+
+          <strong>
+            Paste your content
+          </strong>
+
           <p>
-            Your passage and questions stay yours.
+            Your passage and questions stay
+            yours.
           </p>
         </div>
 
         <div className="reading-feature-card">
           <span>02</span>
-          <strong>AI structures it</strong>
+
+          <strong>
+            AI structures it
+          </strong>
+
           <p>
-            Question types and groups are detected
-            automatically.
+            Question types and groups are
+            detected automatically.
           </p>
         </div>
 
         <div className="reading-feature-card">
           <span>03</span>
-          <strong>Practice naturally</strong>
+
+          <strong>
+            Practice naturally
+          </strong>
+
           <p>
-            Read left, answer right — just like a
-            focused IELTS workspace.
+            Read left, answer right — just
+            like a focused IELTS workspace.
           </p>
         </div>
       </div>
@@ -331,6 +725,7 @@ export function ReadingCreator({
           <div className="reading-field">
             <label className="field-label">
               Title
+
               <span className="field-hint">
                 optional
               </span>
@@ -340,7 +735,9 @@ export function ReadingCreator({
               className="text-input"
               value={title}
               onChange={(e) =>
-                setTitle(e.target.value)
+                setTitle(
+                  e.target.value
+                )
               }
               placeholder="e.g. The History of Coffee"
               maxLength={160}
@@ -350,7 +747,9 @@ export function ReadingCreator({
           <div className="reading-input-grid">
             <div className="reading-field">
               <div className="field-label">
-                <span>Reading passage</span>
+                <span>
+                  Reading passage
+                </span>
 
                 <span className="field-hint">
                   {passage.length.toLocaleString()}
@@ -362,7 +761,9 @@ export function ReadingCreator({
                 className="reading-textarea"
                 value={passage}
                 onChange={(e) =>
-                  setPassage(e.target.value)
+                  setPassage(
+                    e.target.value
+                  )
                 }
                 placeholder={`Paste your complete reading passage here...
 
@@ -372,7 +773,9 @@ Keep the original paragraphs and wording.`}
 
             <div className="reading-field">
               <div className="field-label">
-                <span>Questions</span>
+                <span>
+                  Questions
+                </span>
 
                 <span className="field-hint">
                   {questions.length.toLocaleString()}
@@ -384,7 +787,9 @@ Keep the original paragraphs and wording.`}
                 className="reading-textarea"
                 value={questions}
                 onChange={(e) =>
-                  setQuestions(e.target.value)
+                  setQuestions(
+                    e.target.value
+                  )
                 }
                 placeholder={`Paste the questions belonging to the passage here...
 
@@ -403,8 +808,13 @@ D ...`}
 
           {error ? (
             <div className="reading-error">
-              <strong>Couldn’t create Reading</strong>
-              <span>{error}</span>
+              <strong>
+                Couldn’t create Reading
+              </strong>
+
+              <span>
+                {error}
+              </span>
             </div>
           ) : null}
 
@@ -429,9 +839,9 @@ D ...`}
           </button>
 
           <p className="reading-privacy-note">
-            AI structures your supplied content. It
-            does not generate a new passage or invent
-            questions.
+            AI structures your supplied
+            content. It does not generate a
+            new passage or invent questions.
           </p>
         </div>
       </div>
@@ -439,12 +849,26 @@ D ...`}
   );
 }
 
+/* =====================================================
+   QUESTION COMPONENT
+===================================================== */
+
 function ReadingQuestion({
   question,
-  group
+  group,
+  value,
+  onChange
 }: {
   question: ReadingResponse['groups'][number]['questions'][number];
+
   group: ReadingResponse['groups'][number];
+
+  value: string;
+
+  onChange: (
+    number: number,
+    value: string
+  ) => void;
 }) {
   const options =
     question.options ||
@@ -457,12 +881,17 @@ function ReadingQuestion({
     undefined;
 
   const isChoice =
-    question.type === 'multiple_choice' ||
-    question.type === 'true_false_not_given' ||
-    question.type === 'yes_no_not_given';
+    question.type ===
+      'multiple_choice' ||
+    question.type ===
+      'true_false_not_given' ||
+    question.type ===
+      'yes_no_not_given';
 
   const isMatching =
-    question.type.startsWith('matching_');
+    question.type.startsWith(
+      'matching_'
+    );
 
   return (
     <div className="reading-question">
@@ -475,38 +904,83 @@ function ReadingQuestion({
           {question.question}
         </p>
 
-        {isChoice && options?.length ? (
+        {isChoice &&
+        options?.length ? (
           <div className="reading-options">
-            {options.map((option, index) => (
-              <label
-                className="reading-option"
-                key={`${question.number}-${index}`}
-              >
-                <input
-                  type="radio"
-                  name={`reading-q-${question.number}`}
-                />
+            {options.map(
+              (
+                option,
+                index
+              ) => {
+                const letter =
+                  String.fromCharCode(
+                    65 + index
+                  );
 
-                <span className="reading-option-letter">
-                  {String.fromCharCode(65 + index)}
-                </span>
+                const selected =
+                  value === letter ||
+                  value === option;
 
-                <span>{option}</span>
-              </label>
-            ))}
+                return (
+                  <label
+                    className={`reading-option ${
+                      selected
+                        ? 'is-selected'
+                        : ''
+                    }`}
+                    key={`${question.number}-${index}`}
+                  >
+                    <input
+                      type="radio"
+                      name={`reading-q-${question.number}`}
+                      value={letter}
+                      checked={
+                        selected
+                      }
+                      onChange={() =>
+                        onChange(
+                          question.number,
+                          letter
+                        )
+                      }
+                    />
+
+                    <span className="reading-option-letter">
+                      {letter}
+                    </span>
+
+                    <span>
+                      {option}
+                    </span>
+                  </label>
+                );
+              }
+            )}
           </div>
         ) : isMatching &&
           matchingItems?.length ? (
           <select
             className="reading-answer-select"
-            defaultValue=""
+            value={value}
+            onChange={(e) =>
+              onChange(
+                question.number,
+                e.target.value
+              )
+            }
           >
-            <option value="" disabled>
+            <option
+              value=""
+              disabled
+            >
               Select an answer
             </option>
 
             {matchingItems.map(
-              (item, index) => (
+              (
+                item,
+                index
+              ) => (
                 <option
                   value={item}
                   key={`${question.number}-${index}`}
@@ -520,6 +994,13 @@ function ReadingQuestion({
           <input
             className="reading-answer-input"
             type="text"
+            value={value}
+            onChange={(e) =>
+              onChange(
+                question.number,
+                e.target.value
+              )
+            }
             placeholder="Your answer..."
           />
         )}

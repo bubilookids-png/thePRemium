@@ -40,3 +40,36 @@ export type ReadingCreateResponseDTO = {
   passage: string;
   groups: ReadingQuestionGroupDTO[];
 };
+
+/* =========================
+   READING SUBMISSION
+========================= */
+
+export type ReadingAnswerDTO = {
+  number: number;
+  answer: string;
+};
+
+export type ReadingSubmitRequestDTO = {
+  title?: string;
+  passage: string;
+  groups: ReadingQuestionGroupDTO[];
+  answers: ReadingAnswerDTO[];
+};
+
+export type ReadingQuestionResultDTO = {
+  number: number;
+  question: string;
+  userAnswer: string;
+  correctAnswer: string;
+  isCorrect: boolean;
+  explanation: string;
+};
+
+export type ReadingSubmitResponseDTO = {
+  score: number;
+  total: number;
+  percentage: number;
+  band: number;
+  results: ReadingQuestionResultDTO[];
+};

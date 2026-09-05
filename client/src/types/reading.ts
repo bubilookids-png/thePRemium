@@ -34,3 +34,29 @@ export type ReadingResponse = {
   passage: string;
   groups: ReadingQuestionGroup[];
 };
+
+/* =========================
+   SUBMIT
+========================= */
+
+export type ReadingAnswer = {
+  number: number;
+  answer: string;
+};
+
+export type ReadingQuestionResult = {
+  number: number;
+  question: string;
+  userAnswer: string;
+  correctAnswer: string;
+  isCorrect: boolean;
+  explanation: string;
+};
+
+export type ReadingSubmitResponse = {
+  score: number;
+  total: number;
+  percentage: number;
+  band: number;
+  results: ReadingQuestionResult[];
+};
