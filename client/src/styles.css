@@ -4552,6 +4552,7 @@ input[type="radio"] {
   flex-shrink: 0;
   min-width: 190px;
   min-height: 50px;
+  width: auto !important;
 
   display: inline-flex;
   align-items: center;
