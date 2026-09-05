@@ -4156,39 +4156,6 @@ input[type="radio"] {
 }
 
 /* =========================================================
-   READING SUBMIT AREA
-========================================================= */
-
-.reading-submit-area {
-  margin-top: 28px;
-  padding: 20px 22px;
-  border: 1px solid rgba(120, 120, 140, 0.16);
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.035);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-}
-
-.reading-submit-area > div {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.reading-submit-area strong {
-  font-size: 15px;
-  font-weight: 700;
-}
-
-.reading-submit-area span {
-  font-size: 13px;
-  opacity: 0.58;
-}
-
-
-/* =========================================================
    RESULTS PAGE
 ========================================================= */
 
@@ -4308,9 +4275,9 @@ input[type="radio"] {
   background: rgba(255, 255, 255, 0.025);
   box-sizing: border-box;
   transition:
-    transform 160ms ease,
-    border-color 160ms ease,
-    background 160ms ease;
+  transform 160ms ease,
+  border-color 160ms ease,
+  background 160ms ease;
 }
 
 .reading-result-item:hover {
@@ -4543,20 +4510,26 @@ input[type="radio"] {
   }
 }
 
-/* =========================
-   READING SUBMIT BUTTON
-========================= */
+/* =========================================================
+   READING SUBMIT AREA
+========================================================= */
 
 .reading-submit-area {
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  margin-top: 32px;
+
+  margin-top: 28px;
+  margin-bottom: 28px;
   padding: 22px 24px;
+
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 18px;
+
   background: rgba(255, 255, 255, 0.035);
+  box-sizing: border-box;
 }
 
 .reading-submit-area > div {
@@ -4579,10 +4552,12 @@ input[type="radio"] {
   flex-shrink: 0;
   min-width: 190px;
   min-height: 50px;
+
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
+
   cursor: pointer;
   position: relative;
   z-index: 5;
@@ -4593,12 +4568,34 @@ input[type="radio"] {
   cursor: not-allowed;
 }
 
+/* =========================================================
+   READING QUESTIONS SCROLL FIX
+========================================================= */
+
+.reading-questions-pane {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+
+  overflow-y: auto !important;
+  overflow-x: hidden;
+}
+
+.reading-question-content {
+  flex: 0 0 auto;
+
+  overflow: visible !important;
+  max-height: none !important;
+}
+
 .reading-btn-spinner {
   width: 16px;
   height: 16px;
+
   border: 2px solid currentColor;
   border-right-color: transparent;
   border-radius: 50%;
+
   animation: reading-spin 0.7s linear infinite;
 }
 
@@ -4617,26 +4614,4 @@ input[type="radio"] {
   .reading-submit-area .reading-create-btn {
     width: 100%;
   }
-}
-
-/* FIX: keep submit button inside the scrollable questions pane */
-
-.reading-questions-pane {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  overflow-y: auto !important;
-  overflow-x: hidden;
-}
-
-.reading-question-content {
-  flex: 0 0 auto;
-  overflow: visible !important;
-  max-height: none !important;
-}
-
-.reading-submit-area {
-  flex: 0 0 auto;
-  margin-top: 28px;
-  margin-bottom: 28px;
 }
