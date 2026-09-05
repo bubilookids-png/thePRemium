@@ -1,6 +1,6 @@
  const API_BASE =
   import.meta.env.VITE_API_BASE?.toString().trim() ||
-  'https://thepremium-production.up.railway.app';
+  'https://thepremium.onrender.com';
 
 type ApiErrorDetails = {
   status: number;
@@ -20,7 +20,7 @@ export async function apiFetch<T>(
   path: string,
   options: RequestInit & { timeoutMs?: number } = {}
 ): Promise<T> {
-  const { timeoutMs = 20000, ...rest } = options;
+  const { timeoutMs = 120000, ...rest } = options;
 
   const controller = new AbortController();
   const timer = window.setTimeout(() => controller.abort(), timeoutMs);
