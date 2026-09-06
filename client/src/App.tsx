@@ -8,7 +8,6 @@ import { WordForm } from './components/WordForm';
 import { Alert } from './components/Alert';
 import { AnalysisView } from './components/AnalysisView';
 import { QuizView } from './components/QuizView';
-import { ReadingCreator } from './components/ReadingCreator';
 
 import type {
   AnalyzeResponse,
@@ -23,12 +22,8 @@ import {
 } from './utils/string';
 
 type View = 'analysis' | 'quiz';
-type AppMode = 'vocabulary' | 'reading';
 
 export default function App() {
-  const [mode, setMode] =
-    useState<AppMode>('vocabulary');
-
   const [word, setWord] = useState('');
   const [langCode, setLangCode] =
     useState<SupportedLanguageCode>('es');
@@ -115,26 +110,6 @@ export default function App() {
     }, 500);
   }
 
-  function openReading() {
-    setMode('reading');
-    setError(null);
-
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
-  }
-
-  function openVocabulary() {
-    setMode('vocabulary');
-    setError(null);
-
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
-  }
-
   return (
     <div className="app-shell">
       <div className="app-background">
@@ -163,303 +138,286 @@ export default function App() {
       </div>
 
       <div className="app-content">
-        <Header
-          onReadingClick={openReading}
-          readingActive={
-            mode === 'reading'
-          }
-        />
+        <Header />
 
-        {mode === 'reading' ? (
-          <main className="page">
-            <ReadingCreator
-              onBack={openVocabulary}
-            />
-          </main>
-        ) : (
-          <>
-            <main className="page">
-              <section className="hero">
-                <div>
-                  <div className="eyebrow">
-                    ✦ AI vocabulary lab
+        <main className="page">
+          <section className="hero">
+            <div>
+              <div className="eyebrow">
+                ✦ AI vocabulary lab
+              </div>
+
+              <button
+                type="button"
+                className="try-first-word"
+                onClick={handleTryFirstWord}
+              >
+                <span className="try-first-word-icon">
+                  ✦
+                </span>
+
+                <span>
+                  Try your first word
+                </span>
+
+                <span className="try-first-arrow">
+                  →
+                </span>
+              </button>
+
+              <h1>
+                <WarpText
+                  text={
+                    'Turn one word into\nreal knowledge.'
+                  }
+                  color="#f8f5ff"
+                  warpStrength={0.08}
+                  warpScale={1.7}
+                  speed={0.55}
+                  pointerInfluence={0.42}
+                  pointerStrength={0.38}
+                  refraction={0.018}
+                  ripple
+                  fontSize="clamp(3rem, 7vw, 6rem)"
+                  fontWeight={800}
+                  style={{
+                    height: '220px'
+                  }}
+                />
+              </h1>
+
+              <p className="hero-copy">
+                Get a clear definition,
+                natural translation, CEFR
+                level, collocations, examples
+                and a quick quiz — all in one
+                focused workspace.
+              </p>
+            </div>
+
+            <div className="hero-panel">
+              <div className="hero-panel-title">
+                Everything in one analysis
+              </div>
+
+              <div className="feature-grid">
+                <div className="feature">
+                  <strong>
+                    CEFR + grammar
+                  </strong>
+                  Know the level and word
+                  type.
+                </div>
+
+                <div className="feature">
+                  <strong>
+                    Natural context
+                  </strong>
+                  Learn how people actually
+                  use it.
+                </div>
+
+                <div className="feature">
+                  <strong>
+                    Translation
+                  </strong>
+                  Choose the language you
+                  need.
+                </div>
+
+                <div className="feature">
+                  <strong>
+                    Mini quiz
+                  </strong>
+                  Test memory immediately.
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <div className="grid gap-4">
+            <div id="analyze-word-section">
+              <Card
+                title="Analyze a word"
+                subtitle="Enter a word or short phrase and let AI build your study card"
+                className="form-card"
+              >
+                <WordForm
+                  word={word}
+                  onWordChange={setWord}
+                  languageCode={
+                    langCode
+                  }
+                  onLanguageChange={(
+                    code,
+                    label
+                  ) => {
+                    setLangCode(code);
+                    setLangLabel(label);
+                  }}
+                  onSubmit={onAnalyze}
+                  disabled={loading}
+                />
+
+                <div className="entered-line">
+                  You entered:{' '}
+                  <strong>
+                    {normalized || '—'}
+                  </strong>
+                </div>
+
+                {error ? (
+                  <div className="mt-4">
+                    <Alert
+                      variant="error"
+                      title="Couldn’t analyze the word"
+                    >
+                      {error}
+                    </Alert>
+                  </div>
+                ) : null}
+              </Card>
+            </div>
+
+            {loading ? (
+              <Card title="AI is thinking">
+                <div className="ai-loading">
+                  <div className="ai-loading-orb">
+                    <div className="ai-loading-ring ai-loading-ring-1" />
+                    <div className="ai-loading-ring ai-loading-ring-2" />
+
+                    <div className="ai-loading-core">
+                      ✦
+                    </div>
                   </div>
 
-                  <button
-                    type="button"
-                    className="try-first-word"
-                    onClick={
-                      handleTryFirstWord
-                    }
-                  >
-                    <span className="try-first-word-icon">
-                      ✦
-                    </span>
+                  <div className="ai-loading-content">
+                    <div className="ai-loading-title">
+                      Analyzing your word
+
+                      <span className="ai-dots">
+                        <span>.</span>
+                        <span>.</span>
+                        <span>.</span>
+                      </span>
+                    </div>
+
+                    <div className="ai-loading-steps">
+                      <div className="ai-step active">
+                        <span>✦</span>
+                        Understanding
+                        meaning
+                      </div>
+
+                      <div className="ai-step active">
+                        <span>✦</span>
+                        Building natural
+                        examples
+                      </div>
+
+                      <div className="ai-step active">
+                        <span>✦</span>
+                        Preparing your
+                        quiz
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            ) : null}
+
+            {!loading && !data ? (
+              <Card
+                title="Your study workflow"
+                subtitle="A simple loop that keeps you learning"
+              >
+                <div className="quick-start">
+                  <div className="quick-item">
+                    <div className="quick-icon">
+                      01
+                    </div>
+
+                    <strong>
+                      Enter
+                    </strong>
 
                     <span>
-                      Try your first word
+                      Type one word or
+                      phrase.
                     </span>
-
-                    <span className="try-first-arrow">
-                      →
-                    </span>
-                  </button>
-
-                  <h1>
-                    <WarpText
-                      text={
-                        'Turn one word into\nreal knowledge.'
-                      }
-                      color="#f8f5ff"
-                      warpStrength={0.08}
-                      warpScale={1.7}
-                      speed={0.55}
-                      pointerInfluence={0.42}
-                      pointerStrength={0.38}
-                      refraction={0.018}
-                      ripple
-                      fontSize="clamp(3rem, 7vw, 6rem)"
-                      fontWeight={800}
-                      style={{
-                        height: '220px'
-                      }}
-                    />
-                  </h1>
-
-                  <p className="hero-copy">
-                    Get a clear definition,
-                    natural translation, CEFR
-                    level, collocations, examples
-                    and a quick quiz — all in one
-                    focused workspace.
-                  </p>
-                </div>
-
-                <div className="hero-panel">
-                  <div className="hero-panel-title">
-                    Everything in one analysis
                   </div>
 
-                  <div className="feature-grid">
-                    <div className="feature">
-                      <strong>
-                        CEFR + grammar
-                      </strong>
-                      Know the level and word
-                      type.
+                  <div className="quick-item">
+                    <div className="quick-icon">
+                      02
                     </div>
 
-                    <div className="feature">
-                      <strong>
-                        Natural context
-                      </strong>
-                      Learn how people actually
-                      use it.
+                    <strong>
+                      Understand
+                    </strong>
+
+                    <span>
+                      Read meaning and
+                      translation.
+                    </span>
+                  </div>
+
+                  <div className="quick-item">
+                    <div className="quick-icon">
+                      03
                     </div>
 
-                    <div className="feature">
-                      <strong>
-                        Translation
-                      </strong>
-                      Choose the language you
-                      need.
+                    <strong>
+                      See it
+                    </strong>
+
+                    <span>
+                      Use examples and
+                      collocations.
+                    </span>
+                  </div>
+
+                  <div className="quick-item">
+                    <div className="quick-icon">
+                      04
                     </div>
 
-                    <div className="feature">
-                      <strong>
-                        Mini quiz
-                      </strong>
-                      Test memory immediately.
-                    </div>
+                    <strong>
+                      Recall
+                    </strong>
+
+                    <span>
+                      Finish the mini
+                      quiz.
+                    </span>
                   </div>
                 </div>
-              </section>
+              </Card>
+            ) : null}
 
-              <div className="grid gap-4">
-                <div id="analyze-word-section">
-                  <Card
-                    title="Analyze a word"
-                    subtitle="Enter a word or short phrase and let AI build your study card"
-                    className="form-card"
-                  >
-                    <WordForm
-                      word={word}
-                      onWordChange={setWord}
-                      languageCode={
-                        langCode
-                      }
-                      onLanguageChange={(
-                        code,
-                        label
-                      ) => {
-                        setLangCode(code);
-                        setLangLabel(label);
-                      }}
-                      onSubmit={onAnalyze}
-                      disabled={loading}
-                    />
-
-                    <div className="entered-line">
-                      You entered:{' '}
-                      <strong>
-                        {normalized || '—'}
-                      </strong>
-                    </div>
-
-                    {error ? (
-                      <div className="mt-4">
-                        <Alert
-                          variant="error"
-                          title="Couldn’t analyze the word"
-                        >
-                          {error}
-                        </Alert>
-                      </div>
-                    ) : null}
-                  </Card>
-                </div>
-
-                {loading ? (
-                  <Card title="AI is thinking">
-                    <div className="ai-loading">
-                      <div className="ai-loading-orb">
-                        <div className="ai-loading-ring ai-loading-ring-1" />
-                        <div className="ai-loading-ring ai-loading-ring-2" />
-
-                        <div className="ai-loading-core">
-                          ✦
-                        </div>
-                      </div>
-
-                      <div className="ai-loading-content">
-                        <div className="ai-loading-title">
-                          Analyzing your word
-
-                          <span className="ai-dots">
-                            <span>.</span>
-                            <span>.</span>
-                            <span>.</span>
-                          </span>
-                        </div>
-
-                        <div className="ai-loading-steps">
-                          <div className="ai-step active">
-                            <span>✦</span>
-                            Understanding
-                            meaning
-                          </div>
-
-                          <div className="ai-step active">
-                            <span>✦</span>
-                            Building natural
-                            examples
-                          </div>
-
-                          <div className="ai-step active">
-                            <span>✦</span>
-                            Preparing your
-                            quiz
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </Card>
-                ) : null}
-
-                {!loading && !data ? (
-                  <Card
-                    title="Your study workflow"
-                    subtitle="A simple loop that keeps you learning"
-                  >
-                    <div className="quick-start">
-                      <div className="quick-item">
-                        <div className="quick-icon">
-                          01
-                        </div>
-
-                        <strong>
-                          Enter
-                        </strong>
-
-                        <span>
-                          Type one word or
-                          phrase.
-                        </span>
-                      </div>
-
-                      <div className="quick-item">
-                        <div className="quick-icon">
-                          02
-                        </div>
-
-                        <strong>
-                          Understand
-                        </strong>
-
-                        <span>
-                          Read meaning and
-                          translation.
-                        </span>
-                      </div>
-
-                      <div className="quick-item">
-                        <div className="quick-icon">
-                          03
-                        </div>
-
-                        <strong>
-                          See it
-                        </strong>
-
-                        <span>
-                          Use examples and
-                          collocations.
-                        </span>
-                      </div>
-
-                      <div className="quick-item">
-                        <div className="quick-icon">
-                          04
-                        </div>
-
-                        <strong>
-                          Recall
-                        </strong>
-
-                        <span>
-                          Finish the mini
-                          quiz.
-                        </span>
-                      </div>
-                    </div>
-                  </Card>
-                ) : null}
-
-                {!loading && data ? (
-                  view === 'analysis' ? (
-                    <AnalysisView
-                      analysis={
-                        data.analysis
-                      }
-                      onStartQuiz={() =>
-                        setView('quiz')
-                      }
-                    />
-                  ) : (
-                    <QuizView
-                      quiz={data.quiz}
-                      onBackToAnalysis={() =>
-                        setView(
-                          'analysis'
-                        )
-                      }
-                    />
-                  )
-                ) : null}
-              </div>
-            </main>
-          </>
-        )}
+            {!loading && data ? (
+              view === 'analysis' ? (
+                <AnalysisView
+                  analysis={
+                    data.analysis
+                  }
+                  onStartQuiz={() =>
+                    setView('quiz')
+                  }
+                />
+              ) : (
+                <QuizView
+                  quiz={data.quiz}
+                  onBackToAnalysis={() =>
+                    setView(
+                      'analysis'
+                    )
+                  }
+                />
+              )
+            ) : null}
+          </div>
+        </main>
 
         <Footer />
       </div>
