@@ -10,6 +10,18 @@ export type TargetLanguage = {
 
 export type CEFRLevel = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2' | 'Unknown';
 
+export type SourceType = 'db' | 'ai';
+
+export interface FieldSources {
+  definition?: SourceType;
+  translation?: SourceType;
+  synonyms?: SourceType;
+  antonyms?: SourceType;
+  collocations?: SourceType;
+  examples?: SourceType;
+  quiz?: SourceType;
+}
+
 export type VocabAnalysis = {
   word: string;
   targetLanguage: TargetLanguage;
@@ -50,6 +62,8 @@ export type VocabQuiz = {
 };
 
 export type AnalyzeResponse = {
+  source?: 'local_database' | 'ai_engine';
+  sources?: FieldSources;
   analysis: VocabAnalysis;
   quiz: VocabQuiz;
 };

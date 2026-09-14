@@ -28,8 +28,8 @@ type View = 'analysis' | 'quiz';
 
 export default function App() {
   const [word, setWord] = useState('');
-  const [langCode, setLangCode] = useState<SupportedLanguageCode>('es');
-  const [langLabel, setLangLabel] = useState('Spanish');
+  const [langCode, setLangCode] = useState<SupportedLanguageCode>('uz');
+  const [langLabel, setLangLabel] = useState('Uzbek');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<AnalyzeResponse | null>(null);
@@ -125,7 +125,7 @@ export default function App() {
         <Header />
 
         <main className="page flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
-          {/* Hero bo'limi: telefonda 1 ta ustun, desktopda 2 ta ustun */}
+          {/* Hero bo'limi */}
           <section className="hero grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center mb-8 sm:mb-12">
             <div className="lg:col-span-7 flex flex-col items-start">
               <div className="eyebrow inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono bg-purple-500/10 text-purple-300 border border-purple-500/20 mb-3">
@@ -163,7 +163,7 @@ export default function App() {
               <CyberMatrixOrb />
             </div>
 
-            {/* O'ng panel: kichik ekranlarda to'liq kenglik, chiroyli kiber-panellar */}
+            {/* O'ng panel */}
             <div className="hero-panel lg:col-span-5 w-full rounded-3xl bg-slate-950/70 backdrop-blur-xl border border-white/10 p-5 sm:p-6 shadow-2xl">
               <div className="hero-panel-title text-xs font-mono font-bold uppercase tracking-wider text-purple-300 mb-4 pb-2 border-b border-white/5 flex items-center justify-between">
                 <span>Everything in one analysis</span>

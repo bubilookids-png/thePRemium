@@ -218,10 +218,6 @@ async function geminiChatJSON(params: ChatParams): Promise<any> {
 
 /**
  * Groq API
- *
- * Used for both:
- * - GROQ_API_KEY
- * - GROQ_READING_API_KEY
  */
 async function groqChatJSONInternal(
   params: ChatParams,
@@ -238,16 +234,12 @@ async function groqChatJSONInternal(
     apiKey,
     model,
     'https://api.groq.com/openai/v1/chat/completions',
-    providerName
+    'Groq'
   );
 }
 
 /**
  * OpenAI-compatible chat completion API.
- *
- * Used by:
- * - Groq
- * - Cerebras
  */
 async function openAICompatibleChatJSON(
   params: ChatParams,
@@ -335,4 +327,57 @@ async function openAICompatibleChatJSON(
       `${providerName} did not return valid JSON.`
     );
   }
+}
+
+// =========================================================
+// VOCABSERVICE UCHUN KERAK BO'LGAN FUNKSIYALAR
+// =========================================================
+
+/**
+ * 1. Bazada topilmagan yangi so'zlarni to'liq tahlil qilish
+ */
+export async function generateFullAnalysisWithAI(term: string, langCode: string): Promise<any> {
+  const system = `You are an expert lexicographer and CEFR examiner. Output only valid JSON.`;
+  const user = `Analyze the English term "${term}" for a learner whose native language is "${langCode}".
+Respond ONLY with this JSON structure:
+{
+  "analysis": {
+    "term": "${term}",
+    "ipa": "/.../",
+    "partOfSpeech": "noun/verb/adjective/etc",
+    "cefr": "A1/A2/B1/B2/C1/C2",
+    "definition": "Clear concise English definition",
+    "translation": "Natural translation in ${langCode}",
+    "explanation": "Short context note",
+    "synonyms": ["syn1", "syn2", "syn3"],
+    "antonyms": ["ant1", "ant2"],
+    "collocations": ["collocation 1", "collocation 2", "collocation 3"],
+    "examples": ["Example sentence 1", "Example sentence 2"]
+  },
+  "quiz": {
+    "question": "A concise multiple-choice question testing the term",
+    "options": ["Option A", "Option B", "Option C", "Option D"],
+    "correctIndex": 0,
+    "explanation": "Why this answer is correct"
+  }
+}`;
+
+  return await groqChatJSON({ system, user, temperature: 0.2 });
+}
+
+/**
+ * 2. Bazada bor so'zlar uchun FAQAT mini-quiz generatsiya qilish
+ */
+export async function generateQuizWithAI(term: string, definition: string): Promise<any> {
+  const system = `You create quick multiple-choice vocabulary quizzes. Output only valid JSON.`;
+  const user = `Create a 4-option multiple-choice quiz testing the word "${term}" (Definition: "${definition}").
+Respond ONLY with this JSON structure:
+{
+  "question": "Clear fill-in-the-blank or usage question",
+  "options": ["Option A", "Option B", "Option C", "Option D"],
+  "correctIndex": 0,
+  "explanation": "Brief explanation of the answer"
+}`;
+
+  return await groqChatJSON({ system, user, temperature: 0.3 });
 }

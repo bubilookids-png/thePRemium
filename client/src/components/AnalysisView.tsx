@@ -1,6 +1,7 @@
 import React from 'react';
-import type { VocabAnalysis } from '../types/vocab';
+import type { VocabAnalysis, FieldSources, SourceType } from '../types/vocab';
 import { Card } from './Card';
+import { SourceBadge } from './SourceBadge';
 
 function Pill({
   children,
@@ -20,11 +21,28 @@ function Pill({
   );
 }
 
-export function AnalysisView(props: {
+interface AnalysisViewProps {
   analysis: VocabAnalysis;
+  source?: 'local_database' | 'ai_engine' | string;
+  sources?: FieldSources;
   onStartQuiz: () => void;
-}) {
-  const a = props.analysis;
+}
+
+export function AnalysisView({
+  analysis: a,
+  source,
+  sources,
+  onStartQuiz
+}: AnalysisViewProps) {
+  // Agar umumiy source local_database yoki db bo'lsa, demak DB
+  const isOverallDb = source === 'local_database' || source === 'db';
+  const defaultSource: SourceType = isOverallDb ? 'db' : 'ai';
+
+  // Kartaning o'z source'i bor bo'lsa shuni, bo'lmasa default'ni oladi
+  const getSource = (field?: SourceType): SourceType => {
+    if (field === 'db' || field === 'ai') return field;
+    return defaultSource;
+  };
 
   return (
     <div className="analysis-results">
@@ -35,12 +53,15 @@ export function AnalysisView(props: {
           title="Word overview"
           subtitle="The essentials at a glance"
           rightSlot={
-            <button
-              onClick={props.onStartQuiz}
-              className="action-btn"
-            >
-              ✦ Start mini quiz
-            </button>
+            <div className="flex items-center gap-2">
+              <SourceBadge type={getSource(sources?.definition)} />
+              <button
+                onClick={onStartQuiz}
+                className="action-btn"
+              >
+                ✦ Start mini quiz
+              </button>
+            </div>
           }
         >
           <div className="meta-row">
@@ -66,8 +87,9 @@ export function AnalysisView(props: {
             </div>
 
             <div className="info-box translation-box">
-              <div className="info-label">
-                Translation · {a.targetLanguage.label}
+              <div className="info-label flex items-center justify-between">
+                <span>Translation · {a.targetLanguage.label}</span>
+                <SourceBadge type={getSource(sources?.translation)} />
               </div>
 
               <div className="info-value">
@@ -83,6 +105,7 @@ export function AnalysisView(props: {
         <Card
           title="Synonyms"
           subtitle="Similar meaning"
+          rightSlot={<SourceBadge type={getSource(sources?.synonyms)} />}
         >
           {a.synonyms?.length ? (
             <div className="tag-list">
@@ -102,6 +125,7 @@ export function AnalysisView(props: {
         <Card
           title="Antonyms"
           subtitle="Opposite meaning"
+          rightSlot={<SourceBadge type={getSource(sources?.antonyms)} />}
         >
           {a.antonyms?.length ? (
             <div className="tag-list">
@@ -124,6 +148,7 @@ export function AnalysisView(props: {
         <Card
           title="Common collocations"
           subtitle="Natural word combinations"
+          rightSlot={<SourceBadge type={getSource(sources?.collocations)} />}
         >
           {a.collocations?.length ? (
             <div className="item-list">
@@ -149,6 +174,7 @@ export function AnalysisView(props: {
         <Card
           title="Natural examples"
           subtitle="See the word in real context"
+          rightSlot={<SourceBadge type={getSource(sources?.examples)} />}
         >
           {a.examples?.length ? (
             <ol className="example-list">
@@ -180,6 +206,7 @@ export function AnalysisView(props: {
         <Card
           title="How it’s used"
           subtitle="Usage guidance"
+          rightSlot={<SourceBadge type={getSource(sources?.definition)} />}
         >
           <p className="text-sm leading-7 text-slate-200">
             {a.usage}
@@ -189,6 +216,7 @@ export function AnalysisView(props: {
         <Card
           title="Usage notes"
           subtitle="Common mistakes to avoid"
+          rightSlot={<SourceBadge type={getSource(sources?.definition)} />}
         >
           {a.commonMistakes?.length ? (
             <div className="item-list">
@@ -212,4 +240,3 @@ export function AnalysisView(props: {
     </div>
   );
 }
-

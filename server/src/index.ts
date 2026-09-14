@@ -5,8 +5,12 @@ import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import { analyzeRouter } from './routes/analyze.js';
 import { logger } from './utils/logger.js';
+import { initDatabase } from './db/database.js';
 
 dotenv.config();
+
+// Server ishga tushganda ma'lumotlar bazasini tayyorlab qo'yadi
+initDatabase();
 
 const app = express();
 
@@ -57,5 +61,5 @@ app.use((_req, res) => {
 
 app.listen(PORT, '0.0.0.0', () => {
   logger.info(`Server running on port ${PORT}`);
- logger.info(`CORS allowed origins: ${CLIENT_ORIGINS.join(', ')}`);
+  logger.info(`CORS allowed origins: ${CLIENT_ORIGINS.join(', ')}`);
 });
