@@ -34,11 +34,9 @@ export function AnalysisView({
   sources,
   onStartQuiz
 }: AnalysisViewProps) {
-  // Agar umumiy source local_database yoki db bo'lsa, demak DB
   const isOverallDb = source === 'local_database' || source === 'db';
   const defaultSource: SourceType = isOverallDb ? 'db' : 'ai';
 
-  // Kartaning o'z source'i bor bo'lsa shuni, bo'lmasa default'ni oladi
   const getSource = (field?: SourceType): SourceType => {
     if (field === 'db' || field === 'ai') return field;
     return defaultSource;
@@ -46,7 +44,6 @@ export function AnalysisView({
 
   return (
     <div className="analysis-results">
-
       {/* 01 — Word overview */}
       <div className="result-reveal result-1">
         <Card
@@ -236,7 +233,6 @@ export function AnalysisView({
           )}
         </Card>
       </div>
-
     </div>
   );
 }

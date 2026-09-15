@@ -67,6 +67,8 @@ export default function App() {
         targetLanguageLabel: langLabel
       });
 
+      console.log("FRONTEND OLGAN TO'LIQ JAVOB (res):", res);
+
       setData(res);
     } catch (e: any) {
       setError(
@@ -277,6 +279,8 @@ export default function App() {
               view === 'analysis' ? (
                 <AnalysisView
                   analysis={data.analysis}
+                  source={data.source}
+                  sources={data.sources}
                   onStartQuiz={() => setView('quiz')}
                 />
               ) : (
