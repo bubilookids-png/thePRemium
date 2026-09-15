@@ -114,9 +114,11 @@ export async function analyzeWordService(params: {
 }): Promise<AnalyzeResponseDTO> {
   const cleanWord = params.word.trim().toLowerCase();
 
-  // 1. Kesh tekshiruvi
+  // 1. Kesh tekshiruvi (Faqat DB bo'lgan natijalar keshlanishi ma'qul)
   const cached = getCached(cleanWord, params.targetLanguage);
-  if (cached) return cached;
+  if (cached && cached.source === 'local_database') {
+    return cached;
+  }
 
   // 2. Bazadan qidirish
   let row: WordDbRow | undefined;
@@ -127,13 +129,7 @@ export async function analyzeWordService(params: {
   }
 
   // 3. Agar so'z toza holatda bazada mavjud bo'lsa (DB HIT)
-  const isEnriched = Boolean(
-    row &&
-    row.definition_en &&
-    row.synonyms &&
-    row.synonyms !== '[]' &&
-    row.translation_uz
-  );
+  const isEnriched = Boolean(row && row.definition_en);
 
   if (row && isEnriched) {
     logger.info(`[DB FULL HIT] Returning clean cached word: ${cleanWord}`);
@@ -161,7 +157,7 @@ export async function analyzeWordService(params: {
         translation: row.translation_uz || 'Tarjima mavjud emas',
         cefrLevel: (row.cefr_level as any) || 'B2',
         partOfSpeech: row.part_of_speech || 'noun',
-        synonyms: syns.length ? syns : ['abandon', 'leave'],
+        synonyms: syns.length ? syns : ['item', 'element'],
         antonyms: ants,
         collocations: colls,
         examples: examp.length >= 2 ? examp : [
@@ -199,7 +195,7 @@ export async function analyzeWordService(params: {
             id: 'q3',
             type: 'select_synonym',
             prompt: `Which word is a synonym for "${cleanWord}"?`,
-            options: syns[0] ? [syns[0], 'create', 'increase', 'admire'] : ['give up', 'build', 'strengthen', 'praise'],
+            options: syns[0] ? [syns[0], 'create', 'increase', 'admire'] : ['item', 'build', 'strengthen', 'praise'],
             correctOptionIndex: 0,
             explanation: 'Correct synonym selected from database records.'
           }
@@ -211,10 +207,9 @@ export async function analyzeWordService(params: {
     return result;
   }
 
-  // 4. Agar bazada yo'q bo'lsa yoki eski Webster xom matni bo'lsa, AI orqali to'ldirish
+  // 4. Agar bazada yo'q bo'lsa, AI orqali to'ldirish
   if (!hasGroqKey()) {
     const mock = mockAnalyze(params.word, params.targetLanguage);
-    setCached(params.word, params.targetLanguage, mock);
     return mock;
   }
 
@@ -314,6 +309,9 @@ Quiz must contain 3 questions.
         JSON.stringify(parsed.analysis.collocations || []),
         JSON.stringify(parsed.analysis.examples || [])
       );
+      
+      // Xotiradagi eski kesh bo'lsa tozalaymiz, shunda keyingi so'rov to'g'ri bazadan o'qiydi
+      cache.delete(cacheKey(cleanWord, params.targetLanguage));
     } catch (saveErr) {
       logger.warn('Failed to save enriched word to SQLite', { saveErr });
     }
@@ -333,12 +331,10 @@ Quiz must contain 3 questions.
       }
     };
 
-    setCached(cleanWord, params.targetLanguage, finalResult);
     return finalResult;
   } catch (err: any) {
     logger.warn('AI failed, fallback to mock', { err: err?.message });
     const mock = mockAnalyze(params.word, params.targetLanguage);
-    setCached(params.word, params.targetLanguage, mock);
     return mock;
   }
 }
