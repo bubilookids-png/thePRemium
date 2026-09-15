@@ -5,104 +5,25 @@ import { mockAnalyze } from './mockService.js';
 import { logger } from '../utils/logger.js';
 import { db } from '../db/database.js';
 
-const responseSchema = z.object({
-  source: z.enum(['local_database', 'ai_engine']).optional(),
-  sources: z
-    .object({
-      definition: z.enum(['db', 'ai']).optional(),
-      translation: z.enum(['db', 'ai']).optional(),
-      synonyms: z.enum(['db', 'ai']).optional(),
-      antonyms: z.enum(['db', 'ai']).optional(),
-      collocations: z.enum(['db', 'ai']).optional(),
-      examples: z.enum(['db', 'ai']).optional(),
-      quiz: z.enum(['db', 'ai']).optional()
-    })
-    .optional(),
-  analysis: z.object({
-    word: z.string().min(1),
-    targetLanguage: z.object({
-      code: z.string().min(1),
-      label: z.string().min(1)
-    }),
-    definition: z.string().min(1),
-    translation: z.string().min(1),
-    cefrLevel: z.enum(['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'Unknown']),
-    partOfSpeech: z.string().min(1),
-    synonyms: z.array(z.string()).default([]),
-    antonyms: z.array(z.string()).default([]),
-    collocations: z.array(z.string()).default([]),
-    examples: z.array(z.string()).min(2).max(4),
-    usage: z.string().min(1),
-    commonMistakes: z.array(z.string()).default([]),
-    pronunciation: z
-      .object({
-        ipa: z.string().optional()
-      })
-      .optional()
-  }),
-  quiz: z.object({
-    title: z.string().min(1),
-    questions: z
-      .array(
-        z.object({
-          id: z.string().min(1),
-          type: z.enum(['multiple_choice', 'fill_blank', 'select_synonym', 'select_antonym']),
-          prompt: z.string().min(1),
-          options: z.array(z.string()).optional(),
-          correctOptionIndex: z.number().int().nonnegative().optional(),
-          correctText: z.string().optional(),
-          explanation: z.string().min(1)
-        })
-      )
-      .min(3)
-      .max(6)
-  })
-});
-
 interface WordDbRow {
   id: number;
   term: string;
   ipa: string | null;
   part_of_speech: string | null;
   cefr_level: string | null;
-  definition_en: string;
+  definition_en: string | null;
   translation_uz: string | null;
-  translation_ru: string | null;
-  translation_es: string | null;
   synonyms: string | null;
   antonyms: string | null;
   collocations: string | null;
   examples: string | null;
 }
 
-type CacheKey = string;
-const cache = new Map<CacheKey, { at: number; value: AnalyzeResponseDTO }>();
-const CACHE_TTL_MS = 10 * 60 * 1000;
-
-function cacheKey(word: string, lang: TargetLanguageDTO): string {
-  return `${word.toLowerCase()}::${lang.code}`;
-}
-
-function getCached(word: string, lang: TargetLanguageDTO): AnalyzeResponseDTO | null {
-  const key = cacheKey(word, lang);
-  const hit = cache.get(key);
-  if (!hit) return null;
-  if (Date.now() - hit.at > CACHE_TTL_MS) {
-    cache.delete(key);
-    return null;
-  }
-  return hit.value;
-}
-
-function setCached(word: string, lang: TargetLanguageDTO, value: AnalyzeResponseDTO): void {
-  cache.set(cacheKey(word, lang), { at: Date.now(), value });
-}
-
 function safeJsonArray(raw: string | null | undefined): string[] {
   if (!raw) return [];
   try {
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed.map((item) => String(item)) : [];
+    return Array.isArray(parsed) ? parsed.map(String) : [];
   } catch {
     return [];
   }
@@ -114,13 +35,7 @@ export async function analyzeWordService(params: {
 }): Promise<AnalyzeResponseDTO> {
   const cleanWord = params.word.trim().toLowerCase();
 
-  // 1. Kesh tekshiruvi (Faqat DB bo'lgan natijalar keshlanishi ma'qul)
-  const cached = getCached(cleanWord, params.targetLanguage);
-  if (cached && cached.source === 'local_database') {
-    return cached;
-  }
-
-  // 2. Bazadan qidirish
+  // 1. Bazadan qidirish
   let row: WordDbRow | undefined;
   try {
     row = db.prepare('SELECT * FROM words WHERE LOWER(term) = ?').get(cleanWord) as WordDbRow | undefined;
@@ -128,165 +43,152 @@ export async function analyzeWordService(params: {
     logger.warn('DB query error', { err });
   }
 
-  // 3. Agar so'z toza holatda bazada mavjud bo'lsa (DB HIT)
-  const isEnriched = Boolean(row && row.definition_en);
+  const dbSyns = safeJsonArray(row?.synonyms);
+  const dbAnts = safeJsonArray(row?.antonyms);
+  const dbColls = safeJsonArray(row?.collocations);
+  const dbExamp = safeJsonArray(row?.examples);
 
-  if (row && isEnriched) {
-    logger.info(`[DB FULL HIT] Returning clean cached word: ${cleanWord}`);
+  // Bazada nimalar borligini tekshiramiz
+  const hasDef = Boolean(row?.definition_en && row.definition_en.trim().length > 10);
+  const hasTrans = Boolean(row?.translation_uz && row.translation_uz.trim().length > 0 && row.translation_uz !== 'Tarjima mavjud emas');
+  const hasSyns = dbSyns.length > 0;
+  const hasExamp = dbExamp.length >= 2;
 
-    const syns = safeJsonArray(row.synonyms);
-    const ants = safeJsonArray(row.antonyms);
-    const colls = safeJsonArray(row.collocations);
-    const examp = safeJsonArray(row.examples);
-
-    const result: AnalyzeResponseDTO = {
+  // Agar HAMMA narsa bazada to'liq bo'lsa -> 100% DB qaytaradi
+  if (row && hasDef && hasTrans && hasSyns && hasExamp) {
+    logger.info(`[DB FULL HIT] Word fully available in DB: ${cleanWord}`);
+    return {
       source: 'local_database',
       sources: {
         definition: 'db',
+        translation: 'db',
         synonyms: 'db',
         antonyms: 'db',
         collocations: 'db',
         examples: 'db',
-        translation: row.translation_uz ? 'db' : 'ai',
         quiz: 'db'
       },
       analysis: {
         word: cleanWord,
         targetLanguage: params.targetLanguage,
-        definition: row.definition_en,
-        translation: row.translation_uz || 'Tarjima mavjud emas',
-        cefrLevel: (row.cefr_level as any) || 'B2',
+        definition: row.definition_en!,
+        translation: row.translation_uz!,
+        cefrLevel: (row.cefr_level as any) || 'B1',
         partOfSpeech: row.part_of_speech || 'noun',
-        synonyms: syns.length ? syns : ['item', 'element'],
-        antonyms: ants,
-        collocations: colls,
-        examples: examp.length >= 2 ? examp : [
-          `You should understand the context of "${cleanWord}".`,
-          `They frequently use "${cleanWord}" in modern English.`
-        ],
+        synonyms: dbSyns,
+        antonyms: dbAnts,
+        collocations: dbColls,
+        examples: dbExamp,
         usage: 'Regularly used in spoken and written English.',
         commonMistakes: [],
         pronunciation: { ipa: row.ipa || '' }
       },
       quiz: {
-        title: 'Quick Check Quiz',
+        title: 'Word Check Quiz',
         questions: [
           {
             id: 'q1',
             type: 'multiple_choice',
-            prompt: `What is the primary meaning of "${cleanWord}"?`,
-            options: [
-              row.definition_en.slice(0, 45),
-              'To make something stronger',
-              'To build quickly',
-              'To celebrate with friends'
-            ],
+            prompt: `What is the meaning of "${cleanWord}"?`,
+            options: [row.definition_en!.slice(0, 50), 'To move rapidly', 'To build something', 'To create quietly'],
             correctOptionIndex: 0,
-            explanation: `"${cleanWord}" means: ${row.definition_en.slice(0, 70)}`
+            explanation: row.definition_en!
           },
           {
             id: 'q2',
             type: 'fill_blank',
-            prompt: `Always remember to use "_____" in the right context.`,
+            prompt: `Remember the word "_____" in everyday speech.`,
             correctText: cleanWord,
-            explanation: `"${cleanWord}" correctly fits this sentence.`
+            explanation: `"${cleanWord}" completes the sentence.`
           },
           {
             id: 'q3',
             type: 'select_synonym',
-            prompt: `Which word is a synonym for "${cleanWord}"?`,
-            options: syns[0] ? [syns[0], 'create', 'increase', 'admire'] : ['item', 'build', 'strengthen', 'praise'],
+            prompt: `Synonym for "${cleanWord}":`,
+            options: [dbSyns[0] || 'term', 'construct', 'fly', 'run'],
             correctOptionIndex: 0,
-            explanation: 'Correct synonym selected from database records.'
+            explanation: 'Correct synonym.'
           }
         ]
       }
     };
-
-    setCached(cleanWord, params.targetLanguage, result);
-    return result;
   }
 
-  // 4. Agar bazada yo'q bo'lsa, AI orqali to'ldirish
+  // 2. Agar bitta bo'lsa ham detali kam bo'lsa -> AI ga murojaat qilib to'ldiramiz
   if (!hasGroqKey()) {
-    const mock = mockAnalyze(params.word, params.targetLanguage);
-    return mock;
+    return mockAnalyze(params.word, params.targetLanguage);
   }
 
-  logger.info(`[AI ENRICHING] Generating clean modern data for "${cleanWord}"`);
+  logger.info(`[HYBRID / AI ENRICH] Completing missing details for "${cleanWord}"`);
 
-  const system = `
-You are an expert English language tutor. 
-Return ONLY clean, valid JSON matching the schema. No markdown ticks, no commentary.
-Definition must be modern, concise, learner-friendly (1-2 sentences).
-Translation must be an accurate target language equivalent.
-Examples must have between 2 and 4 natural sentences.
-Quiz must contain 3 questions.
-`.trim();
-
+  const system = `You are an English teacher. Return clean JSON only. No markdown ticks.`;
   const user = JSON.stringify({
-    task: 'Analyze word',
     word: cleanWord,
     targetLanguage: params.targetLanguage,
-    outputShape: {
-      analysis: {
-        word: cleanWord,
-        targetLanguage: params.targetLanguage,
-        definition: 'Short concise modern definition',
-        translation: 'Accurate target translation',
-        cefrLevel: 'A1|A2|B1|B2|C1|C2',
-        partOfSpeech: 'verb|noun|adjective|adverb',
-        synonyms: ['synonym1', 'synonym2', 'synonym3'],
-        antonyms: ['antonym1', 'antonym2'],
-        collocations: ['collocation1', 'collocation2'],
-        examples: ['Natural sentence 1.', 'Natural sentence 2.'],
-        usage: '1-2 practical usage notes',
-        commonMistakes: ['1-2 common mistakes'],
-        pronunciation: { ipa: '/.../' }
-      },
-      quiz: {
-        title: 'Word Mastery Quiz',
-        questions: [
-          {
-            id: 'q1',
-            type: 'multiple_choice',
-            prompt: 'Question prompt',
-            options: ['Opt 1', 'Opt 2', 'Opt 3', 'Opt 4'],
-            correctOptionIndex: 0,
-            explanation: 'Why it is correct'
-          },
-          {
-            id: 'q2',
-            type: 'fill_blank',
-            prompt: 'Sentence with _____ blank',
-            correctText: cleanWord,
-            explanation: 'Why it is correct'
-          },
-          {
-            id: 'q3',
-            type: 'select_synonym',
-            prompt: 'Select synonym',
-            options: ['Opt 1', 'Opt 2', 'Opt 3', 'Opt 4'],
-            correctOptionIndex: 0,
-            explanation: 'Why it is correct'
-          }
-        ]
-      }
+    needed: {
+      definition: !hasDef,
+      translation: !hasTrans,
+      synonyms: !hasSyns,
+      examples: !hasExamp
+    },
+    schema: {
+      definition: 'Concise modern learner-friendly definition',
+      translation: 'Target language translation (e.g., Uzbek: divan for sofa)',
+      cefrLevel: 'A1|A2|B1|B2|C1|C2',
+      partOfSpeech: 'verb|noun|adjective|adverb',
+      synonyms: ['word1', 'word2'],
+      antonyms: ['word1'],
+      collocations: ['phrase 1', 'phrase 2'],
+      examples: ['Example sentence 1.', 'Example sentence 2.'],
+      usage: 'Brief usage tip',
+      commonMistakes: ['Mistake to avoid'],
+      pronunciation: { ipa: '/.../' },
+      quiz: [
+        {
+          id: 'q1',
+          type: 'multiple_choice',
+          prompt: 'Question',
+          options: ['Correct', 'Wrong 1', 'Wrong 2', 'Wrong 3'],
+          correctOptionIndex: 0,
+          explanation: 'Why'
+        },
+        {
+          id: 'q2',
+          type: 'fill_blank',
+          prompt: 'Sentence with _____',
+          correctText: cleanWord,
+          explanation: 'Why'
+        },
+        {
+          id: 'q3',
+          type: 'select_synonym',
+          prompt: 'Synonym question',
+          options: ['Synonym', 'Wrong 1', 'Wrong 2', 'Wrong 3'],
+          correctOptionIndex: 0,
+          explanation: 'Why'
+        }
+      ]
     }
   });
 
   try {
-    const json = await groqChatJSON({ system, user, temperature: 0.2 });
-    const parsed = responseSchema.parse(json);
+    const aiData = await groqChatJSON({ system, user, temperature: 0.2 });
 
-    // AI generatsiya qilgan toza ma'lumotni SQLite bazaga saqlash
+    // AI va DB ni gibrid qilib birlashtiramiz:
+    const finalDef = hasDef ? row!.definition_en! : aiData.definition;
+    const finalTrans = hasTrans ? row!.translation_uz! : aiData.translation;
+    const finalSyns = hasSyns ? dbSyns : (aiData.synonyms || []);
+    const finalAnts = dbAnts.length ? dbAnts : (aiData.antonyms || []);
+    const finalColls = dbColls.length ? dbColls : (aiData.collocations || []);
+    const finalExamp = hasExamp ? dbExamp : (aiData.examples || []);
+
+    // Yetishmayotgan hamma narsani bazaga saqlab qo'yamiz (keyingi safar to'liq DB bo'lishi uchun)
     try {
       db.prepare(`
         INSERT INTO words (
-          term, ipa, part_of_speech, cefr_level, definition_en, 
+          term, ipa, part_of_speech, cefr_level, definition_en,
           translation_uz, synonyms, antonyms, collocations, examples
-        )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(term) DO UPDATE SET
           definition_en = excluded.definition_en,
           translation_uz = excluded.translation_uz,
@@ -299,42 +201,56 @@ Quiz must contain 3 questions.
           examples = excluded.examples
       `).run(
         cleanWord,
-        parsed.analysis.pronunciation?.ipa || '',
-        parsed.analysis.partOfSpeech,
-        parsed.analysis.cefrLevel,
-        parsed.analysis.definition,
-        params.targetLanguage.code === 'uz' ? parsed.analysis.translation : (row?.translation_uz || ''),
-        JSON.stringify(parsed.analysis.synonyms || []),
-        JSON.stringify(parsed.analysis.antonyms || []),
-        JSON.stringify(parsed.analysis.collocations || []),
-        JSON.stringify(parsed.analysis.examples || [])
+        row?.ipa || aiData.pronunciation?.ipa || '',
+        row?.part_of_speech || aiData.partOfSpeech || 'noun',
+        row?.cefr_level || aiData.cefrLevel || 'B1',
+        finalDef,
+        finalTrans,
+        JSON.stringify(finalSyns),
+        JSON.stringify(finalAnts),
+        JSON.stringify(finalColls),
+        JSON.stringify(finalExamp)
       );
-      
-      // Xotiradagi eski kesh bo'lsa tozalaymiz, shunda keyingi so'rov to'g'ri bazadan o'qiydi
-      cache.delete(cacheKey(cleanWord, params.targetLanguage));
-    } catch (saveErr) {
-      logger.warn('Failed to save enriched word to SQLite', { saveErr });
+    } catch (dbErr) {
+      logger.warn('Error saving enriched details to SQLite', { dbErr });
     }
 
-    const finalResult: AnalyzeResponseDTO = {
-      analysis: parsed.analysis,
-      quiz: parsed.quiz,
-      source: 'ai_engine',
+    // Har bitta qismning kelib chiqishini aniq belgilaymiz:
+    const result: AnalyzeResponseDTO = {
+      source: (hasDef && hasTrans) ? 'local_database' : 'ai_engine',
       sources: {
-        definition: 'ai',
-        synonyms: 'ai',
-        antonyms: 'ai',
-        collocations: 'ai',
-        examples: 'ai',
-        translation: 'ai',
+        definition: hasDef ? 'db' : 'ai',
+        translation: hasTrans ? 'db' : 'ai',
+        synonyms: hasSyns ? 'db' : 'ai',
+        antonyms: dbAnts.length ? 'db' : 'ai',
+        collocations: dbColls.length ? 'db' : 'ai',
+        examples: hasExamp ? 'db' : 'ai',
         quiz: 'ai'
+      },
+      analysis: {
+        word: cleanWord,
+        targetLanguage: params.targetLanguage,
+        definition: finalDef,
+        translation: finalTrans,
+        cefrLevel: (row?.cefr_level || aiData.cefrLevel || 'B1') as any,
+        partOfSpeech: row?.part_of_speech || aiData.partOfSpeech || 'noun',
+        synonyms: finalSyns,
+        antonyms: finalAnts,
+        collocations: finalColls,
+        examples: finalExamp,
+        usage: aiData.usage || 'Commonly used in daily vocabulary.',
+        commonMistakes: aiData.commonMistakes || [],
+        pronunciation: { ipa: row?.ipa || aiData.pronunciation?.ipa || '' }
+      },
+      quiz: {
+        title: 'Vocabulary Quiz',
+        questions: aiData.quiz || []
       }
     };
 
-    return finalResult;
-  } catch (err: any) {
-    logger.warn('AI failed, fallback to mock', { err: err?.message });
-    const mock = mockAnalyze(params.word, params.targetLanguage);
-    return mock;
+    return result;
+  } catch (err) {
+    logger.warn('AI failed, fallback to mock', { err });
+    return mockAnalyze(params.word, params.targetLanguage);
   }
 }
