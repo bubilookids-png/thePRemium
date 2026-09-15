@@ -29,13 +29,22 @@ function safeJsonArray(raw: string | null | undefined): string[] {
   }
 }
 
+// Websterning eski 1913-yilgi xom matnlarini tekshirish filtri
+function isOldWebsterGarbage(text: string | null | undefined): boolean {
+  if (!text) return true;
+  if (text.length > 250) return true; // Webster ta'riflari juda uzun doston bo'ladi
+  if (/^\s*1\.\s+/i.test(text)) return true; // "1. A piece of..."
+  if (text.includes('[Obs.]') || text.includes('Thackeray') || text.includes('Shak.')) return true;
+  return false;
+}
+
 export async function analyzeWordService(params: {
   word: string;
   targetLanguage: TargetLanguageDTO;
 }): Promise<AnalyzeResponseDTO> {
   const cleanWord = params.word.trim().toLowerCase();
 
-  // 1. Bazadan qidirish
+  // 1. Bazadan qidiramiz
   let row: WordDbRow | undefined;
   try {
     row = db.prepare('SELECT * FROM words WHERE LOWER(term) = ?').get(cleanWord) as WordDbRow | undefined;
@@ -48,15 +57,24 @@ export async function analyzeWordService(params: {
   const dbColls = safeJsonArray(row?.collocations);
   const dbExamp = safeJsonArray(row?.examples);
 
-  // Bazada nimalar borligini tekshiramiz
-  const hasDef = Boolean(row?.definition_en && row.definition_en.trim().length > 10);
-  const hasTrans = Boolean(row?.translation_uz && row.translation_uz.trim().length > 0 && row.translation_uz !== 'Tarjima mavjud emas');
-  const hasSyns = dbSyns.length > 0;
-  const hasExamp = dbExamp.length >= 2;
+  // Bazadagi ma'lumot zamonaviy va to'liq ekanligini aniqlash:
+  // - Ta'rif Websterning eski axlati bo'lmasligi kerak
+  // - Tarjima bo'lishi shart
+  // - Kamida bitta sinonim va 2 ta misol bo'lishi kerak
+  const isFullyModernCached = Boolean(
+    row &&
+    row.definition_en &&
+    !isOldWebsterGarbage(row.definition_en) &&
+    row.translation_uz &&
+    row.translation_uz.trim().length > 0 &&
+    row.translation_uz !== 'Tarjima mavjud emas' &&
+    dbSyns.length > 0 &&
+    dbExamp.length >= 2
+  );
 
-  // Agar HAMMA narsa bazada to'liq bo'lsa -> 100% DB qaytaradi
-  if (row && hasDef && hasTrans && hasSyns && hasExamp) {
-    logger.info(`[DB FULL HIT] Word fully available in DB: ${cleanWord}`);
+  // AGAR BAZADA TAYYOR VA TOZA BO'LSA -> 100% DB QAYTARADI (0 ms)
+  if (row && isFullyModernCached) {
+    logger.info(`[DB FULL HIT] Word served completely from DB: ${cleanWord}`);
     return {
       source: 'local_database',
       sources: {
@@ -79,93 +97,95 @@ export async function analyzeWordService(params: {
         antonyms: dbAnts,
         collocations: dbColls,
         examples: dbExamp,
-        usage: 'Regularly used in spoken and written English.',
+        usage: 'Regularly used in everyday modern English.',
         commonMistakes: [],
         pronunciation: { ipa: row.ipa || '' }
       },
       quiz: {
-        title: 'Word Check Quiz',
+        title: 'Word Mastery Quiz',
         questions: [
           {
             id: 'q1',
             type: 'multiple_choice',
             prompt: `What is the meaning of "${cleanWord}"?`,
-            options: [row.definition_en!.slice(0, 50), 'To move rapidly', 'To build something', 'To create quietly'],
+            options: [row.definition_en!.slice(0, 50), 'To construct quickly', 'A type of vehicle', 'A formal meeting'],
             correctOptionIndex: 0,
             explanation: row.definition_en!
           },
           {
             id: 'q2',
             type: 'fill_blank',
-            prompt: `Remember the word "_____" in everyday speech.`,
+            prompt: `Pay attention to the term "_____" in this context.`,
             correctText: cleanWord,
-            explanation: `"${cleanWord}" completes the sentence.`
+            explanation: `"${cleanWord}" fits correctly here.`
           },
           {
             id: 'q3',
             type: 'select_synonym',
-            prompt: `Synonym for "${cleanWord}":`,
-            options: [dbSyns[0] || 'term', 'construct', 'fly', 'run'],
+            prompt: `Select a synonym for "${cleanWord}":`,
+            options: [dbSyns[0] || 'term', 'accelerate', 'expand', 'neglect'],
             correctOptionIndex: 0,
-            explanation: 'Correct synonym.'
+            explanation: `"${dbSyns[0]}" is closely related to "${cleanWord}".`
           }
         ]
       }
     };
   }
 
-  // 2. Agar bitta bo'lsa ham detali kam bo'lsa -> AI ga murojaat qilib to'ldiramiz
+  // 2. AGAR YANGI SO'Z BO'LSA YOKI ESKI WEBSTER BO'LSA -> AI TO'LIQ GENERATSIYA QILADI
   if (!hasGroqKey()) {
     return mockAnalyze(params.word, params.targetLanguage);
   }
 
-  logger.info(`[HYBRID / AI ENRICH] Completing missing details for "${cleanWord}"`);
+  logger.info(`[AI FULL GENERATION] Generating fresh modern study card for "${cleanWord}"`);
 
-  const system = `You are an English teacher. Return clean JSON only. No markdown ticks.`;
+  const system = `
+You are a modern English language tutor. 
+Return ONLY clean, valid JSON matching the requested structure. 
+No markdown ticks, no surrounding commentary.
+Definitions must be concise, modern, and easy to learn (1-2 clear sentences, MAX 180 characters).
+Translation must be accurate in the target language (e.g. Uzbek).
+`.trim();
+
   const user = JSON.stringify({
+    task: 'Analyze vocabulary word',
     word: cleanWord,
     targetLanguage: params.targetLanguage,
-    needed: {
-      definition: !hasDef,
-      translation: !hasTrans,
-      synonyms: !hasSyns,
-      examples: !hasExamp
-    },
     schema: {
-      definition: 'Concise modern learner-friendly definition',
-      translation: 'Target language translation (e.g., Uzbek: divan for sofa)',
+      definition: 'Short concise modern definition (max 180 chars)',
+      translation: 'Direct accurate translation in target language',
       cefrLevel: 'A1|A2|B1|B2|C1|C2',
-      partOfSpeech: 'verb|noun|adjective|adverb',
-      synonyms: ['word1', 'word2'],
-      antonyms: ['word1'],
-      collocations: ['phrase 1', 'phrase 2'],
-      examples: ['Example sentence 1.', 'Example sentence 2.'],
-      usage: 'Brief usage tip',
-      commonMistakes: ['Mistake to avoid'],
+      partOfSpeech: 'noun|verb|adjective|adverb',
+      synonyms: ['synonym1', 'synonym2', 'synonym3'],
+      antonyms: ['antonym1', 'antonym2'],
+      collocations: ['collocation 1', 'collocation 2'],
+      examples: ['Clear natural example 1.', 'Clear natural example 2.'],
+      usage: 'Practical usage guidance',
+      commonMistakes: ['Common mistake to avoid'],
       pronunciation: { ipa: '/.../' },
       quiz: [
         {
           id: 'q1',
           type: 'multiple_choice',
-          prompt: 'Question',
-          options: ['Correct', 'Wrong 1', 'Wrong 2', 'Wrong 3'],
+          prompt: 'What does this word mean?',
+          options: ['Correct definition snippet', 'Wrong option 1', 'Wrong option 2', 'Wrong option 3'],
           correctOptionIndex: 0,
-          explanation: 'Why'
+          explanation: 'Brief explanation'
         },
         {
           id: 'q2',
           type: 'fill_blank',
-          prompt: 'Sentence with _____',
+          prompt: 'Sentence using _____ properly',
           correctText: cleanWord,
-          explanation: 'Why'
+          explanation: 'Brief explanation'
         },
         {
           id: 'q3',
           type: 'select_synonym',
-          prompt: 'Synonym question',
-          options: ['Synonym', 'Wrong 1', 'Wrong 2', 'Wrong 3'],
+          prompt: 'Which word has a similar meaning?',
+          options: ['Correct synonym', 'Wrong option 1', 'Wrong option 2', 'Wrong option 3'],
           correctOptionIndex: 0,
-          explanation: 'Why'
+          explanation: 'Brief explanation'
         }
       ]
     }
@@ -174,15 +194,16 @@ export async function analyzeWordService(params: {
   try {
     const aiData = await groqChatJSON({ system, user, temperature: 0.2 });
 
-    // AI va DB ni gibrid qilib birlashtiramiz:
-    const finalDef = hasDef ? row!.definition_en! : aiData.definition;
-    const finalTrans = hasTrans ? row!.translation_uz! : aiData.translation;
-    const finalSyns = hasSyns ? dbSyns : (aiData.synonyms || []);
-    const finalAnts = dbAnts.length ? dbAnts : (aiData.antonyms || []);
-    const finalColls = dbColls.length ? dbColls : (aiData.collocations || []);
-    const finalExamp = hasExamp ? dbExamp : (aiData.examples || []);
+    const modernDef = aiData.definition || 'A recognized term in the English language.';
+    const modernTrans = aiData.translation || 'Tarjima kiritilmoqda';
+    const modernSyns = Array.isArray(aiData.synonyms) ? aiData.synonyms : [];
+    const modernAnts = Array.isArray(aiData.antonyms) ? aiData.antonyms : [];
+    const modernColls = Array.isArray(aiData.collocations) ? aiData.collocations : [];
+    const modernExamp = Array.isArray(aiData.examples) && aiData.examples.length >= 2 
+      ? aiData.examples 
+      : [`He used the word "${cleanWord}" correctly.`, `Can you explain what "${cleanWord}" means?`];
 
-    // Yetishmayotgan hamma narsani bazaga saqlab qo'yamiz (keyingi safar to'liq DB bo'lishi uchun)
+    // AI yaratgan toza ma'lumotni bazaga saqlaymiz (eski Webster axlatini ham yangisiga almashtiramiz)
     try {
       db.prepare(`
         INSERT INTO words (
@@ -201,49 +222,50 @@ export async function analyzeWordService(params: {
           examples = excluded.examples
       `).run(
         cleanWord,
-        row?.ipa || aiData.pronunciation?.ipa || '',
-        row?.part_of_speech || aiData.partOfSpeech || 'noun',
-        row?.cefr_level || aiData.cefrLevel || 'B1',
-        finalDef,
-        finalTrans,
-        JSON.stringify(finalSyns),
-        JSON.stringify(finalAnts),
-        JSON.stringify(finalColls),
-        JSON.stringify(finalExamp)
+        aiData.pronunciation?.ipa || '',
+        aiData.partOfSpeech || 'noun',
+        aiData.cefrLevel || 'B1',
+        modernDef,
+        modernTrans,
+        JSON.stringify(modernSyns),
+        JSON.stringify(modernAnts),
+        JSON.stringify(modernColls),
+        JSON.stringify(modernExamp)
       );
-    } catch (dbErr) {
-      logger.warn('Error saving enriched details to SQLite', { dbErr });
+      logger.info(`[DB SAVED] Successfully cached modern data for "${cleanWord}"`);
+    } catch (saveErr) {
+      logger.warn('Error caching word to SQLite', { saveErr });
     }
 
-    // Har bitta qismning kelib chiqishini aniq belgilaymiz:
+    // Birinchi marta foydalanuvchiga taqdim etish (AI nishoni bilan)
     const result: AnalyzeResponseDTO = {
-      source: (hasDef && hasTrans) ? 'local_database' : 'ai_engine',
+      source: 'ai_engine',
       sources: {
-        definition: hasDef ? 'db' : 'ai',
-        translation: hasTrans ? 'db' : 'ai',
-        synonyms: hasSyns ? 'db' : 'ai',
-        antonyms: dbAnts.length ? 'db' : 'ai',
-        collocations: dbColls.length ? 'db' : 'ai',
-        examples: hasExamp ? 'db' : 'ai',
+        definition: 'ai',
+        translation: 'ai',
+        synonyms: 'ai',
+        antonyms: 'ai',
+        collocations: 'ai',
+        examples: 'ai',
         quiz: 'ai'
       },
       analysis: {
         word: cleanWord,
         targetLanguage: params.targetLanguage,
-        definition: finalDef,
-        translation: finalTrans,
-        cefrLevel: (row?.cefr_level || aiData.cefrLevel || 'B1') as any,
-        partOfSpeech: row?.part_of_speech || aiData.partOfSpeech || 'noun',
-        synonyms: finalSyns,
-        antonyms: finalAnts,
-        collocations: finalColls,
-        examples: finalExamp,
-        usage: aiData.usage || 'Commonly used in daily vocabulary.',
+        definition: modernDef,
+        translation: modernTrans,
+        cefrLevel: (aiData.cefrLevel || 'B1') as any,
+        partOfSpeech: aiData.partOfSpeech || 'noun',
+        synonyms: modernSyns,
+        antonyms: modernAnts,
+        collocations: modernColls,
+        examples: modernExamp,
+        usage: aiData.usage || 'Commonly used in everyday vocabulary.',
         commonMistakes: aiData.commonMistakes || [],
-        pronunciation: { ipa: row?.ipa || aiData.pronunciation?.ipa || '' }
+        pronunciation: { ipa: aiData.pronunciation?.ipa || '' }
       },
       quiz: {
-        title: 'Vocabulary Quiz',
+        title: 'Word Mastery Quiz',
         questions: aiData.quiz || []
       }
     };
