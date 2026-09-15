@@ -41,7 +41,21 @@ export type VocabQuizDTO = {
   questions: QuizQuestionDTO[];
 };
 
+export type SourceTypeDTO = 'db' | 'ai';
+
+export interface FieldSourcesDTO {
+  definition?: SourceTypeDTO;
+  translation?: SourceTypeDTO;
+  synonyms?: SourceTypeDTO;
+  antonyms?: SourceTypeDTO;
+  collocations?: SourceTypeDTO;
+  examples?: SourceTypeDTO;
+  quiz?: SourceTypeDTO;
+}
+
 export type AnalyzeResponseDTO = {
+  source?: 'local_database' | 'ai_engine';
+  sources?: FieldSourcesDTO;
   analysis: VocabAnalysisDTO;
   quiz: VocabQuizDTO;
 };

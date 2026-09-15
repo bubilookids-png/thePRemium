@@ -19,11 +19,11 @@ analyzeRouter.post('/', async (req, res) => {
   const parsed = bodySchema.safeParse(req.body);
 
   if (!parsed.success) {
-  return res.status(400).json({
-    error: 'Invalid request',
-    details: parsed.error.issues
-  });
-}
+    return res.status(400).json({
+      error: 'Invalid request',
+      details: parsed.error.issues
+    });
+  }
 
   const term = normalizeTerm(parsed.data.word);
   if (!isLikelyValidTerm(term)) {
@@ -40,6 +40,8 @@ analyzeRouter.post('/', async (req, res) => {
 
     // Ensure the "analysis.word" reflects normalized term (consistency)
     result.analysis.word = term;
+
+    console.log('⚡ SERVERDAN CHIQAYOTGAN SOURCE:', result.source, result.sources);
 
     return res.json(result);
   } catch (err: any) {
