@@ -1,7 +1,7 @@
 // src/App.tsx
 import GradientWaves from './components/GradientWaves';
 import WarpText from './components/WarpText';
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { Card } from './components/Card';
@@ -43,6 +43,7 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<AnalyzeResponse | null>(null);
   const [view, setView] = useState<View>('analysis');
+  const [waitingAuth, setWaitingAuth] = useState(false);
 
   // Foydalanuvchi holati
   const [currentUser, setCurrentUser] = useState<TelegramUser | null>(() => {
@@ -59,56 +60,63 @@ export default function App() {
     [word]
   );
 
-  // Telegram Login Widget yuklash va qabul qilish logikasi
-  useEffect(() => {
-    (window as any).onTelegramAuth = async (user: any) => {
-      try {
-        const backendUrl = window.location.hostname === 'localhost'
-          ? 'http://localhost:8787'
-          : 'https://thepremium.onrender.com'; // O'zingizning Render backend manzilingiz
+  // 1-Click Telegram Bot Login logikasi
+  async function handleTelegramLogin() {
+    try {
+      setWaitingAuth(true);
+      const backendUrl = window.location.hostname === 'localhost'
+        ? 'http://localhost:8787'
+        : 'https://thepremium.onrender.com';
 
-        const res = await fetch(`${backendUrl}/api/auth/telegram`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(user)
-        });
+      // 1. Yangi bir martalik sessiya tokeni olamiz
+      const res = await fetch(`${backendUrl}/api/auth/session`);
+      const sessionData = await res.json();
+      const token = sessionData.token;
 
-        const authData = await res.json();
-        if (authData.success && authData.user) {
-          const userData: TelegramUser = {
-            id: authData.user.telegram_id,
-            first_name: authData.user.first_name,
-            last_name: authData.user.last_name,
-            username: authData.user.username,
-            photo_url: authData.user.photo_url,
-            search_count: authData.user.search_count || 0
-          };
-          localStorage.setItem('vacabbro_user', JSON.stringify(userData));
-          setCurrentUser(userData);
-        } else {
-          alert('Login failed: ' + (authData.message || 'Error'));
+      if (!token) {
+        throw new Error('Sessiya tokeni olinmadi');
+      }
+
+      // 2. Foydalanuvchi uchun bot linkini yangi oynada ochamiz
+      const botUsername = 'GIvacabbro_bot';
+      window.open(`https://t.me/${botUsername}?start=${token}`, '_blank');
+
+      // 3. Har 2 soniyada botda /start bosildimi deb tekshirib turamiz
+      const interval = setInterval(async () => {
+        try {
+          const checkRes = await fetch(`${backendUrl}/api/auth/check-session/${token}`);
+          const checkData = await checkRes.json();
+
+          if (checkData.authenticated && checkData.user) {
+            clearInterval(interval);
+            setWaitingAuth(false);
+            const userData: TelegramUser = {
+              id: checkData.user.telegram_id,
+              first_name: checkData.user.first_name,
+              last_name: checkData.user.last_name,
+              username: checkData.user.username,
+              photo_url: checkData.user.photo_url,
+              search_count: checkData.user.search_count || 0
+            };
+            localStorage.setItem('vacabbro_user', JSON.stringify(userData));
+            setCurrentUser(userData);
+          }
+        } catch (e) {
+          console.error("Auth tekshirishda xatolik:", e);
         }
-      } catch (err: any) {
-        console.error('Telegram auth error:', err);
-      }
-    };
+      }, 2000);
 
-    if (!currentUser) {
-      const container = document.getElementById('tg-login-btn-slot');
-      if (container && !container.hasChildNodes()) {
-        const script = document.createElement('script');
-        script.src = 'https://telegram.org/js/telegram-widget.js?22';
-        script.async = true;
-        // O'zingizning botingiz username'ini @ siz yozing:
-        script.setAttribute('data-telegram-login', 'GIvacabbro_bot');
-        script.setAttribute('data-size', 'medium');
-        script.setAttribute('data-radius', '12');
-        script.setAttribute('data-onauth', 'onTelegramAuth(user)');
-        script.setAttribute('data-request-access', 'write');
-        container.appendChild(script);
-      }
+      // 60 soniyadan so'ng intervalni to'xtatamiz
+      setTimeout(() => {
+        clearInterval(interval);
+        setWaitingAuth(false);
+      }, 60000);
+
+    } catch (err) {
+      console.error(err);
+      setWaitingAuth(false);
     }
-  }, [currentUser]);
+  }
 
   function handleLogout() {
     localStorage.removeItem('vacabbro_user');
@@ -145,7 +153,7 @@ export default function App() {
 
       console.log("FRONTEND OLGAN TO'LIQ JAVOB (res):", res);
 
-      // Agar login qilgan bo'lsa, qidiruv sonini UI da ham +1 qilamiz
+      // Agar login qilingan bo'lsa, foydalanuvchi hisoblagichini ham oshiramiz
       if (currentUser) {
         const updated = {
           ...currentUser,
@@ -212,7 +220,7 @@ export default function App() {
       <div className="app-content relative z-10 flex flex-col min-h-screen">
         <Header />
 
-        {/* Telegram User Auth paneli (Header ostida qulay joylashgan) */}
+        {/* Telegram User Auth Paneli */}
         <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-3 flex justify-end items-center">
           {currentUser ? (
             <div className="flex items-center gap-3 px-3.5 py-1.5 rounded-full bg-white/5 border border-purple-500/30 backdrop-blur-md">
@@ -245,7 +253,19 @@ export default function App() {
               </button>
             </div>
           ) : (
-            <div id="tg-login-btn-slot" className="flex items-center min-h-[36px]"></div>
+            <div className="flex items-center min-h-[36px]">
+              <button
+                type="button"
+                onClick={handleTelegramLogin}
+                disabled={waitingAuth}
+                className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#0088cc]/20 hover:bg-[#0088cc]/30 border border-[#0088cc]/40 text-xs font-semibold text-[#38bdf8] transition-all duration-200"
+              >
+                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.75-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z" />
+                </svg>
+                <span>{waitingAuth ? "Kutilmoqda..." : "Telegram orqali kirish"}</span>
+              </button>
+            </div>
           )}
         </div>
 
