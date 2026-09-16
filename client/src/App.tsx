@@ -44,6 +44,7 @@ export default function App() {
   const [data, setData] = useState<AnalyzeResponse | null>(null);
   const [view, setView] = useState<View>('analysis');
   const [waitingAuth, setWaitingAuth] = useState(false);
+  const [showLimitModal, setShowLimitModal] = useState(false);
 
   // Foydalanuvchi holati
   const [currentUser, setCurrentUser] = useState<TelegramUser | null>(() => {
@@ -77,7 +78,7 @@ export default function App() {
         throw new Error('Sessiya tokeni olinmadi');
       }
 
-      // 2. Foydalanuvchi uchun bot linkini yangi oynada ochamiz
+      // 2. Foydalanuvchi uchun bot linkini ochamiz
       const botUsername = 'GIvacabbro_bot';
       window.open(`https://t.me/${botUsername}?start=${token}`, '_blank');
 
@@ -141,6 +142,16 @@ export default function App() {
       return;
     }
 
+    // 🛑 10 ta bepul qidiruv cheklovi (faqat kirmagan mehmonlar uchun)
+    if (!currentUser) {
+      const guestCount = parseInt(localStorage.getItem('vacabbro_guest_searches') || '0', 10);
+      if (guestCount >= 10) {
+        setShowLimitModal(true);
+        return;
+      }
+      localStorage.setItem('vacabbro_guest_searches', (guestCount + 1).toString());
+    }
+
     setLoading(true);
 
     try {
@@ -153,7 +164,7 @@ export default function App() {
 
       console.log("FRONTEND OLGAN TO'LIQ JAVOB (res):", res);
 
-      // Agar login qilingan bo'lsa, foydalanuvchi hisoblagichini ham oshiramiz
+      // Agar login qilingan bo'lsa, foydalanuvchi hisoblagichini bittaga oshiramiz
       if (currentUser) {
         const updated = {
           ...currentUser,
@@ -231,8 +242,8 @@ export default function App() {
                   className="w-7 h-7 rounded-full object-cover border border-purple-400"
                 />
               ) : (
-                <div className="w-7 h-7 rounded-full bg-purple-600 flex items-center justify-center text-xs font-bold text-white">
-                  {currentUser.first_name.charAt(0)}
+                <div className="w-7 h-7 rounded-full bg-purple-600 flex items-center justify-center text-xs font-bold text-white uppercase">
+                  {currentUser.first_name ? currentUser.first_name.charAt(0) : 'U'}
                 </div>
               )}
               <div className="text-left leading-tight">
@@ -438,6 +449,51 @@ export default function App() {
 
         <Footer />
       </div>
+
+      {/* 🛑 10 ta bepul so'rov tugaganda chiquvchi chiroyli modal */}
+      {showLimitModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
+          <div className="relative w-full max-w-md p-6 sm:p-8 rounded-3xl bg-slate-900 border border-purple-500/30 shadow-2xl text-center">
+            
+            <button 
+              onClick={() => setShowLimitModal(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-white transition text-lg w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/5"
+            >
+              ✕
+            </button>
+
+            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center text-3xl shadow-lg shadow-purple-500/25">
+              ✨
+            </div>
+
+            <h3 className="text-xl font-bold text-white mb-2">
+              Sinov qidiruvlari yakunlandi
+            </h3>
+
+            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed mb-6">
+              Siz bepul taqdim etilgan <b>10 ta</b> so‘z tahlilidan foydalandingiz. 
+              Cheklovlarsiz izlash, yangi so‘zlarni eslab qolish va shaxsiy statistikangizni yuritish uchun Telegram orqali kiring. Bu mutlaqo bepul va bor-yo‘g‘i 1 soniya vaqt oladi!
+            </p>
+
+            <button
+              onClick={() => {
+                setShowLimitModal(false);
+                handleTelegramLogin();
+              }}
+              className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold text-sm shadow-lg shadow-blue-500/25 transition transform active:scale-95 flex items-center justify-center gap-2"
+            >
+              <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.75-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z" />
+              </svg>
+              Telegram orqali davom etish
+            </button>
+
+            <p className="text-[11px] text-slate-400 mt-3">
+              Parol kerak emas • Bir marta bosish kifoya
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
