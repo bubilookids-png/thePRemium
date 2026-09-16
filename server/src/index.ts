@@ -7,6 +7,7 @@ import { analyzeRouter } from './routes/analyze.js';
 import authRoutes from './routes/authRoutes.js';
 import { logger } from './utils/logger.js';
 import { initDatabase } from './db/database.js';
+import { startTelegramBot } from './services/telegramBotAuth.js';
 
 dotenv.config();
 
@@ -64,4 +65,11 @@ app.use((_req, res) => {
 app.listen(PORT, '0.0.0.0', () => {
   logger.info(`Server running on port ${PORT}`);
   logger.info(`CORS allowed origins: ${CLIENT_ORIGINS.join(', ')}`);
+  
+  // Telegram Botni ishga tushirish (/start auth_xxx ushlaydi)
+  try {
+    startTelegramBot();
+  } catch (err: any) {
+    logger.error(`Telegram bot start error: ${err.message}`);
+  }
 });
