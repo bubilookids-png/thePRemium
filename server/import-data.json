@@ -1,0 +1,77 @@
+[
+  {
+    "term": "achieve",
+    "ipa": "/əˈtʃiːv/",
+    "part_of_speech": "verb",
+    "cefr_level": "B1",
+    "definition_en": "To successfully complete something or get a good result, especially through hard work.",
+    "translation_uz": "erishmoq, qo'lga kiritmoq",
+    "synonyms": ["accomplish", "attain", "reach", "fulfill"],
+    "antonyms": ["fail", "miss", "give up"],
+    "collocations": ["achieve a goal", "achieve success", "achieve greatness"],
+    "examples": [
+      "She worked hard to achieve her dreams.",
+      "They have achieved remarkable success in a short period of time."
+    ]
+  },
+  {
+    "term": "benefit",
+    "ipa": "/ˈbenɪfɪt/",
+    "part_of_speech": "noun",
+    "cefr_level": "A2",
+    "definition_en": "A helpful or good effect, or something intended to help.",
+    "translation_uz": "foyda, naf, ustunlik",
+    "synonyms": ["advantage", "profit", "gain", "value"],
+    "antonyms": ["drawback", "disadvantage", "harm"],
+    "collocations": ["great benefit", "mutual benefit", "health benefits"],
+    "examples": [
+      "Regular exercise brings many health benefits.",
+      "The new policy will be of great benefit to students."
+    ]
+  },
+  {
+    "term": "challenge",
+    "ipa": "/ˈtʃælɪndʒ/",
+    "part_of_speech": "noun",
+    "cefr_level": "B1",
+    "definition_en": "Something needing great mental or physical effort in order to be done successfully.",
+    "translation_uz": "qiyinchilik, chaqiriq, sinov",
+    "synonyms": ["obstacle", "difficulty", "test", "trial"],
+    "antonyms": ["ease", "simplicity", "comfort"],
+    "collocations": ["face a challenge", "major challenge", "accept a challenge"],
+    "examples": [
+      "Learning a new language is a big challenge.",
+      "Our team is ready to face any challenge."
+    ]
+  },
+  {
+    "term": "discover",
+    "ipa": "/dɪˈskʌvər/",
+    "part_of_speech": "verb",
+    "cefr_level": "A2",
+    "definition_en": "To see, find, or become aware of something for the first time.",
+    "translation_uz": "kashf qilmoq, topmoq, bilib olmoq",
+    "synonyms": ["find", "uncover", "reveal", "detect"],
+    "antonyms": ["hide", "conceal", "lose"],
+    "collocations": ["discover a cure", "discover the truth", "newly discovered"],
+    "examples": [
+      "Scientists discovered a new species in the rainforest.",
+      "She discovered that she had a talent for painting."
+    ]
+  },
+  {
+    "term": "effort",
+    "ipa": "/ˈefət/",
+    "part_of_speech": "noun",
+    "cefr_level": "B1",
+    "definition_en": "Physical or mental energy needed to do something.",
+    "translation_uz": "harakat, urinish, kuch-g'ayrat",
+    "synonyms": ["attempt", "endeavor", "exertion", "struggle"],
+    "antonyms": ["laziness", "inactivity", "ease"],
+    "collocations": ["make an effort", "joint effort", "great effort"],
+    "examples": [
+      "You need to make an effort to improve your English.",
+      "Success requires time, patience, and effort."
+    ]
+  }
+]

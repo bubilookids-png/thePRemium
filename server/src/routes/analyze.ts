@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { analyzeWordService } from '../services/analyzeService.js';
 import { isLikelyValidTerm, normalizeTerm } from '../utils/validate.js';
+import { incrementUserSearch } from '../services/telegramAuthService.js';
 
 export const analyzeRouter = Router();
 
@@ -10,7 +11,8 @@ const bodySchema = z.object({
   targetLanguage: z.object({
     code: z.string().min(1).max(12),
     label: z.string().min(1).max(40)
-  })
+  }),
+  telegramId: z.number().optional()
 });
 
 analyzeRouter.post('/', async (req, res) => {
@@ -40,6 +42,15 @@ analyzeRouter.post('/', async (req, res) => {
 
     // Ensure the "analysis.word" reflects normalized term (consistency)
     result.analysis.word = term;
+
+    // Agar foydalanuvchi login qilgan bo'lsa, qidiruv sonini +1 qilamiz
+    if (parsed.data.telegramId) {
+      try {
+        incrementUserSearch(parsed.data.telegramId);
+      } catch (countErr) {
+        console.error("User qidiruv sonini oshirishda xatolik:", countErr);
+      }
+    }
 
     console.log('⚡ SERVERDAN CHIQAYOTGAN SOURCE:', result.source, result.sources);
 
