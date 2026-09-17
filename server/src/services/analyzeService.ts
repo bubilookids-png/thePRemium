@@ -32,8 +32,8 @@ function safeJsonArray(raw: string | null | undefined): string[] {
 // Websterning eski 1913-yilgi xom matnlarini tekshirish filtri
 function isOldWebsterGarbage(text: string | null | undefined): boolean {
   if (!text) return true;
-  if (text.length > 250) return true; // Webster ta'riflari juda uzun doston bo'ladi
-  if (/^\s*1\.\s+/i.test(text)) return true; // "1. A piece of..."
+  if (text.length > 250) return true;
+  if (/^\s*1\.\s+/i.test(text)) return true;
   if (text.includes('[Obs.]') || text.includes('Thackeray') || text.includes('Shak.')) return true;
   return false;
 }
@@ -47,7 +47,13 @@ export async function analyzeWordService(params: {
   // 1. Bazadan qidiramiz
   let row: WordDbRow | undefined;
   try {
-    row = db.prepare('SELECT * FROM words WHERE LOWER(term) = ?').get(cleanWord) as WordDbRow | undefined;
+    const res = await db.execute({
+      sql: 'SELECT * FROM words WHERE LOWER(term) = ?',
+      args: [cleanWord]
+    });
+    if (res.rows.length > 0) {
+      row = res.rows[0] as unknown as WordDbRow;
+    }
   } catch (err) {
     logger.warn('DB query error', { err });
   }
@@ -57,10 +63,6 @@ export async function analyzeWordService(params: {
   const dbColls = safeJsonArray(row?.collocations);
   const dbExamp = safeJsonArray(row?.examples);
 
-  // Bazadagi ma'lumot zamonaviy va to'liq ekanligini aniqlash:
-  // - Ta'rif Websterning eski axlati bo'lmasligi kerak
-  // - Tarjima bo'lishi shart
-  // - Kamida bitta sinonim va 2 ta misol bo'lishi kerak
   const isFullyModernCached = Boolean(
     row &&
     row.definition_en &&
@@ -72,7 +74,7 @@ export async function analyzeWordService(params: {
     dbExamp.length >= 2
   );
 
-  // AGAR BAZADA TAYYOR VA TOZA BO'LSA -> 100% DB QAYTARADI (0 ms)
+  // AGAR BAZADA TAYYOR VA TOZA BO'LSA
   if (row && isFullyModernCached) {
     logger.info(`[DB FULL HIT] Word served completely from DB: ${cleanWord}`);
     return {
@@ -132,7 +134,7 @@ export async function analyzeWordService(params: {
     };
   }
 
-  // 2. AGAR YANGI SO'Z BO'LSA YOKI ESKI WEBSTER BO'LSA -> AI TO'LIQ GENERATSIYA QILADI
+  // 2. AGAR YANGI SO'Z BO'LSA YOKI ESKI WEBSTER BO'LSA -> AI GENERATSIYA QILADI
   if (!hasGroqKey()) {
     return mockAnalyze(params.word, params.targetLanguage);
   }
@@ -203,41 +205,43 @@ Translation must be accurate in the target language (e.g. Uzbek).
       ? aiData.examples 
       : [`He used the word "${cleanWord}" correctly.`, `Can you explain what "${cleanWord}" means?`];
 
-    // AI yaratgan toza ma'lumotni bazaga saqlaymiz (eski Webster axlatini ham yangisiga almashtiramiz)
+    // AI natijasini bazaga saqlaymiz
     try {
-      db.prepare(`
-        INSERT INTO words (
-          term, ipa, part_of_speech, cefr_level, definition_en,
-          translation_uz, synonyms, antonyms, collocations, examples
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ON CONFLICT(term) DO UPDATE SET
-          definition_en = excluded.definition_en,
-          translation_uz = excluded.translation_uz,
-          ipa = excluded.ipa,
-          part_of_speech = excluded.part_of_speech,
-          cefr_level = excluded.cefr_level,
-          synonyms = excluded.synonyms,
-          antonyms = excluded.antonyms,
-          collocations = excluded.collocations,
-          examples = excluded.examples
-      `).run(
-        cleanWord,
-        aiData.pronunciation?.ipa || '',
-        aiData.partOfSpeech || 'noun',
-        aiData.cefrLevel || 'B1',
-        modernDef,
-        modernTrans,
-        JSON.stringify(modernSyns),
-        JSON.stringify(modernAnts),
-        JSON.stringify(modernColls),
-        JSON.stringify(modernExamp)
-      );
+      await db.execute({
+        sql: `
+          INSERT INTO words (
+            term, ipa, part_of_speech, cefr_level, definition_en,
+            translation_uz, synonyms, antonyms, collocations, examples
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          ON CONFLICT(term) DO UPDATE SET
+            definition_en = excluded.definition_en,
+            translation_uz = excluded.translation_uz,
+            ipa = excluded.ipa,
+            part_of_speech = excluded.part_of_speech,
+            cefr_level = excluded.cefr_level,
+            synonyms = excluded.synonyms,
+            antonyms = excluded.antonyms,
+            collocations = excluded.collocations,
+            examples = excluded.examples
+        `,
+        args: [
+          cleanWord,
+          aiData.pronunciation?.ipa || '',
+          aiData.partOfSpeech || 'noun',
+          aiData.cefrLevel || 'B1',
+          modernDef,
+          modernTrans,
+          JSON.stringify(modernSyns),
+          JSON.stringify(modernAnts),
+          JSON.stringify(modernColls),
+          JSON.stringify(modernExamp)
+        ]
+      });
       logger.info(`[DB SAVED] Successfully cached modern data for "${cleanWord}"`);
     } catch (saveErr) {
       logger.warn('Error caching word to SQLite', { saveErr });
     }
 
-    // Birinchi marta foydalanuvchiga taqdim etish (AI nishoni bilan)
     const result: AnalyzeResponseDTO = {
       source: 'ai_engine',
       sources: {
