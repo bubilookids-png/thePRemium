@@ -11,7 +11,6 @@ import { startTelegramBot } from './services/telegramBotAuth.js';
 
 dotenv.config();
 
-// Server ishga tushganda ma'lumotlar bazasini tayyorlab qo'yadi
 initDatabase();
 
 const app = express();
@@ -66,7 +65,6 @@ app.listen(PORT, '0.0.0.0', () => {
   logger.info(`Server running on port ${PORT}`);
   logger.info(`CORS allowed origins: ${CLIENT_ORIGINS.join(', ')}`);
   
-  // Telegram Botni ishga tushirish (/start auth_xxx ushlaydi)
   try {
     startTelegramBot();
   } catch (err: any) {
