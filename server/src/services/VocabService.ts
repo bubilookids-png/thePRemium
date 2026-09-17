@@ -1,5 +1,5 @@
 // server/src/services/vocabService.ts
-import { db } from '../db/database';
+import { db } from '../db/database.js';
 import { generateQuizWithAI, generateFullAnalysisWithAI } from './groqClient';
 
 export async function analyzeWordHybrid(term: string, langCode: string) {
