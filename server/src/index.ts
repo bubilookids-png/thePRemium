@@ -11,10 +11,7 @@ import { startTelegramBot } from './services/telegramBotAuth.js';
 
 dotenv.config();
 
-initDatabase();
-
 const app = express();
-
 const PORT = Number(process.env.PORT || 8787);
 
 const CLIENT_ORIGINS = [
@@ -24,7 +21,6 @@ const CLIENT_ORIGINS = [
 ];
 
 app.set('trust proxy', 1);
-
 app.use(express.json({ limit: '64kb' }));
 
 app.use(
@@ -61,13 +57,25 @@ app.use((_req, res) => {
   res.status(404).json({ error: 'Not found' });
 });
 
-app.listen(PORT, '0.0.0.0', () => {
-  logger.info(`Server running on port ${PORT}`);
-  logger.info(`CORS allowed origins: ${CLIENT_ORIGINS.join(', ')}`);
-  
+// Xavfsiz ishga tushirish (Server qulab tushmasligi uchun)
+async function startServer() {
   try {
-    startTelegramBot();
+    await initDatabase();
+    logger.info('Database initialized successfully.');
   } catch (err: any) {
-    logger.error(`Telegram bot start error: ${err.message}`);
+    logger.error(`Database initialization error: ${err.message}`);
   }
-});
+
+  app.listen(PORT, '0.0.0.0', () => {
+    logger.info(`Server running on port ${PORT}`);
+    logger.info(`CORS allowed origins: ${CLIENT_ORIGINS.join(', ')}`);
+    
+    try {
+      startTelegramBot();
+    } catch (err: any) {
+      logger.error(`Telegram bot start error: ${err.message}`);
+    }
+  });
+}
+
+startServer();
