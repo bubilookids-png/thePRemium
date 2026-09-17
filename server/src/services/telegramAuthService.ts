@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { db } from '../db/database';
+import { db } from '../db/database.js';
 
 export interface TelegramUserData {
   id: number;
