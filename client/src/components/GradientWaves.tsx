@@ -344,26 +344,26 @@ type GradientContext = {
 const ctxMap = new WeakMap<HTMLElement, GradientContext>();
 
 const GradientWaves = ({
-  horizonColor = '#5227FF',
-  waveColor = '#FF9FFC',
-  crestColor = '#FFFFFF',
-  speed = 0.4,
-  amplitude = 2.5,
-  waveScale = 0.6,
+  horizonColor = '#02130e',
+  waveColor = '#064E3B',
+  crestColor = '#F8E7C9',
+  speed = 0.22,
+  amplitude = 2.2,
+  waveScale = 0.55,
   waveRatio = 0.9,
-  swell = 35,
-  turbulence = 20,
+  swell = 28,
+  turbulence = 16,
   tilt = 1.11,
   zoom = 1.0,
   height = 5.5,
-  fogDepth = 15,
+  fogDepth = 18,
   detail = 'medium',
-  brightness = 1.0,
-  opacity = 1.0,
+  brightness = 0.78,
+  opacity = 0.85,
   mouseInteraction = true,
-  parallaxStrength = 0.5,
+  parallaxStrength = 0.35,
   grain = true,
-  grainIntensity = 0.05,
+  grainIntensity = 0.025,
   className = ''
 }: GradientWavesProps) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -405,25 +405,25 @@ const GradientWaves = ({
         iResolution: {
           value: new Float32Array([1, 1])
         },
-        uSpeed: { value: 0.4 },
-        uAmplitude: { value: 2.5 },
-        uWaveScale: { value: 0.6 },
+        uSpeed: { value: 0.22 },
+        uAmplitude: { value: 2.2 },
+        uWaveScale: { value: 0.55 },
         uWaveRatio: { value: 0.9 },
-        uSwell: { value: 35 },
-        uTurbulence: { value: 20 },
+        uSwell: { value: 28 },
+        uTurbulence: { value: 16 },
         uTilt: { value: 1.11 },
         uZoom: { value: 1.0 },
         uHeight: { value: 5.5 },
-        uFogDepth: { value: 15 },
+        uFogDepth: { value: 18 },
         uSteps: { value: 70.0 },
-        uBrightness: { value: 1.0 },
-        uOpacity: { value: 1.0 },
+        uBrightness: { value: 0.78 },
+        uOpacity: { value: 0.85 },
         uGrain: { value: 1.0 },
-        uGrainIntensity: { value: 0.05 },
+        uGrainIntensity: { value: 0.025 },
         uMouse: {
           value: new Float32Array([0.5, 0.5])
         },
-        uParallax: { value: 0.5 },
+        uParallax: { value: 0.35 },
         uEnableMouse: { value: true },
         uHorizonColor: {
           value: new Float32Array([1, 1, 1])
@@ -653,6 +653,7 @@ const GradientWaves = ({
     hc[1] = h[1];
     hc[2] = h[2];
 
+    wc[0] = w[0];
     wc[0] = w[0];
     wc[1] = w[1];
     wc[2] = w[2];

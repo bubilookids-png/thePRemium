@@ -134,116 +134,21 @@ button:disabled {
   min-height: 100vh;
   isolation: isolate;
   overflow-x: clip;
-
-  background:
-    radial-gradient(
-      700px 500px at 50% -160px,
-      rgba(111, 95, 255, 0.13),
-      transparent 70%
-    ),
-    radial-gradient(
-      500px 500px at 100% 25%,
-      rgba(75, 90, 255, 0.055),
-      transparent 70%
-    ),
-    linear-gradient(
-      180deg,
-      #050506 0%,
-      #070709 45%,
-      #050506 100%
-    );
+  background: #02120e; /* Toza to'q zumrad qora fon */
 }
 
-/* Atmospheric orb */
-
-.app-shell::before {
-  content: "";
-
-  position: fixed;
-
-  width: min(70vw, 850px);
-  height: min(70vw, 850px);
-
-  left: -28%;
-  top: -30%;
-
-  z-index: -3;
-
-  pointer-events: none;
-
-  border-radius: 50%;
-
-  background:
-    radial-gradient(
-      circle,
-      rgba(103, 87, 255, 0.15) 0%,
-      rgba(103, 87, 255, 0.055) 35%,
-      transparent 70%
-    );
-
-  filter: blur(55px);
-
-  animation:
-    atmosphereOne 24s ease-in-out infinite alternate;
-}
-
+/* Eski binafsha sharlarni butunlay o'chirib tashlaymiz */
+.app-shell::before,
 .app-shell::after {
-  content: "";
+  display: none !important;
+}
 
+.app-background {
   position: fixed;
-
-  width: min(65vw, 780px);
-  height: min(65vw, 780px);
-
-  right: -25%;
-  top: 20%;
-
-  z-index: -3;
-
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
   pointer-events: none;
-
-  border-radius: 50%;
-
-  background:
-    radial-gradient(
-      circle,
-      rgba(119, 87, 255, 0.1),
-      rgba(77, 102, 255, 0.035) 38%,
-      transparent 72%
-    );
-
-  filter: blur(60px);
-
-  animation:
-    atmosphereTwo 30s ease-in-out infinite alternate;
-}
-
-@keyframes atmosphereOne {
-  0% {
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-
-  50% {
-    transform: translate3d(18vw, 15vh, 0) scale(1.12);
-  }
-
-  100% {
-    transform: translate3d(7vw, 31vh, 0) scale(0.95);
-  }
-}
-
-@keyframes atmosphereTwo {
-  0% {
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-
-  50% {
-    transform: translate3d(-13vw, -9vh, 0) scale(1.1);
-  }
-
-  100% {
-    transform: translate3d(-7vw, 17vh, 0) scale(0.92);
-  }
 }
 
 /* ============================================================

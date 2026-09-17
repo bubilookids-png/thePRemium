@@ -29,37 +29,39 @@ export function CyberMatrixOrb() {
           transform: hovered ? `rotateX(${coords.rx}deg) rotateY(${coords.ry}deg) scale(1.01)` : 'none',
           transition: hovered ? 'transform 0.08s ease-out' : 'transform 0.4s ease-out',
         }}
-        className="relative rounded-2xl sm:rounded-3xl p-[1.5px] overflow-hidden shadow-xl"
+        className="relative rounded-2xl sm:rounded-3xl p-[1.5px] overflow-hidden shadow-2xl"
       >
+        {/* Aylana yorug'lik: Champagne & Emerald tuslarida */}
         <div
-          className="absolute inset-[-150%] animate-[spin_4s_linear_infinite]"
+          className="absolute inset-[-150%] animate-[spin_5s_linear_infinite]"
           style={{
-            background: 'conic-gradient(from 0deg, transparent 0 310deg, #38bdf8 335deg, #a855f7 350deg, #ec4899 360deg)',
+            background: 'conic-gradient(from 0deg, transparent 0 290deg, #064E3B 320deg, #10b981 345deg, #F8E7C9 360deg)',
           }}
         />
 
-        <div className="relative w-full rounded-2xl sm:rounded-3xl bg-slate-950/95 backdrop-blur-2xl p-3 sm:p-4 border border-white/10 flex items-center justify-between gap-3">
+        <div className="relative w-full rounded-2xl sm:rounded-3xl bg-[#02130e]/95 backdrop-blur-2xl p-3 sm:p-4 border border-[#F8E7C9]/15 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-purple-950/60 border border-purple-500/40 flex items-center justify-center text-cyan-300 font-black text-xs sm:text-sm">
+            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-[#062b21] border border-[#F8E7C9]/25 flex items-center justify-center text-[#F8E7C9] font-black text-xs sm:text-sm shadow-inner">
               ✦
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="text-[11px] sm:text-xs font-black font-mono tracking-wider text-white">
+                <span className="text-[11px] sm:text-xs font-black font-mono tracking-wider text-[#F8E7C9]">
                   NEURAL MATRIX
                 </span>
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse" />
               </div>
-              <p className="text-[10px] font-mono text-slate-400">
+              <p className="text-[10px] font-mono text-[#F8E7C9]/60">
                 Lexical graph active
               </p>
             </div>
           </div>
 
-          <div className="flex items-end gap-1 h-6 px-1">
-            <span className="w-1 bg-purple-500 rounded-full animate-[bounce_0.8s_infinite_100ms] h-3.5" />
-            <span className="w-1 bg-cyan-400 rounded-full animate-[bounce_0.8s_infinite_300ms] h-5" />
-            <span className="w-1 bg-pink-500 rounded-full animate-[bounce_0.8s_infinite_200ms] h-4" />
+          {/* Dinamik to'lqin chiziqlari (Ekvalayzer) */}
+          <div className="flex items-end gap-1.5 h-6 px-1">
+            <span className="w-1 bg-[#10b981] rounded-full animate-[bounce_0.8s_infinite_100ms] h-3.5" />
+            <span className="w-1 bg-[#F8E7C9] rounded-full animate-[bounce_0.8s_infinite_300ms] h-5" />
+            <span className="w-1 bg-[#064E3B] rounded-full animate-[bounce_0.8s_infinite_200ms] h-4" />
           </div>
         </div>
       </div>

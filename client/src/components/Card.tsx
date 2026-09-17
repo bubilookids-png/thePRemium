@@ -54,37 +54,45 @@ export function Card(props: {
         className="relative w-full"
       >
         <BorderGlow
-          backgroundColor="#120F17"
+          backgroundColor="#02130e"
           borderRadius={24}
           glowRadius={30}
           glowIntensity={0.8}
-          colors={['#c084fc', '#5227FF', '#38bdf8']}
-          glowColor="40 80 80"
+          colors={['#10b981', '#064E3B', '#F8E7C9']}
+          glowColor="160 84 39"
           edgeSensitivity={30}
           coneSpread={25}
-          fillOpacity={0.5}
+          fillOpacity={0.65}
         >
-          <section className={`section-card relative overflow-hidden p-4 sm:p-6 ${props.className || ''}`}>
-            {/* Sichqoncha nuri faqat desktopda seziladi */}
+          <section className={`section-card relative overflow-hidden p-4 sm:p-6 bg-[#02130e]/80 ${props.className || ''}`}>
+            {/* Sichqoncha nuri: Emerald & Champagne (desktop) */}
             <div
               className="hidden sm:block pointer-events-none absolute -inset-px transition-opacity duration-300 z-0"
               style={{
                 opacity: isHovered ? 1 : 0,
-                background: `radial-gradient(320px circle at ${mousePos.x}px ${mousePos.y}px, rgba(192, 132, 252, 0.16), rgba(56, 189, 248, 0.08), transparent 75%)`,
+                background: `radial-gradient(320px circle at ${mousePos.x}px ${mousePos.y}px, rgba(248, 231, 201, 0.12), rgba(6, 78, 59, 0.22), transparent 75%)`,
               }}
             />
 
             {(props.title || props.rightSlot) && (
               <header className="section-head relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
                 <div>
-                  {props.title ? <h2 className="section-title text-base sm:text-lg font-bold">{props.title}</h2> : null}
-                  {props.subtitle ? <p className="section-kicker text-xs text-slate-400 mt-0.5">{props.subtitle}</p> : null}
+                  {props.title ? (
+                    <h2 className="section-title text-base sm:text-lg font-bold text-[#F8E7C9] tracking-tight">
+                      {props.title}
+                    </h2>
+                  ) : null}
+                  {props.subtitle ? (
+                    <p className="section-kicker text-xs text-[#F8E7C9]/60 mt-0.5 font-normal">
+                      {props.subtitle}
+                    </p>
+                  ) : null}
                 </div>
                 {props.rightSlot}
               </header>
             )}
 
-            <div className="section-body relative z-10">
+            <div className="section-body relative z-10 text-[#F8E7C9]">
               {props.children}
             </div>
           </section>

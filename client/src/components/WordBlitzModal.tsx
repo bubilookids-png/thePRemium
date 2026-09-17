@@ -1,6 +1,6 @@
 // src/components/WordBlitzModal.tsx
 import React, { useState, useEffect, useRef } from 'react';
-import { BLITZ_VOCAB, Pair } from '../data/blitzWords';
+import { BLITZ_VOCAB } from '../data/blitzWords';
 
 interface Tile {
   id: string;
@@ -9,23 +9,38 @@ interface Tile {
   type: 'en' | 'uz';
 }
 
+type Mode = 'preset' | 'custom';
+
 export function WordBlitzModal({ onClose }: { onClose: () => void }) {
+  const [mode, setMode] = useState<Mode>('preset');
   const [isPlaying, setIsPlaying] = useState(false);
   const [score, setScore] = useState(0);
   const [combo, setCombo] = useState(0);
   const [displayTime, setDisplayTime] = useState(30);
   const [bonusTrigger, setBonusTrigger] = useState(0);
-  
-  // Chap (UZ) va o'ng (EN) ustunlar alohida
+
+  // Chap (UZ) va o'ng (EN) ustunlar
   const [uzTiles, setUzTiles] = useState<Tile[]>([]);
   const [enTiles, setEnTiles] = useState<Tile[]>([]);
-  
+
   const [selectedTile, setSelectedTile] = useState<Tile | null>(null);
   const [matchedIds, setMatchedIds] = useState<string[]>([]);
   const [wrongIds, setWrongIds] = useState<string[]>([]);
 
   const timeRef = useRef(30);
   const audioCtxRef = useRef<AudioContext | null>(null);
+
+  // Foydalanuvchining shaxsiy so'zlarini olish
+  function getUserWords(): { en: string; uz: string }[] {
+    try {
+      const raw = localStorage.getItem('vacabbro_history');
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  const userWordsCount = getUserWords().length;
 
   function playFx(freq: number, type: OscillatorType = 'sine', duration: number = 0.15) {
     try {
@@ -50,7 +65,16 @@ export function WordBlitzModal({ onClose }: { onClose: () => void }) {
   }
 
   function spawnRound() {
-    const shuffled = [...BLITZ_VOCAB].sort(() => 0.5 - Math.random()).slice(0, 5);
+    let sourcePool = BLITZ_VOCAB;
+
+    if (mode === 'custom') {
+      const customWords = getUserWords();
+      if (customWords.length >= 5) {
+        sourcePool = customWords;
+      }
+    }
+
+    const shuffled = [...sourcePool].sort(() => 0.5 - Math.random()).slice(0, 5);
     const newEnTiles: Tile[] = [];
     const newUzTiles: Tile[] = [];
 
@@ -59,7 +83,6 @@ export function WordBlitzModal({ onClose }: { onClose: () => void }) {
       newUzTiles.push({ id: `uz-${idx}`, text: item.uz, pairId: `${idx}`, type: 'uz' });
     });
 
-    // Har bir ustunni o'z ichida alohida aralashtiramiz
     setEnTiles(newEnTiles.sort(() => 0.5 - Math.random()));
     setUzTiles(newUzTiles.sort(() => 0.5 - Math.random()));
     setMatchedIds([]);
@@ -67,6 +90,11 @@ export function WordBlitzModal({ onClose }: { onClose: () => void }) {
   }
 
   function startGame() {
+    if (mode === 'custom' && userWordsCount < 5) {
+      alert("Siz qidirgan so'zlar soni 5 tadan kam. Avval bir nechta so'zni tahlil qiling yoki umumiy bazani tanlang.");
+      return;
+    }
+
     timeRef.current = 30;
     setDisplayTime(30);
     setIsPlaying(true);
@@ -109,7 +137,6 @@ export function WordBlitzModal({ onClose }: { onClose: () => void }) {
       return;
     }
 
-    // Bir xil tildagilarni bosganda shunchaki tanlovni almashtiramiz
     if (selectedTile.type === tile.type) {
       setSelectedTile(tile);
       playFx(466.16, 'triangle', 0.08);
@@ -131,7 +158,6 @@ export function WordBlitzModal({ onClose }: { onClose: () => void }) {
       setCombo((c) => c + 1);
       setSelectedTile(null);
 
-      // Barcha 5 juftlik topilsa
       if (nextMatched.length === 10) {
         timeRef.current += 5;
         setDisplayTime(timeRef.current);
@@ -156,7 +182,7 @@ export function WordBlitzModal({ onClose }: { onClose: () => void }) {
       return (
         <div 
           key={tile.id} 
-          className="h-[54px] sm:h-[60px] border border-emerald-500/10 bg-emerald-500/5 rounded-2xl opacity-0 pointer-events-none transition-all duration-300"
+          className="h-[54px] sm:h-[60px] border border-[#10b981]/10 bg-[#10b981]/5 rounded-2xl opacity-0 pointer-events-none transition-all duration-300"
         />
       );
     }
@@ -166,15 +192,15 @@ export function WordBlitzModal({ onClose }: { onClose: () => void }) {
         key={tile.id}
         type="button"
         onClick={() => handleTileClick(tile)}
-        className={`group relative w-full h-[54px] sm:h-[60px] p-2.5 sm:p-3 rounded-2xl text-center text-xs sm:text-sm font-semibold transition-all duration-150 select-none border backdrop-blur-md flex items-center justify-center ${
+        className={`group relative w-full h-[54px] sm:h-[60px] p-2.5 sm:p-3 rounded-2xl text-center text-xs sm:text-sm font-semibold transition-all duration-150 select-none border backdrop-blur-md flex items-center justify-center cursor-pointer ${
           isWrong
-            ? 'bg-red-500/20 border-red-500 text-red-200 shadow-[0_0_20px_rgba(239,68,68,0.5)] animate-pulse'
+            ? 'bg-rose-500/20 border-rose-500 text-rose-200 shadow-[0_0_20px_rgba(244,63,94,0.4)] animate-pulse'
             : isSelected
-            ? 'bg-gradient-to-r from-purple-600 to-pink-600 border-white/60 text-white scale-[0.98] shadow-[0_0_25px_rgba(168,85,247,0.7)] ring-2 ring-purple-400/50'
-            : 'bg-slate-900/70 hover:bg-slate-800/80 border-slate-700/70 hover:border-purple-500/50 text-slate-200 hover:text-white hover:shadow-[0_0_18px_rgba(147,51,234,0.25)] active:scale-95'
+            ? 'bg-[#064E3B] border-[#F8E7C9] text-[#F8E7C9] scale-[0.98] shadow-[0_0_25px_rgba(248,231,201,0.3)] ring-2 ring-[#10b981]/50'
+            : 'bg-[#062b21]/40 hover:bg-[#064E3B]/50 border-[#F8E7C9]/15 hover:border-[#F8E7C9]/40 text-[#F8E7C9]/80 hover:text-[#F8E7C9] hover:shadow-[0_0_18px_rgba(16,185,129,0.2)] active:scale-95'
         }`}
       >
-        <span className="truncate px-1">
+        <span className="truncate px-1 font-mono">
           {tile.text}
         </span>
       </button>
@@ -183,19 +209,19 @@ export function WordBlitzModal({ onClose }: { onClose: () => void }) {
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/85 backdrop-blur-xl animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-xl animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div 
-        className="relative w-full max-w-xl bg-gradient-to-b from-slate-900/95 to-slate-950/95 border border-purple-500/30 rounded-3xl p-5 sm:p-7 shadow-[0_0_80px_rgba(139,92,246,0.25)] text-slate-100 overflow-hidden ring-1 ring-white/10"
+        className="relative w-full max-w-xl bg-gradient-to-b from-[#02130e]/95 via-[#021812]/95 to-[#010b08]/95 border border-[#F8E7C9]/20 rounded-3xl p-5 sm:p-7 shadow-[0_10px_60px_rgba(0,0,0,0.8)] text-[#F8E7C9] overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-24 bg-gradient-to-b from-purple-500/20 via-pink-500/10 to-transparent blur-2xl pointer-events-none" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-24 bg-gradient-to-b from-[#10b981]/15 via-[#064E3B]/10 to-transparent blur-2xl pointer-events-none" />
 
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-4 right-4 z-20 w-8 h-8 flex items-center justify-center rounded-full bg-slate-800/80 text-slate-400 hover:text-white border border-slate-700/80 hover:border-purple-400/50 hover:bg-slate-700 transition active:scale-95 shadow-lg"
+          className="absolute top-4 right-4 z-20 w-8 h-8 flex items-center justify-center rounded-full bg-[#062b21]/70 text-[#F8E7C9]/60 hover:text-[#F8E7C9] border border-[#F8E7C9]/15 hover:bg-[#064E3B] transition active:scale-95 shadow-lg cursor-pointer"
           aria-label="Close"
         >
           ✕
@@ -203,28 +229,58 @@ export function WordBlitzModal({ onClose }: { onClose: () => void }) {
 
         {/* 1. START SCREEN */}
         {!isPlaying && displayTime === 30 && score === 0 && (
-          <div className="text-center py-6 sm:py-8 relative z-10">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-purple-600/30 to-pink-600/30 border border-purple-500/40 flex items-center justify-center shadow-[0_0_30px_rgba(168,85,247,0.3)]">
-              <span className="text-3xl animate-pulse">⚡</span>
+          <div className="text-center py-6 sm:py-8 relative z-10 animate-in zoom-in-95 duration-200">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-[#064E3B]/60 border border-[#F8E7C9]/25 flex items-center justify-center shadow-[0_0_30px_rgba(16,185,129,0.25)]">
+              <span className="text-3xl animate-pulse text-[#F8E7C9]">⚡</span>
             </div>
 
-            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-purple-200 via-pink-200 to-indigo-200 uppercase mb-2">
+            <h2 className="text-2xl sm:text-3xl font-black tracking-wider text-[#F8E7C9] font-mono uppercase mb-2">
               Vocab Speed Blitz
             </h2>
-            <p className="text-xs sm:text-sm text-slate-400 max-w-xs mx-auto mb-5 leading-relaxed">
+            <p className="text-xs sm:text-sm text-[#F8E7C9]/70 max-w-xs mx-auto mb-5 leading-relaxed">
               Chapdagi o‘zbekcha ma’noni o‘ngdagi inglizcha so‘z bilan tezkor bog‘lang!
             </p>
 
-            <div className="inline-flex items-center gap-2 mb-8 px-3.5 py-1.5 rounded-full text-xs font-mono font-medium bg-purple-950/60 border border-purple-500/40 text-purple-300 shadow-inner">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-              <span>Har to‘g‘ri juftlikka +5s</span>
+            {/* 🔥 REJIM TANLASH (PRESET VS CUSTOM) */}
+            <div className="flex items-center justify-center gap-2 p-1.5 rounded-2xl bg-[#062b21]/60 border border-[#F8E7C9]/15 max-w-sm mx-auto mb-6">
+              <button
+                type="button"
+                onClick={() => setMode('preset')}
+                className={`flex-1 py-2 px-3 rounded-xl font-mono text-xs font-semibold transition-all cursor-pointer ${
+                  mode === 'preset'
+                    ? 'bg-[#064E3B] text-[#F8E7C9] border border-[#F8E7C9]/30 shadow-md'
+                    : 'text-[#F8E7C9]/60 hover:text-[#F8E7C9]'
+                }`}
+              >
+                🌐 Global Baza
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setMode('custom')}
+                className={`flex-1 py-2 px-3 rounded-xl font-mono text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                  mode === 'custom'
+                    ? 'bg-[#064E3B] text-[#F8E7C9] border border-[#F8E7C9]/30 shadow-md'
+                    : 'text-[#F8E7C9]/60 hover:text-[#F8E7C9]'
+                }`}
+              >
+                <span>👤 Mening So‘zlarim</span>
+                <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-black/40 text-[#10b981]">
+                  {userWordsCount}
+                </span>
+              </button>
+            </div>
+
+            <div className="inline-flex items-center gap-2 mb-8 px-3.5 py-1.5 rounded-full text-xs font-mono font-medium bg-[#062b21]/80 border border-[#F8E7C9]/20 text-[#F8E7C9] shadow-inner">
+              <span className="w-2 h-2 rounded-full bg-[#10b981] animate-ping" />
+              <span>Har to‘g‘ri juftlikka +5s qo‘shiladi</span>
             </div>
 
             <div>
               <button
                 type="button"
                 onClick={startGame}
-                className="w-full sm:w-auto px-10 py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 via-violet-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 font-bold text-sm tracking-wider uppercase text-white shadow-[0_0_30px_rgba(168,85,247,0.5)] hover:shadow-[0_0_40px_rgba(168,85,247,0.8)] transition-all duration-200 active:scale-95 border border-purple-300/30"
+                className="w-full sm:w-auto px-12 py-3.5 rounded-2xl bg-[#F8E7C9] hover:bg-[#ebd7b5] text-[#02130e] font-bold text-sm tracking-wider uppercase shadow-[0_0_30px_rgba(248,231,201,0.25)] hover:shadow-[0_0_40px_rgba(248,231,201,0.4)] transition-all duration-200 active:scale-95 border border-[#F8E7C9]/40 cursor-pointer font-mono"
               >
                 Boshlash
               </button>
@@ -235,18 +291,20 @@ export function WordBlitzModal({ onClose }: { onClose: () => void }) {
         {/* 2. GAME OVER SCREEN */}
         {!isPlaying && displayTime === 0 && (
           <div className="text-center py-6 sm:py-8 relative z-10 animate-in zoom-in-95 duration-200">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-amber-500/20 to-pink-500/20 border border-amber-500/40 flex items-center justify-center shadow-[0_0_30px_rgba(245,158,11,0.3)]">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-[#064E3B]/60 border border-[#F8E7C9]/30 flex items-center justify-center shadow-[0_0_30px_rgba(248,231,201,0.2)]">
               <span className="text-3xl">🏆</span>
             </div>
 
-            <h2 className="text-2xl sm:text-3xl font-black text-white uppercase tracking-wider mb-1">
+            <h2 className="text-2xl sm:text-3xl font-black text-[#F8E7C9] font-mono uppercase tracking-wider mb-1">
               Vaqt tugadi!
             </h2>
-            <p className="text-xs sm:text-sm text-slate-400 mb-6">Miyani daxshat charxladingiz</p>
+            <p className="text-xs sm:text-sm text-[#F8E7C9]/60 mb-6 font-mono">
+              Rejim: {mode === 'preset' ? 'Global Baza' : 'Mening So‘zlarim'}
+            </p>
             
-            <div className="p-4 rounded-2xl bg-slate-900/80 border border-purple-500/30 max-w-xs mx-auto mb-8 shadow-inner">
-              <span className="text-xs uppercase tracking-widest text-slate-400 block mb-1">Yakuniy Ball</span>
-              <div className="text-4xl sm:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-300 via-pink-400 to-amber-300 font-mono tracking-tight">
+            <div className="p-4 rounded-2xl bg-[#062b21]/50 border border-[#F8E7C9]/15 max-w-xs mx-auto mb-8 shadow-inner">
+              <span className="text-xs uppercase tracking-widest text-[#F8E7C9]/60 font-mono block mb-1">Yakuniy Ball</span>
+              <div className="text-4xl sm:text-5xl font-black text-[#F8E7C9] font-mono tracking-tight">
                 {score}
               </div>
             </div>
@@ -254,7 +312,7 @@ export function WordBlitzModal({ onClose }: { onClose: () => void }) {
             <button
               type="button"
               onClick={startGame}
-              className="w-full sm:w-auto px-10 py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 font-bold text-sm tracking-wider uppercase shadow-[0_0_30px_rgba(168,85,247,0.5)] transition active:scale-95 border border-purple-300/30"
+              className="w-full sm:w-auto px-10 py-3.5 rounded-2xl bg-[#F8E7C9] hover:bg-[#ebd7b5] text-[#02130e] font-bold text-sm tracking-wider uppercase shadow-[0_0_30px_rgba(248,231,201,0.25)] transition active:scale-95 cursor-pointer font-mono"
             >
               Qaytadan O‘ynash
             </button>
@@ -264,18 +322,19 @@ export function WordBlitzModal({ onClose }: { onClose: () => void }) {
         {/* 3. ACTIVE GAMEPLAY */}
         {isPlaying && (
           <div className="relative z-10">
-            {/* HUD Panel */}
-            <div className="flex items-center justify-between gap-3 mb-4 p-3 sm:p-4 rounded-2xl bg-slate-900/90 border border-purple-500/20 shadow-inner">
+            <div className="flex items-center justify-between gap-3 mb-4 p-3 sm:p-4 rounded-2xl bg-[#062b21]/50 border border-[#F8E7C9]/15 shadow-inner">
               <div className="relative">
-                <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-semibold">Qolgan Vaqt</span>
+                <span className="text-[10px] text-[#F8E7C9]/60 uppercase tracking-wider block font-semibold font-mono">
+                  {mode === 'preset' ? 'Global' : 'My Vocab'} · Qolgan Vaqt
+                </span>
                 <div className="flex items-center gap-2">
-                  <div className={`text-xl sm:text-2xl font-mono font-bold tracking-tight ${displayTime <= 7 ? 'text-red-400 animate-pulse drop-shadow-[0_0_8px_rgba(248,113,113,0.8)]' : 'text-purple-300'}`}>
+                  <div className={`text-xl sm:text-2xl font-mono font-bold tracking-tight ${displayTime <= 7 ? 'text-rose-400 animate-pulse drop-shadow-[0_0_8px_rgba(244,63,94,0.8)]' : 'text-[#F8E7C9]'}`}>
                     00:{displayTime < 10 ? `0${displayTime}` : displayTime}
                   </div>
                   {bonusTrigger > 0 && (
                     <span 
                       key={bonusTrigger}
-                      className="text-xs font-black font-mono text-emerald-400 animate-bounce drop-shadow-[0_0_8px_rgba(52,211,153,0.8)]"
+                      className="text-xs font-black font-mono text-[#10b981] animate-bounce drop-shadow-[0_0_8px_rgba(16,185,129,0.8)]"
                     >
                       +5s
                     </span>
@@ -285,42 +344,38 @@ export function WordBlitzModal({ onClose }: { onClose: () => void }) {
 
               <div className="h-8 flex items-center">
                 {combo > 1 ? (
-                  <span className="text-xs font-extrabold px-3 py-1 rounded-full bg-gradient-to-r from-pink-500/30 to-purple-500/30 border border-pink-500/50 text-pink-300 shadow-[0_0_15px_rgba(236,72,153,0.4)] animate-bounce">
+                  <span className="text-xs font-extrabold px-3 py-1 rounded-full bg-[#10b981]/20 border border-[#10b981]/40 text-[#10b981] shadow-[0_0_15px_rgba(16,185,129,0.3)] animate-bounce font-mono">
                     🔥 {combo}x COMBO
                   </span>
                 ) : (
-                  <span className="text-[11px] font-mono text-slate-500 uppercase tracking-wider">
+                  <span className="text-[11px] font-mono text-[#F8E7C9]/50 uppercase tracking-wider">
                     ⚡ Match pairs
                   </span>
                 )}
               </div>
 
               <div className="text-right">
-                <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-semibold">Ochko</span>
-                <div className="text-xl sm:text-2xl font-mono font-bold text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.4)]">
+                <span className="text-[10px] text-[#F8E7C9]/60 uppercase tracking-wider block font-semibold font-mono">Ochko</span>
+                <div className="text-xl sm:text-2xl font-mono font-bold text-[#10b981]">
                   {score}
                 </div>
               </div>
             </div>
 
-            {/* Ustun sarlavhalari */}
             <div className="grid grid-cols-2 gap-3 mb-2 px-1 text-center">
-              <span className="text-[11px] font-mono font-bold tracking-wider text-sky-400/80 uppercase">
+              <span className="text-[11px] font-mono font-bold tracking-wider text-[#F8E7C9]/70 uppercase">
                 O‘zbekcha
               </span>
-              <span className="text-[11px] font-mono font-bold tracking-wider text-violet-400/80 uppercase">
+              <span className="text-[11px] font-mono font-bold tracking-wider text-[#10b981] uppercase">
                 English
               </span>
             </div>
 
-            {/* Tartiblangan 2 Ustun */}
             <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
-              {/* Chap Ustun (UZ) */}
               <div className="space-y-2 sm:space-y-2.5">
                 {uzTiles.map((tile) => renderTile(tile))}
               </div>
 
-              {/* O'ng Ustun (EN) */}
               <div className="space-y-2 sm:space-y-2.5">
                 {enTiles.map((tile) => renderTile(tile))}
               </div>

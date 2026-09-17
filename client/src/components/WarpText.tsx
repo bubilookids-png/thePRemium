@@ -1,3 +1,4 @@
+// src/components/WarpText.tsx
 import { useEffect, useRef } from 'react';
 import type { CSSProperties } from 'react';
 import {
@@ -330,34 +331,18 @@ void main() {
       1.0
     );
 
-  vec3 purple =
-    vec3(
-      0.72,
-      0.55,
-      1.0
-    );
-
-  vec3 violet =
-    vec3(
-      0.55,
-      0.38,
-      1.0
-    );
-
-  vec3 blue =
-    vec3(
-      0.32,
-      0.70,
-      1.0
-    );
+  // Binafsha/Moviy o'rniga Champagne (#F8E7C9) va nozik Tilla tuslari
+  vec3 champagneLight = vec3(0.972, 0.905, 0.788); // #F8E7C9
+  vec3 champagneWarm  = vec3(0.880, 0.780, 0.620); // Warm champagne
+  vec3 emeraldGlow    = vec3(0.063, 0.725, 0.505); // #10b981 / soft emerald
 
   vec3 gradientColor =
     mix(
-      purple,
-      violet,
+      champagneLight,
+      champagneWarm,
       smoothstep(
         0.0,
-        0.55,
+        0.65,
         gradient
       )
     );
@@ -365,12 +350,12 @@ void main() {
   gradientColor =
     mix(
       gradientColor,
-      blue,
+      emeraldGlow,
       smoothstep(
-        0.45,
+        0.65,
         1.0,
         gradient
-      )
+      ) * 0.25 // Juda nozik zumrad akslanishi
     );
 
   vec3 refracted =
@@ -406,9 +391,9 @@ void main() {
 
   color +=
     vec3(
-      0.20,
-      0.12,
-      0.35
+      0.024,
+      0.306,
+      0.231
     ) *
     lens *
     base.a *
@@ -705,8 +690,8 @@ const syncUniforms = (
 };
 
 const WarpText = ({
-  text = 'Bend the moment',
-  color = '#f8f5ff',
+  text = 'Ready to train',
+  color = '#F8E7C9',
   warpStrength = 0.08,
   warpScale = 1.7,
   speed = 0.55,
@@ -714,11 +699,11 @@ const WarpText = ({
   pointerStrength = 0.38,
   refraction = 0.018,
   ripple = true,
-  fontSize = 'clamp(3rem, 10vw, 9rem)',
+  fontSize = 'clamp(2.5rem, 8vw, 5.5rem)',
   fontWeight = 800,
   fontFamily = 'inherit',
-  letterSpacing = '-0.06em',
-  lineHeight = 0.9,
+  letterSpacing = '-0.05em',
+  lineHeight = 0.95,
   className = '',
   style
 }: WarpTextProps) => {

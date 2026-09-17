@@ -1,9 +1,5 @@
 import { Bot, InlineKeyboard } from 'grammy';
-import Database from 'better-sqlite3';
-import path from 'path';
-
-const dbPath = path.resolve('dictionary.db');
-const db = new (Database as any)(dbPath);
+import { db } from '../db/database';
 
 // Sizning Telegram ID raqamingiz (Admin Guard)
 const ADMIN_ID = 7462228079;
@@ -45,26 +41,32 @@ bot.command('start', async (ctx) => {
   }
 
   try {
-    const stmt = db.prepare(`
-      INSERT INTO users (telegram_id, first_name, last_name, username, photo_url, last_active)
-      VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-      ON CONFLICT(telegram_id) DO UPDATE SET
-        first_name = excluded.first_name,
-        last_name = excluded.last_name,
-        username = excluded.username,
-        photo_url = excluded.photo_url,
-        last_active = CURRENT_TIMESTAMP
-    `);
+    await db.execute({
+      sql: `
+        INSERT INTO users (telegram_id, first_name, last_name, username, photo_url, last_active)
+        VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+        ON CONFLICT(telegram_id) DO UPDATE SET
+          first_name = excluded.first_name,
+          last_name = excluded.last_name,
+          username = excluded.username,
+          photo_url = excluded.photo_url,
+          last_active = CURRENT_TIMESTAMP
+      `,
+      args: [
+        tgUser.id,
+        tgUser.first_name || '',
+        tgUser.last_name || null,
+        tgUser.username || null,
+        photoUrl,
+      ],
+    });
 
-    stmt.run(
-      tgUser.id,
-      tgUser.first_name || '',
-      tgUser.last_name || null,
-      tgUser.username || null,
-      photoUrl
-    );
+    const userRes = await db.execute({
+      sql: 'SELECT * FROM users WHERE telegram_id = ? LIMIT 1',
+      args: [tgUser.id],
+    });
 
-    const savedUser = db.prepare('SELECT * FROM users WHERE telegram_id = ?').get(tgUser.id);
+    const savedUser = userRes.rows[0];
     pendingSessions.set(payload, savedUser);
 
     await ctx.reply(`✅ Tabriklaymiz, ${tgUser.first_name}! Saytga muvaffaqiyatli kirdingiz. Brauzerga qaytishingiz mumkin.`);
@@ -86,7 +88,6 @@ const adminKeyboard = new InlineKeyboard()
 // /admin buyrug'i (faqat sizga ishlaydi)
 bot.command('admin', async (ctx) => {
   if (ctx.from?.id !== ADMIN_ID) {
-    // Begonalarga hech narsa bildirmaymiz
     return;
   }
 
@@ -94,20 +95,20 @@ bot.command('admin', async (ctx) => {
     "👑 *Vacabbro Boshqaruv Paneli*\nKerakli bo‘limni tanlang:",
     {
       parse_mode: 'Markdown',
-      reply_markup: adminKeyboard
+      reply_markup: adminKeyboard,
     }
   );
 });
 
 // Admin tugmalarini boshqarish
 bot.callbackQuery('admin_stats', async (ctx) => {
-  if (ctx.from.id !== ADMIN_ID) return ctx.answerCallbackQuery();
+  if (ctx.from?.id !== ADMIN_ID) return ctx.answerCallbackQuery();
 
-  const totalUsersRow = db.prepare('SELECT COUNT(*) as count FROM users').get() as { count: number };
-  const totalSearchesRow = db.prepare('SELECT SUM(search_count) as total FROM users').get() as { total: number | null };
+  const totalUsersRes = await db.execute('SELECT COUNT(*) as count FROM users');
+  const totalSearchesRes = await db.execute('SELECT SUM(search_count) as total FROM users');
 
-  const totalUsers = totalUsersRow?.count || 0;
-  const totalSearches = totalSearchesRow?.total || 0;
+  const totalUsers = Number(totalUsersRes.rows[0]?.count) || 0;
+  const totalSearches = Number(totalSearchesRes.rows[0]?.total) || 0;
 
   const text = `📊 *Umumiy Statistika:*\n\n` +
                `👥 Jami foydalanuvchilar: *${totalUsers}*\n` +
@@ -116,26 +117,28 @@ bot.callbackQuery('admin_stats', async (ctx) => {
 
   await ctx.editMessageText(text, {
     parse_mode: 'Markdown',
-    reply_markup: adminKeyboard
+    reply_markup: adminKeyboard,
   });
   await ctx.answerCallbackQuery();
 });
 
 bot.callbackQuery('admin_top', async (ctx) => {
-  if (ctx.from.id !== ADMIN_ID) return ctx.answerCallbackQuery();
+  if (ctx.from?.id !== ADMIN_ID) return ctx.answerCallbackQuery();
 
-  const topUsers = db.prepare(`
+  const topUsersRes = await db.execute(`
     SELECT first_name, username, search_count 
     FROM users 
     ORDER BY search_count DESC 
     LIMIT 10
-  `).all() as Array<{ first_name: string; username: string | null; search_count: number }>;
+  `);
+
+  const topUsers = topUsersRes.rows;
 
   let text = `🏆 *Top 10 Faol Foydalanuvchilar:*\n\n`;
   if (topUsers.length === 0) {
     text += "_Hozircha foydalanuvchilar yo‘q._";
   } else {
-    topUsers.forEach((u, i) => {
+    topUsers.forEach((u: any, i: number) => {
       const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`;
       const uname = u.username ? `(@${u.username})` : '';
       text += `${medal} *${u.first_name}* ${uname} — *${u.search_count || 0}* ta so‘z\n`;
@@ -144,26 +147,28 @@ bot.callbackQuery('admin_top', async (ctx) => {
 
   await ctx.editMessageText(text, {
     parse_mode: 'Markdown',
-    reply_markup: adminKeyboard
+    reply_markup: adminKeyboard,
   });
   await ctx.answerCallbackQuery();
 });
 
 bot.callbackQuery('admin_recent', async (ctx) => {
-  if (ctx.from.id !== ADMIN_ID) return ctx.answerCallbackQuery();
+  if (ctx.from?.id !== ADMIN_ID) return ctx.answerCallbackQuery();
 
-  const recentUsers = db.prepare(`
+  const recentUsersRes = await db.execute(`
     SELECT first_name, username, created_at 
     FROM users 
     ORDER BY id DESC 
     LIMIT 5
-  `).all() as Array<{ first_name: string; username: string | null; created_at: string }>;
+  `);
+
+  const recentUsers = recentUsersRes.rows;
 
   let text = `👥 *So‘nggi 5 ta foydalanuvchi:*\n\n`;
   if (recentUsers.length === 0) {
     text += "_Hozircha foydalanuvchilar yo‘q._";
   } else {
-    recentUsers.forEach((u, i) => {
+    recentUsers.forEach((u: any, i: number) => {
       const uname = u.username ? `(@${u.username})` : '';
       text += `${i + 1}. *${u.first_name}* ${uname}\n`;
     });
@@ -171,17 +176,17 @@ bot.callbackQuery('admin_recent', async (ctx) => {
 
   await ctx.editMessageText(text, {
     parse_mode: 'Markdown',
-    reply_markup: adminKeyboard
+    reply_markup: adminKeyboard,
   });
   await ctx.answerCallbackQuery();
 });
 
 bot.callbackQuery('admin_refresh', async (ctx) => {
-  if (ctx.from.id !== ADMIN_ID) return ctx.answerCallbackQuery();
+  if (ctx.from?.id !== ADMIN_ID) return ctx.answerCallbackQuery();
 
   await ctx.editMessageText("👑 *Vacabbro Boshqaruv Paneli*\nMa'lumotlar yangilandi. Bo‘limni tanlang:", {
     parse_mode: 'Markdown',
-    reply_markup: adminKeyboard
+    reply_markup: adminKeyboard,
   });
   await ctx.answerCallbackQuery({ text: 'Yangilandi! ⚡' });
 });
@@ -191,7 +196,7 @@ export function startTelegramBot() {
   bot.start({
     onStart: (info) => {
       console.log(`🤖 Telegram Bot ishga tushdi: @${info.username}`);
-    }
+    },
   }).catch((err) => {
     console.error('Bot ishga tushishda xato:', err.message);
   });
