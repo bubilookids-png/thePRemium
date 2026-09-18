@@ -346,7 +346,6 @@ export default function App() {
         onFocusSearch={focusSearchInput}
         onOpenBlitz={triggerBlitz}
         onOpenTranslate={triggerTranslate}
-        onOpenReading={triggerReading}
         onOpenGetMore={() => setShowGetMoreModal(true)}
         isAdmin={isAdmin}
       />
