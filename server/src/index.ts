@@ -16,8 +16,9 @@ const PORT = Number(process.env.PORT || 8787);
 
 const CLIENT_ORIGINS = [
   'http://localhost:5173',
+  'https://boosterev.vercel.app',
   'https://vacabbro.vercel.app',
-  'https://vacabbro-h8oj4gy7t-meonly24.vercel.app'
+  'https://vacabbro-emub4pfr9-meonly24.vercel.app'
 ];
 
 app.set('trust proxy', 1);
@@ -26,6 +27,7 @@ app.use(express.json({ limit: '64kb' }));
 app.use(
   cors({
     origin: (origin, callback) => {
+      // Agar Postman yoki mobil ilovadan bo'sh origin kelsa yoki ruxsat etilganlar ro'yxatida bo'lsa
       if (!origin || CLIENT_ORIGINS.includes(origin)) {
         callback(null, true);
       } else {
