@@ -67,9 +67,9 @@ export default function App() {
 
   // Admin ekanligingizni tekshirish
   const ADMIN_TELEGRAM_IDS = [7462228079];
-  const isAdmin = currentUser 
-    ? ADMIN_TELEGRAM_IDS.includes(currentUser.id) || currentUser.username === 'sizning_username' || true 
-    : false;
+const isAdmin = currentUser 
+  ? ADMIN_TELEGRAM_IDS.includes(currentUser.id) || currentUser.username === 'sizning_username' || true 
+  : false;
 
   const isPremium = Boolean(currentUser?.is_premium);
   const maxAllowedLimit = isPremium ? 400 : 100;
