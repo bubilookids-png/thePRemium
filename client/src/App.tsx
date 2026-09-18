@@ -65,17 +65,15 @@ export default function App() {
   const [showLimitModal, setShowLimitModal] = useState(false);
   const [showGetMoreModal, setShowGetMoreModal] = useState(false);
 
-  // Admin ekanligingizni tekshirish
   const ADMIN_TELEGRAM_IDS = [7462228079];
-const isAdmin = currentUser 
-  ? ADMIN_TELEGRAM_IDS.includes(currentUser.id) || currentUser.username === 'sizning_username' || true 
-  : false;
+  const isAdmin = currentUser 
+    ? ADMIN_TELEGRAM_IDS.includes(currentUser.id) 
+    : false;
 
   const isPremium = Boolean(currentUser?.is_premium);
   const maxAllowedLimit = isPremium ? 400 : 100;
   const periodDays = isPremium ? 1 : 2;
 
-  // 2 kunlik / 1 kunlik davriy limitlarni va Goal statusini boshqarish
   const limitStorageKey = 'vacabbro_period_limit_data';
   const currentPeriodData = useMemo(() => {
     try {
@@ -86,10 +84,9 @@ const isAdmin = currentUser
       if (saved) {
         const parsed = JSON.parse(saved);
         if (now - parsed.startTime < periodMs) {
-          return parsed; // Davomiylik tugamagan
+          return parsed;
         }
       }
-      // Yangi davr boshlanganda goal ham qulflanishdan chiqadi
       const fresh = { count: 0, startTime: now, goal: 0, goalSet: false };
       localStorage.setItem(limitStorageKey, JSON.stringify(fresh));
       return fresh;
@@ -302,7 +299,6 @@ const isAdmin = currentUser
     }, 200);
   }
 
-  // Goal ni bir marta belgilash va qulflash funksiyasi
   function handleConfirmGoal() {
     const val = parseInt(tempGoalInput, 10);
     if (!val || val <= 0) return;
@@ -360,7 +356,11 @@ const isAdmin = currentUser
           isSidebarOpen ? 'lg:pl-64' : 'lg:pl-12'
         }`}
       >
-        <Header currentUser={currentUser} onLogout={handleLogout} />
+        <Header 
+          currentUser={currentUser} 
+          onLogout={handleLogout} 
+          onToggleSidebar={() => setIsSidebarOpen(true)} 
+        />
 
         {!currentUser && (
           <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 pt-2 flex justify-start">
@@ -470,7 +470,6 @@ const isAdmin = currentUser
                   </div>
 
                   {!isGoalSet ? (
-                    /* Goal hali belgilanmagan bo'lsa: Input va Set tugmasi chiqadi */
                     <div className="flex items-center gap-2 mt-1">
                       <input
                         type="number"
@@ -490,7 +489,6 @@ const isAdmin = currentUser
                       </button>
                     </div>
                   ) : (
-                    /* Goal belgilab bo'lingach: Progres bar va qotib qolgan qiymat */
                     <>
                       <div className="w-full h-2 rounded-full bg-[#062b21] border border-[#F8E7C9]/10 overflow-hidden">
                         <div 
@@ -559,8 +557,9 @@ const isAdmin = currentUser
                 </div>
               ) : null}
 
+              {/* 🔥 KLAVIATURA YORLIQLARI — FAKAT KOMPYUTERDA KO'RINADI (TELEFONDA YASHIRILDI) */}
               {!loading && !data ? (
-                <div className="w-full rounded-2xl bg-[#02130e]/70 border border-[#F8E7C9]/10 p-4 sm:p-5 backdrop-blur-md select-none">
+                <div className="hidden sm:block w-full rounded-2xl bg-[#02130e]/70 border border-[#F8E7C9]/10 p-4 sm:p-5 backdrop-blur-md select-none">
                   <div className="flex items-center justify-between pb-3 border-b border-[#F8E7C9]/10 text-xs font-mono text-[#F8E7C9]/60">
                     <span className="flex items-center gap-1.5 text-[#F8E7C9] font-bold">
                       <span className="text-[#10b981]">⌘</span> Live Shortcuts & Actions
@@ -641,7 +640,6 @@ const isAdmin = currentUser
         <Footer />
       </div>
 
-      {/* 🌟 SPECIAL TARIF CARD MODAL (Faqat Admin uchun) */}
       {showGetMoreModal && isAdmin && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn">
           <div className="relative w-full max-w-sm p-6 sm:p-7 rounded-3xl bg-[#02130e] border border-amber-500/40 shadow-[0_0_40px_rgba(245,158,11,0.2)] text-center">
@@ -657,7 +655,7 @@ const isAdmin = currentUser
             </div>
 
             <h3 className="text-xl font-bold text-[#F8E7C9] mb-1">
-              Vacabbro Premium VIP
+              UniveBooster VIP
             </h3>
             <p className="text-xs text-amber-300/80 font-mono mb-4">
               Maxsus Admin Tarifi

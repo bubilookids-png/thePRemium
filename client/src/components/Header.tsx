@@ -1,5 +1,5 @@
 // src/components/Header.tsx
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { ServerStatus } from './ServerStatus';
 
 export interface TelegramUser {
@@ -14,9 +14,10 @@ export interface TelegramUser {
 interface HeaderProps {
   currentUser?: TelegramUser | null;
   onLogout?: () => void;
+  onToggleSidebar?: () => void; // <-- Sidebar'ni ochish uchun
 }
 
-export function Header({ currentUser, onLogout }: HeaderProps) {
+export function Header({ currentUser, onLogout, onToggleSidebar }: HeaderProps) {
   const headerRef = useRef<HTMLDivElement>(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = useState(false);
@@ -29,7 +30,7 @@ export function Header({ currentUser, onLogout }: HeaderProps) {
   }
 
   return (
-    <header className="sticky top-2 sm:top-3 z-40 w-full px-3 sm:px-6 flex justify-center select-none">
+    <header className="sticky top-2 sm:top-3 z-30 w-full px-3 sm:px-6 flex justify-center select-none">
       <div
         ref={headerRef}
         onMouseMove={handleMouseMove}
@@ -37,7 +38,6 @@ export function Header({ currentUser, onLogout }: HeaderProps) {
         onMouseLeave={() => setIsHovered(false)}
         className="relative flex items-center justify-between w-full max-w-4xl px-3 sm:px-4 py-1.5 rounded-full bg-[#02130e]/85 backdrop-blur-xl border border-[#F8E7C9]/15 shadow-[0_4px_20px_rgba(0,0,0,0.5)]"
       >
-        {/* Emerald & Champagne Nuri */}
         <div
           className="hidden sm:block pointer-events-none absolute -inset-px rounded-full transition-opacity duration-500"
           style={{
@@ -46,23 +46,39 @@ export function Header({ currentUser, onLogout }: HeaderProps) {
           }}
         />
 
-        {/* Logo */}
-        <div className="relative z-10 flex items-center gap-1.5">
-          <div className="flex items-center justify-center w-6 h-6 rounded-full bg-[#064E3B] border border-[#F8E7C9]/30">
-            <span className="text-[11px] font-black text-[#F8E7C9]">Ub</span>
+        {/* Chap taraf: Menu tugmasi (mobilda sidebar ochish uchun) va Logo */}
+        <div className="relative z-10 flex items-center gap-2">
+          {onToggleSidebar && (
+            <button
+              type="button"
+              onClick={onToggleSidebar}
+              className="lg:hidden p-1.5 rounded-lg text-[#F8E7C9] hover:bg-[#064E3B]/50 transition cursor-pointer"
+              title="Menu"
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="3" y1="12" x2="21" y2="12" />
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <line x1="3" y1="18" x2="21" y2="18" />
+              </svg>
+            </button>
+          )}
+
+          <div className="flex items-center gap-1.5">
+            <div className="flex items-center justify-center w-6 h-6 rounded-full bg-[#064E3B] border border-[#F8E7C9]/30">
+              <span className="text-[11px] font-black text-[#F8E7C9]">U</span>
+            </div>
+            <span className="text-xs font-bold tracking-wider text-[#F8E7C9] font-mono uppercase">
+              UniveBooster
+            </span>
           </div>
-          <span className="text-xs font-bold tracking-wider text-[#F8E7C9] font-mono uppercase">
-            UniveBooster
-          </span>
         </div>
 
-        {/* O'ng taraf: ServerStatus va Mukammal Profil */}
+        {/* O'ng taraf */}
         <div className="relative z-10 flex items-center gap-1.5 sm:gap-2">
           <div className="scale-[0.75] origin-right">
             <ServerStatus />
           </div>
 
-          {/* 🔥 MUKAMMAL TOP-RIGHT PROFIL */}
           {currentUser && (
             <div className="flex items-center gap-2 pl-2.5 ml-1 border-l border-[#F8E7C9]/15">
               {currentUser.photo_url ? (
@@ -77,12 +93,9 @@ export function Header({ currentUser, onLogout }: HeaderProps) {
                 </div>
               )}
 
-              <div className="flex items-center gap-1.5">
-                <span className="text-xs font-semibold text-[#F8E7C9] max-w-[90px] truncate">
-                  {currentUser.first_name}
-                </span>
-                <span className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse" />
-              </div>
+              <span className="text-xs font-semibold text-[#F8E7C9] max-w-[90px] truncate">
+                {currentUser.first_name}
+              </span>
 
               {onLogout && (
                 <button
