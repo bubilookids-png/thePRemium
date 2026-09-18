@@ -8,6 +8,7 @@ interface SidebarProps {
   onOpenBlitz: () => void;
   onOpenTranslate: () => void;
   onOpenReading: () => void;
+  onOpenMusic?: () => void;
   onOpenGetMore?: () => void;
   isAdmin?: boolean;
 }
@@ -19,6 +20,7 @@ export function Sidebar({
   onOpenBlitz,
   onOpenTranslate,
   onOpenReading,
+  onOpenMusic,
   onOpenGetMore,
   isAdmin = false
 }: SidebarProps) {
@@ -121,17 +123,6 @@ export function Sidebar({
 
             {isOpen && <span className="text-[9px] font-mono uppercase tracking-wider text-[#F8E7C9]/40 px-2 mb-0.5 font-semibold">Active Labs</span>}
 
-            <div
-              className={`flex items-center p-2 rounded-xl bg-[#062b21]/40 hover:bg-[#064E3B]/60 border border-[#F8E7C9]/10 hover:border-[#F8E7C9]/30 transition cursor-pointer active:scale-[0.98] ${
-                isOpen ? 'justify-between px-2.5' : 'justify-center w-full'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-sm">🎵</span>
-                {isOpen && <span className="text-xs font-mono text-[#F8E7C9] font-medium whitespace-nowrap">Music Recall</span>}
-              </div>
-              {isOpen && <span className="text-[8px] font-mono px-1.5 py-0.5 rounded bg-[#10b981]/20 text-[#10b981] border border-[#10b981]/30">Live</span>}
-            </div>
 
             <div
               className={`flex items-center p-2 rounded-xl opacity-60 ${
@@ -145,14 +136,13 @@ export function Sidebar({
               {isOpen && <span className="text-[8px] font-mono px-1.5 py-0.5 rounded bg-[#064E3B]/60 text-[#10b981] border border-[#10b981]/30">Soon</span>}
             </div>
 
-            {/* GET MORE — Faqat Admin uchun */}
             {isAdmin && onOpenGetMore && (
               <>
                 <div className="my-1.5 border-b border-[#F8E7C9]/10 mx-1" />
                 <button
                   type="button"
                   onClick={onOpenGetMore}
-                  className={`group flex items-center p-2 rounded-xl bg-gradient-to-r from-amber-500/20 to-emerald-500/20 hover:from-amber-500/30 hover:to-emerald-500/30 border border-amber-500/40 transition cursor-pointer active:scale-[0.98] ${
+                  className={`group flex items-center p-2 rounded-xl bg-gradient-to-r from-amber-500/20 to-emerald-500/25 hover:from-amber-500/30 hover:to-emerald-500/35 border border-amber-500/40 transition cursor-pointer active:scale-[0.98] ${
                     isOpen ? 'justify-between px-2.5' : 'justify-center w-full'
                   }`}
                   title="Get More (Admin Only)"

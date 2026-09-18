@@ -557,7 +557,7 @@ export default function App() {
                 </div>
               ) : null}
 
-              {/* 🔥 KLAVIATURA YORLIQLARI — FAKAT KOMPYUTERDA KO'RINADI (TELEFONDA YASHIRILDI) */}
+              {/* 🔥 KLAVIATURA YORLIQLARI — FAKAT KOMPYUTERDA KO'RINADI */}
               {!loading && !data ? (
                 <div className="hidden sm:block w-full rounded-2xl bg-[#02130e]/70 border border-[#F8E7C9]/10 p-4 sm:p-5 backdrop-blur-md select-none">
                   <div className="flex items-center justify-between pb-3 border-b border-[#F8E7C9]/10 text-xs font-mono text-[#F8E7C9]/60">
