@@ -13,6 +13,8 @@ import { QuizView } from './components/QuizView';
 import { AiLoader } from './components/AiLoader';
 import { CyberMatrixOrb } from './components/CyberMatrixOrb';
 import { LandingPage } from './components/LandingPage';
+import { WordBlitzModal } from './components/WordBlitzModal';
+import { QuickTranslator } from './components/QuickTranslator';
 
 import type {
   AnalyzeResponse,
@@ -53,6 +55,8 @@ export default function App() {
   });
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [showBlitzModal, setShowBlitzModal] = useState(false);
+  const [showTranslateModal, setShowTranslateModal] = useState(false);
 
   const [word, setWord] = useState('');
   const [langCode, setLangCode] = useState<SupportedLanguageCode>('uz');
@@ -109,15 +113,11 @@ export default function App() {
   );
 
   const triggerBlitz = () => {
-    window.dispatchEvent(new CustomEvent('vacabbro:open-blitz'));
+    setShowBlitzModal(true);
   };
 
   const triggerTranslate = () => {
-    window.dispatchEvent(new CustomEvent('vacabbro:open-translate'));
-  };
-
-  const triggerReading = () => {
-    window.dispatchEvent(new CustomEvent('vacabbro:open-reading'));
+    setShowTranslateModal(true);
   };
 
   const focusSearchInput = () => {
@@ -556,7 +556,6 @@ export default function App() {
                 </div>
               ) : null}
 
-              {/* 🔥 KLAVIATURA YORLIQLARI — FAKAT KOMPYUTERDA KO'RINADI */}
               {!loading && !data ? (
                 <div className="hidden sm:block w-full rounded-2xl bg-[#02130e]/70 border border-[#F8E7C9]/10 p-4 sm:p-5 backdrop-blur-md select-none">
                   <div className="flex items-center justify-between pb-3 border-b border-[#F8E7C9]/10 text-xs font-mono text-[#F8E7C9]/60">
@@ -638,6 +637,16 @@ export default function App() {
 
         <Footer />
       </div>
+
+      {/* Word Blitz Modal */}
+      {showBlitzModal && (
+        <WordBlitzModal onClose={() => setShowBlitzModal(false)} />
+      )}
+
+      {/* Quick Translator Modal */}
+      {showTranslateModal && (
+        <QuickTranslator onClose={() => setShowTranslateModal(false)} />
+      )}
 
       {showGetMoreModal && isAdmin && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn">

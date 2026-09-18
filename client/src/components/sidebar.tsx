@@ -87,7 +87,10 @@ export function Sidebar({
 
             <button
               type="button"
-              onClick={onOpenBlitz}
+              onClick={() => {
+                onOpenBlitz();
+                if (window.innerWidth < 1024) onToggle();
+              }}
               className={`group flex items-center p-2 rounded-xl transition cursor-pointer active:scale-[0.98] ${
                 isOpen ? 'justify-between hover:bg-[#064E3B]/40 px-2.5' : 'justify-center hover:bg-[#064E3B]/40 w-full'
               }`}
@@ -102,7 +105,10 @@ export function Sidebar({
 
             <button
               type="button"
-              onClick={onOpenTranslate}
+              onClick={() => {
+                onOpenTranslate();
+                if (window.innerWidth < 1024) onToggle();
+              }}
               className={`group flex items-center p-2 rounded-xl transition cursor-pointer active:scale-[0.98] ${
                 isOpen ? 'justify-between hover:bg-[#064E3B]/40 px-2.5' : 'justify-center hover:bg-[#064E3B]/40 w-full'
               }`}
