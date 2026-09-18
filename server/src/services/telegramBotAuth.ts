@@ -1,5 +1,5 @@
 import { Bot, InlineKeyboard } from 'grammy';
-import { db } from '../db/database';
+import { db } from '../db/database.js';
 
 // Sizning Telegram ID raqamingiz (Admin Guard)
 const ADMIN_ID = 7462228079;

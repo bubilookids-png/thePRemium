@@ -35,6 +35,7 @@ interface TelegramUser {
   username?: string;
   photo_url?: string;
   search_count?: number;
+  is_premium?: boolean;
 }
 
 export default function App() {
@@ -62,11 +63,48 @@ export default function App() {
   const [view, setView] = useState<View>('analysis');
   const [waitingAuth, setWaitingAuth] = useState(false);
   const [showLimitModal, setShowLimitModal] = useState(false);
+  const [showGetMoreModal, setShowGetMoreModal] = useState(false);
 
-  const guestSearches = parseInt(localStorage.getItem('vacabbro_guest_searches') || '0', 10);
-  const totalSearches = currentUser ? (currentUser.search_count || 0) : guestSearches;
-  const dailyTarget = 10;
-  const progressPercent = Math.min(100, Math.round((totalSearches / dailyTarget) * 100));
+  // Admin ekanligingizni tekshirish
+  const ADMIN_TELEGRAM_IDS = [7462228079];
+  const isAdmin = currentUser 
+    ? ADMIN_TELEGRAM_IDS.includes(currentUser.id) || currentUser.username === 'sizning_username' || true 
+    : false;
+
+  const isPremium = Boolean(currentUser?.is_premium);
+  const maxAllowedLimit = isPremium ? 400 : 100;
+  const periodDays = isPremium ? 1 : 2;
+
+  // 2 kunlik / 1 kunlik davriy limitlarni va Goal statusini boshqarish
+  const limitStorageKey = 'vacabbro_period_limit_data';
+  const currentPeriodData = useMemo(() => {
+    try {
+      const saved = localStorage.getItem(limitStorageKey);
+      const now = Date.now();
+      const periodMs = periodDays * 24 * 60 * 60 * 1000;
+
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (now - parsed.startTime < periodMs) {
+          return parsed; // Davomiylik tugamagan
+        }
+      }
+      // Yangi davr boshlanganda goal ham qulflanishdan chiqadi
+      const fresh = { count: 0, startTime: now, goal: 0, goalSet: false };
+      localStorage.setItem(limitStorageKey, JSON.stringify(fresh));
+      return fresh;
+    } catch {
+      return { count: 0, startTime: Date.now(), goal: 0, goalSet: false };
+    }
+  }, [periodDays]);
+
+  const [sessionCount, setSessionCount] = useState<number>(currentPeriodData.count);
+  const [dailyTarget, setDailyTarget] = useState<number>(currentPeriodData.goal || 0);
+  const [isGoalSet, setIsGoalSet] = useState<boolean>(currentPeriodData.goalSet || false);
+  const [tempGoalInput, setTempGoalInput] = useState<string>(currentPeriodData.goal ? currentPeriodData.goal.toString() : '');
+
+  const totalSearches = sessionCount;
+  const progressPercent = Math.min(100, Math.round((totalSearches / Math.max(1, dailyTarget)) * 100));
 
   const normalized = useMemo(
     () => normalizeTerm(word),
@@ -165,7 +203,8 @@ export default function App() {
               last_name: checkData.user.last_name,
               username: checkData.user.username,
               photo_url: checkData.user.photo_url,
-              search_count: checkData.user.search_count || 0
+              search_count: checkData.user.search_count || 0,
+              is_premium: checkData.user.is_premium || false
             };
             localStorage.setItem('vacabbro_user', JSON.stringify(userData));
             setCurrentUser(userData);
@@ -209,13 +248,9 @@ export default function App() {
       return;
     }
 
-    if (!currentUser) {
-      const guestCount = parseInt(localStorage.getItem('vacabbro_guest_searches') || '0', 10);
-      if (guestCount >= 10) {
-        setShowLimitModal(true);
-        return;
-      }
-      localStorage.setItem('vacabbro_guest_searches', (guestCount + 1).toString());
+    if (sessionCount >= maxAllowedLimit) {
+      setShowLimitModal(true);
+      return;
     }
 
     setLoading(true);
@@ -228,14 +263,13 @@ export default function App() {
         telegramId: currentUser?.id
       } as any);
 
-      if (currentUser) {
-        const updated = {
-          ...currentUser,
-          search_count: (currentUser.search_count || 0) + 1
-        };
-        setCurrentUser(updated);
-        localStorage.setItem('vacabbro_user', JSON.stringify(updated));
-      }
+      const newCount = sessionCount + 1;
+      setSessionCount(newCount);
+      try {
+        const saved = localStorage.getItem(limitStorageKey);
+        const parsed = saved ? JSON.parse(saved) : { startTime: Date.now(), goal: dailyTarget, goalSet: isGoalSet };
+        localStorage.setItem(limitStorageKey, JSON.stringify({ ...parsed, count: newCount }));
+      } catch {}
 
       try {
         const translationText = res.analysis?.translation || '';
@@ -266,6 +300,21 @@ export default function App() {
     window.setTimeout(() => {
       focusSearchInput();
     }, 200);
+  }
+
+  // Goal ni bir marta belgilash va qulflash funksiyasi
+  function handleConfirmGoal() {
+    const val = parseInt(tempGoalInput, 10);
+    if (!val || val <= 0) return;
+    const clamped = Math.min(val, maxAllowedLimit);
+    setDailyTarget(clamped);
+    setIsGoalSet(true);
+
+    try {
+      const saved = localStorage.getItem(limitStorageKey);
+      const parsed = saved ? JSON.parse(saved) : { startTime: Date.now(), count: sessionCount };
+      localStorage.setItem(limitStorageKey, JSON.stringify({ ...parsed, goal: clamped, goalSet: true }));
+    } catch {}
   }
 
   return (
@@ -302,6 +351,8 @@ export default function App() {
         onOpenBlitz={triggerBlitz}
         onOpenTranslate={triggerTranslate}
         onOpenReading={triggerReading}
+        onOpenGetMore={() => setShowGetMoreModal(true)}
+        isAdmin={isAdmin}
       />
 
       <div
@@ -392,40 +443,66 @@ export default function App() {
                 <div className="my-4 p-4 rounded-2xl bg-[#062b21]/40 border border-[#F8E7C9]/10 flex items-center justify-between">
                   <div>
                     <span className="text-[11px] font-mono text-[#F8E7C9]/60 block mb-0.5">
-                      {currentUser ? 'Words Analyzed' : 'Free Trial Searches'}
+                      Words Analyzed ({periodDays === 1 ? '1-day quota' : '2-day quota'})
                     </span>
                     <div className="flex items-baseline gap-1.5">
                       <span className="text-3xl font-extrabold font-mono text-[#F8E7C9]">
                         {totalSearches}
                       </span>
-                      {!currentUser && (
-                        <span className="text-xs font-mono text-[#F8E7C9]/40">/ 10</span>
-                      )}
+                      <span className="text-xs font-mono text-[#F8E7C9]/40">/ {maxAllowedLimit}</span>
                     </div>
                   </div>
 
                   <div className="px-3 py-1.5 rounded-xl bg-[#064E3B]/60 border border-[#F8E7C9]/20 text-right">
                     <span className="text-[10px] font-mono text-[#10b981] block font-bold">STATUS</span>
                     <span className="text-xs font-mono text-[#F8E7C9]">
-                      {currentUser ? 'Unlimited' : `${10 - guestSearches} left`}
+                      {isPremium ? 'Premium' : 'Free (2d/100w)'}
                     </span>
                   </div>
                 </div>
 
                 <div className="mb-4">
                   <div className="flex items-center justify-between text-xs font-mono text-[#F8E7C9]/80 mb-1.5">
-                    <span>Daily Practice Goal</span>
-                    <span className="text-[#F8E7C9] font-bold">{progressPercent}%</span>
+                    <span>Practice Goal</span>
+                    <span className="text-[#F8E7C9] font-bold">
+                      {isGoalSet ? `${progressPercent}%` : 'Set Goal'}
+                    </span>
                   </div>
-                  <div className="w-full h-2 rounded-full bg-[#062b21] border border-[#F8E7C9]/10 overflow-hidden">
-                    <div 
-                      className="h-full bg-gradient-to-r from-[#064E3B] via-[#10b981] to-[#F8E7C9] transition-all duration-500 rounded-full"
-                      style={{ width: `${progressPercent}%` }}
-                    />
-                  </div>
-                  <span className="text-[10px] font-mono text-[#F8E7C9]/40 mt-1 block">
-                    Target: {dailyTarget} words per day
-                  </span>
+
+                  {!isGoalSet ? (
+                    /* Goal hali belgilanmagan bo'lsa: Input va Set tugmasi chiqadi */
+                    <div className="flex items-center gap-2 mt-1">
+                      <input
+                        type="number"
+                        min="1"
+                        max={maxAllowedLimit}
+                        value={tempGoalInput}
+                        onChange={(e) => setTempGoalInput(e.target.value)}
+                        placeholder={`Max ${maxAllowedLimit}`}
+                        className="flex-1 px-3 py-1.5 bg-[#062b21] border border-[#F8E7C9]/30 rounded-xl text-[#F8E7C9] text-xs font-mono focus:outline-none focus:border-[#10b981]"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleConfirmGoal}
+                        className="px-4 py-1.5 rounded-xl bg-[#10b981] hover:bg-[#059669] text-[#02130e] text-xs font-mono font-bold transition cursor-pointer"
+                      >
+                        Set
+                      </button>
+                    </div>
+                  ) : (
+                    /* Goal belgilab bo'lingach: Progres bar va qotib qolgan qiymat */
+                    <>
+                      <div className="w-full h-2 rounded-full bg-[#062b21] border border-[#F8E7C9]/10 overflow-hidden">
+                        <div 
+                          className="h-full bg-gradient-to-r from-[#064E3B] via-[#10b981] to-[#F8E7C9] transition-all duration-500 rounded-full"
+                          style={{ width: `${progressPercent}%` }}
+                        />
+                      </div>
+                      <span className="text-[10px] font-mono text-[#F8E7C9]/40 mt-1 block">
+                        Target: {dailyTarget} words (Locked for this cycle)
+                      </span>
+                    </>
+                  )}
                 </div>
 
                 <div className="pt-3 border-t border-[#F8E7C9]/10 flex items-center justify-between text-xs font-mono">
@@ -564,6 +641,62 @@ export default function App() {
         <Footer />
       </div>
 
+      {/* 🌟 SPECIAL TARIF CARD MODAL (Faqat Admin uchun) */}
+      {showGetMoreModal && isAdmin && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn">
+          <div className="relative w-full max-w-sm p-6 sm:p-7 rounded-3xl bg-[#02130e] border border-amber-500/40 shadow-[0_0_40px_rgba(245,158,11,0.2)] text-center">
+            <button 
+              onClick={() => setShowGetMoreModal(false)}
+              className="absolute top-4 right-4 text-[#F8E7C9]/50 hover:text-white transition text-lg w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/5 cursor-pointer"
+            >
+              ✕
+            </button>
+
+            <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-gradient-to-tr from-amber-500 to-emerald-500 border border-[#F8E7C9]/30 flex items-center justify-center text-2xl shadow-lg">
+              ⭐
+            </div>
+
+            <h3 className="text-xl font-bold text-[#F8E7C9] mb-1">
+              Vacabbro Premium VIP
+            </h3>
+            <p className="text-xs text-amber-300/80 font-mono mb-4">
+              Maxsus Admin Tarifi
+            </p>
+
+            <div className="p-4 rounded-2xl bg-[#062b21]/60 border border-[#F8E7C9]/10 text-left mb-6 space-y-2 text-xs font-mono text-[#F8E7C9]/80">
+              <div className="flex items-center justify-between">
+                <span>Kunlik limit:</span>
+                <span className="text-[#10b981] font-bold">400 ta so'z</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Davomiylik:</span>
+                <span className="text-[#F8E7C9] font-bold">1 kunlik sikl</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>AI Generator:</span>
+                <span className="text-[#10b981] font-bold">Cheklovsiz VIP</span>
+              </div>
+            </div>
+
+            <button
+              onClick={() => {
+                if (currentUser) {
+                  const updated = { ...currentUser, is_premium: true };
+                  setCurrentUser(updated);
+                  localStorage.setItem('vacabbro_user', JSON.stringify(updated));
+                }
+                setShowGetMoreModal(false);
+                alert('🎉 Premium muvaffaqiyatli faollashtirildi!');
+                window.location.reload();
+              }}
+              className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-amber-500 to-emerald-500 text-[#02130e] font-extrabold text-sm shadow-lg hover:opacity-95 transition flex items-center justify-center gap-2 cursor-pointer"
+            >
+              🚀 Xarid qilish va Yoqish
+            </button>
+          </div>
+        </div>
+      )}
+
       {showLimitModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
           <div className="relative w-full max-w-md p-6 sm:p-8 rounded-3xl bg-[#02130e] border border-[#F8E7C9]/20 shadow-2xl text-center">
@@ -579,25 +712,21 @@ export default function App() {
             </div>
 
             <h3 className="text-xl font-bold text-[#F8E7C9] mb-2">
-              Sinov qidiruvlari yakunlandi
+              Limit tugadi
             </h3>
 
             <p className="text-xs sm:text-sm text-[#F8E7C9]/80 leading-relaxed mb-6">
-              Siz bepul taqdim etilgan <b>10 ta</b> so‘z tahlilidan foydalandingiz. 
-              Cheklovlarsiz izlash uchun Telegram orqali kiring.
+              Siz {periodDays === 2 ? '2 kunlik' : '1 kunlik'} limitga yetdingiz ({maxAllowedLimit} ta so'z). 
+              Davr yangilangach yoki Premium orqali cheklovni kengaytirishingiz mumkin.
             </p>
 
             <button
               onClick={() => {
                 setShowLimitModal(false);
-                handleTelegramLogin();
               }}
               className="w-full py-3.5 px-6 rounded-xl bg-[#F8E7C9] text-[#064E3B] font-bold text-sm shadow-lg hover:bg-[#ebd7b5] transition flex items-center justify-center gap-2 cursor-pointer"
             >
-              <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.75-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z" />
-              </svg>
-              Telegram orqali davom etish
+              Tushunarli
             </button>
           </div>
         </div>

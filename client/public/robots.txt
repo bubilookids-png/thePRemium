@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://vacabbro.vercel.app/sitemap.xml
+Sitemap: https://boosterev.vercel.app/sitemap.xml

@@ -8,6 +8,8 @@ interface SidebarProps {
   onOpenBlitz: () => void;
   onOpenTranslate: () => void;
   onOpenReading: () => void;
+  onOpenGetMore?: () => void; // <-- Get More ochish uchun
+  isAdmin?: boolean;          // <-- Faqat admin uchun shart
 }
 
 export function Sidebar({
@@ -16,7 +18,9 @@ export function Sidebar({
   onFocusSearch,
   onOpenBlitz,
   onOpenTranslate,
-  onOpenReading
+  onOpenReading,
+  onOpenGetMore,
+  isAdmin = false
 }: SidebarProps) {
   return (
     <>
@@ -58,7 +62,7 @@ export function Sidebar({
               className={`p-1.5 rounded-lg text-[#F8E7C9]/70 hover:text-[#F8E7C9] hover:bg-[#062b21]/70 transition active:scale-95 cursor-pointer ${
                 !isOpen ? 'mx-auto' : ''
               }`}
-              title={isOpen ? "Sidebarni toraytirish (Ctrl+B)" : "Sidebarni kengaytirish (Ctrl+B)"}
+              title={isOpen ? "Sidebarni toraytirish" : "Sidebarni kengaytirish"}
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <rect x="3" y="3" width="18" height="18" rx="4" />
@@ -74,7 +78,7 @@ export function Sidebar({
               className={`group flex items-center p-2 rounded-xl transition cursor-pointer active:scale-[0.98] ${
                 isOpen ? 'justify-between hover:bg-[#064E3B]/40 px-2.5' : 'justify-center hover:bg-[#064E3B]/40 w-full'
               }`}
-              title="New Lookup (/)"
+              title="New Lookup"
             >
               <div className="flex items-center gap-3">
                 <span className="text-sm text-[#10b981]">🔍</span>
@@ -89,7 +93,7 @@ export function Sidebar({
               className={`group flex items-center p-2 rounded-xl transition cursor-pointer active:scale-[0.98] ${
                 isOpen ? 'justify-between hover:bg-[#064E3B]/40 px-2.5' : 'justify-center hover:bg-[#064E3B]/40 w-full'
               }`}
-              title="Word Blitz (⇧B)"
+              title="Word Blitz"
             >
               <div className="flex items-center gap-3">
                 <span className="text-sm text-[#10b981]">⚡</span>
@@ -104,7 +108,7 @@ export function Sidebar({
               className={`group flex items-center p-2 rounded-xl transition cursor-pointer active:scale-[0.98] ${
                 isOpen ? 'justify-between hover:bg-[#064E3B]/40 px-2.5' : 'justify-center hover:bg-[#064E3B]/40 w-full'
               }`}
-              title="Quick Translator (⇧T)"
+              title="Translator"
             >
               <div className="flex items-center gap-3">
                 <span className="text-sm text-[#F8E7C9]">✦</span>
@@ -117,32 +121,16 @@ export function Sidebar({
 
             {isOpen && <span className="text-[9px] font-mono uppercase tracking-wider text-[#F8E7C9]/40 px-2 mb-0.5 font-semibold">Active Labs</span>}
 
-            {/* IELTS Reading Lab */}
-            <button
-              type="button"
-              onClick={onOpenReading}
-              className={`group flex items-center p-2 rounded-xl bg-[#062b21]/40 hover:bg-[#064E3B]/60 border border-[#F8E7C9]/10 hover:border-[#F8E7C9]/30 transition cursor-pointer active:scale-[0.98] ${
-                isOpen ? 'justify-between px-2.5' : 'justify-center w-full'
-              }`}
-              title="IELTS Reading Lab"
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-sm">📖</span>
-                {isOpen && <span className="text-xs font-mono text-[#F8E7C9] font-medium whitespace-nowrap">Reading Lab</span>}
-              </div>
-              {isOpen && <span className="text-[8px] font-mono px-1.5 py-0.5 rounded bg-[#10b981]/20 text-[#10b981] border border-[#10b981]/30">Live</span>}
-            </button>
-
             <div
-              className={`flex items-center p-2 rounded-xl opacity-60 ${
-                isOpen ? 'justify-between hover:bg-white/5 px-2.5' : 'justify-center w-full'
+              className={`flex items-center p-2 rounded-xl bg-[#062b21]/40 hover:bg-[#064E3B]/60 border border-[#F8E7C9]/10 hover:border-[#F8E7C9]/30 transition cursor-pointer active:scale-[0.98] ${
+                isOpen ? 'justify-between px-2.5' : 'justify-center w-full'
               }`}
             >
               <div className="flex items-center gap-3">
                 <span className="text-sm">🎵</span>
-                {isOpen && <span className="text-xs font-mono text-[#F8E7C9] whitespace-nowrap">Music Recall</span>}
+                {isOpen && <span className="text-xs font-mono text-[#F8E7C9] font-medium whitespace-nowrap">Music Recall</span>}
               </div>
-              {isOpen && <span className="text-[8px] font-mono px-1.5 py-0.5 rounded bg-[#064E3B]/60 text-[#10b981] border border-[#10b981]/30">Soon</span>}
+              {isOpen && <span className="text-[8px] font-mono px-1.5 py-0.5 rounded bg-[#10b981]/20 text-[#10b981] border border-[#10b981]/30">Live</span>}
             </div>
 
             <div
@@ -151,11 +139,32 @@ export function Sidebar({
               }`}
             >
               <div className="flex items-center gap-3">
-                <span className="text-sm">🏛️</span>
-                {isOpen && <span className="text-xs font-mono text-[#F8E7C9] whitespace-nowrap">Word Vault</span>}
+                <span className="text-sm">📖</span>
+                {isOpen && <span className="text-xs font-mono text-[#F8E7C9] whitespace-nowrap">Reading Lab</span>}
               </div>
               {isOpen && <span className="text-[8px] font-mono px-1.5 py-0.5 rounded bg-[#064E3B]/60 text-[#10b981] border border-[#10b981]/30">Soon</span>}
             </div>
+
+            {/* 🔥 GET MORE — FAQAT ADMIN (SIZ) UCHUN */}
+            {isAdmin && onOpenGetMore && (
+              <>
+                <div className="my-1.5 border-b border-[#F8E7C9]/10 mx-1" />
+                <button
+                  type="button"
+                  onClick={onOpenGetMore}
+                  className={`group flex items-center p-2 rounded-xl bg-gradient-to-r from-amber-500/20 to-emerald-500/20 hover:from-amber-500/30 hover:to-emerald-500/30 border border-amber-500/40 transition cursor-pointer active:scale-[0.98] ${
+                    isOpen ? 'justify-between px-2.5' : 'justify-center w-full'
+                  }`}
+                  title="Get More (Admin Only)"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm">⭐</span>
+                    {isOpen && <span className="text-xs font-mono text-[#F8E7C9] font-bold whitespace-nowrap">Get More</span>}
+                  </div>
+                  {isOpen && <span className="text-[8px] font-mono px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">VIP</span>}
+                </button>
+              </>
+            )}
           </div>
         </div>
 
