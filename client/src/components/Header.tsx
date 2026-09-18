@@ -49,10 +49,10 @@ export function Header({ currentUser, onLogout }: HeaderProps) {
         {/* Logo */}
         <div className="relative z-10 flex items-center gap-1.5">
           <div className="flex items-center justify-center w-6 h-6 rounded-full bg-[#064E3B] border border-[#F8E7C9]/30">
-            <span className="text-[11px] font-black text-[#F8E7C9]">V</span>
+            <span className="text-[11px] font-black text-[#F8E7C9]">B</span>
           </div>
           <span className="text-xs font-bold tracking-wider text-[#F8E7C9] font-mono uppercase">
-            VACABBRO
+            BoosterEv
           </span>
         </div>
 
