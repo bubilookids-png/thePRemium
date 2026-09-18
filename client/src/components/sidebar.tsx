@@ -7,8 +7,6 @@ interface SidebarProps {
   onFocusSearch: () => void;
   onOpenBlitz: () => void;
   onOpenTranslate: () => void;
-  onOpenReading: () => void;
-  onOpenMusic?: () => void;
   onOpenGetMore?: () => void;
   isAdmin?: boolean;
 }
@@ -19,8 +17,6 @@ export function Sidebar({
   onFocusSearch,
   onOpenBlitz,
   onOpenTranslate,
-  onOpenReading,
-  onOpenMusic,
   onOpenGetMore,
   isAdmin = false
 }: SidebarProps) {
@@ -118,23 +114,6 @@ export function Sidebar({
               </div>
               {isOpen && <kbd className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-[#02130e] border border-[#F8E7C9]/20 text-[#F8E7C9]/60">⇧T</kbd>}
             </button>
-
-            <div className="my-1.5 border-b border-[#F8E7C9]/10 mx-1" />
-
-            {isOpen && <span className="text-[9px] font-mono uppercase tracking-wider text-[#F8E7C9]/40 px-2 mb-0.5 font-semibold">Active Labs</span>}
-
-
-            <div
-              className={`flex items-center p-2 rounded-xl opacity-60 ${
-                isOpen ? 'justify-between hover:bg-white/5 px-2.5' : 'justify-center w-full'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-sm">📖</span>
-                {isOpen && <span className="text-xs font-mono text-[#F8E7C9] whitespace-nowrap">Reading Lab</span>}
-              </div>
-              {isOpen && <span className="text-[8px] font-mono px-1.5 py-0.5 rounded bg-[#064E3B]/60 text-[#10b981] border border-[#10b981]/30">Soon</span>}
-            </div>
 
             {isAdmin && onOpenGetMore && (
               <>
