@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://boosterev.vercel.app/sitemap.xml
+Sitemap: https://univebooster.vercel.app/sitemap.xml

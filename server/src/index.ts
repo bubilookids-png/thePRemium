@@ -16,7 +16,7 @@ const PORT = Number(process.env.PORT || 8787);
 
 const CLIENT_ORIGINS = [
   'http://localhost:5173',
-  'https://boosterev.vercel.app',
+  'https://univebooster.vercel.app',
   'https://vacabbro.vercel.app',
   'https://vacabbro-emub4pfr9-meonly24.vercel.app'
 ];
