@@ -8,8 +8,8 @@ interface SidebarProps {
   onOpenBlitz: () => void;
   onOpenTranslate: () => void;
   onOpenReading: () => void;
-  onOpenGetMore?: () => void; // <-- Get More ochish uchun
-  isAdmin?: boolean;          // <-- Faqat admin uchun shart
+  onOpenGetMore?: () => void;
+  isAdmin?: boolean;
 }
 
 export function Sidebar({
@@ -35,7 +35,7 @@ export function Sidebar({
         className={`fixed top-0 left-0 h-full z-50 flex flex-col justify-between
           bg-[#02130e]/95 backdrop-blur-2xl border-r border-[#F8E7C9]/15 shadow-[10px_0_30px_rgba(0,0,0,0.4)] select-none
           transition-all duration-300 ease-in-out
-          ${isOpen ? 'w-64' : 'w-12'}
+          ${isOpen ? 'w-64 translate-x-0' : '-translate-x-full lg:translate-x-0 lg:w-12'}
         `}
       >
         <div className="flex flex-col">
@@ -47,7 +47,7 @@ export function Sidebar({
                 </div>
                 <div className="flex flex-col">
                   <span className="font-mono text-xs font-bold tracking-wider text-[#F8E7C9]">
-                    VACABBRO
+                    UniveBooster
                   </span>
                   <span className="text-[9px] font-mono text-[#F8E7C9]/50">
                     Workspace
@@ -145,7 +145,7 @@ export function Sidebar({
               {isOpen && <span className="text-[8px] font-mono px-1.5 py-0.5 rounded bg-[#064E3B]/60 text-[#10b981] border border-[#10b981]/30">Soon</span>}
             </div>
 
-            {/* 🔥 GET MORE — FAQAT ADMIN (SIZ) UCHUN */}
+            {/* GET MORE — Faqat Admin uchun */}
             {isAdmin && onOpenGetMore && (
               <>
                 <div className="my-1.5 border-b border-[#F8E7C9]/10 mx-1" />
