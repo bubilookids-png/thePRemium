@@ -15,6 +15,7 @@ import { CyberMatrixOrb } from './components/CyberMatrixOrb';
 import { LandingPage } from './components/LandingPage';
 import { WordBlitzModal } from './components/WordBlitzModal';
 import { QuickTranslator } from './components/QuickTranslator';
+import { ReadingView } from './components/ReadingView';
 
 import type {
   AnalyzeResponse,
@@ -28,7 +29,7 @@ import {
   normalizeTerm
 } from './utils/string';
 
-type View = 'analysis' | 'quiz';
+type View = 'analysis' | 'quiz' | 'reading';
 
 interface TelegramUser {
   id: number;
@@ -120,6 +121,11 @@ export default function App() {
     setShowTranslateModal(true);
   };
 
+  const triggerReading = () => {
+    setShowLanding(false);
+    setView('reading');
+  };
+
   const focusSearchInput = () => {
     setShowLanding(false);
     setView('analysis');
@@ -150,6 +156,12 @@ export default function App() {
       if (e.shiftKey && (e.code === 'KeyT' || e.key === 'T' || e.key === 't')) {
         e.preventDefault();
         triggerTranslate();
+        return;
+      }
+
+      if (e.shiftKey && (e.code === 'KeyR' || e.key === 'R' || e.key === 'r')) {
+        e.preventDefault();
+        triggerReading();
         return;
       }
 
@@ -347,6 +359,7 @@ export default function App() {
         onOpenBlitz={triggerBlitz}
         onOpenTranslate={triggerTranslate}
         onOpenGetMore={() => setShowGetMoreModal(true)}
+        onOpenReading={triggerReading}
         isAdmin={isAdmin}
       />
 
@@ -392,7 +405,8 @@ export default function App() {
           />
         ) : (
           <main className="page flex-1 w-full max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
-            <section className="hero grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center mb-8 sm:mb-10">
+            {view !== 'reading' && (
+              <section className="hero grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center mb-8 sm:mb-10">
               <div className="lg:col-span-7 flex flex-col items-start">
                 <button
                   type="button"
@@ -510,9 +524,11 @@ export default function App() {
                 </div>
               </div>
             </section>
+            )}
 
             <div className="flex flex-col gap-6 w-full">
-              <div id="analyze-word-section" className="w-full">
+              {view !== 'reading' && (
+                <div id="analyze-word-section" className="w-full">
                 <Card
                   title="Analyze a word"
                   subtitle="Enter a word or short phrase and let AI build your study card"
@@ -549,14 +565,15 @@ export default function App() {
                   ) : null}
                 </Card>
               </div>
+              )}
 
-              {loading ? (
+              {loading && view !== 'reading' ? (
                 <div className="fade-in w-full">
                   <AiLoader word={normalized || word} />
                 </div>
               ) : null}
 
-              {!loading && !data ? (
+              {!loading && !data && view !== 'reading' ? (
                 <div className="hidden sm:block w-full rounded-2xl bg-[#02130e]/70 border border-[#F8E7C9]/10 p-4 sm:p-5 backdrop-blur-md select-none">
                   <div className="flex items-center justify-between pb-3 border-b border-[#F8E7C9]/10 text-xs font-mono text-[#F8E7C9]/60">
                     <span className="flex items-center gap-1.5 text-[#F8E7C9] font-bold">
@@ -616,7 +633,7 @@ export default function App() {
                 </div>
               ) : null}
 
-              {!loading && data ? (
+              {!loading && data && view !== 'reading' ? (
                 view === 'analysis' ? (
                   <AnalysisView
                     analysis={data.analysis}
@@ -631,6 +648,12 @@ export default function App() {
                   />
                 )
               ) : null}
+
+              {view === 'reading' && !loading && (
+                <div className="w-full">
+                  <ReadingView />
+                </div>
+              )}
             </div>
           </main>
         )}
