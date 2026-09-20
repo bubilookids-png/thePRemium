@@ -11,3 +11,5 @@ client/.vite
 
 # Server build
 server/dist
+server.log
+*.db
