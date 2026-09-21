@@ -5,6 +5,7 @@ import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import { analyzeRouter } from './routes/analyze.js';
 import authRoutes from './routes/authRoutes.js';
+import { readingMocksRouter } from './routes/readingMocks.js';
 import { logger } from './utils/logger.js';
 import { initDatabase } from './db/database.js';
 import { startTelegramBot } from './services/telegramBotAuth.js';
@@ -54,6 +55,7 @@ app.get('/api/health', (_req, res) => {
 
 app.use('/api/analyze', analyzeRouter);
 app.use('/api/auth', authRoutes);
+app.use('/api/reading-mocks', readingMocksRouter);
 
 app.use((_req, res) => {
   res.status(404).json({ error: 'Not found' });
