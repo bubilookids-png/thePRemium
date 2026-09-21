@@ -15,6 +15,8 @@ import { CyberMatrixOrb } from './components/CyberMatrixOrb';
 import { LandingPage } from './components/LandingPage';
 import { WordBlitzModal } from './components/WordBlitzModal';
 import { QuickTranslator } from './components/QuickTranslator';
+import { LegalModal } from './components/LegalModal';
+import { CookieModal } from './components/CookieModal';
 
 import type {
   AnalyzeResponse,
@@ -57,6 +59,8 @@ export default function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showBlitzModal, setShowBlitzModal] = useState(false);
   const [showTranslateModal, setShowTranslateModal] = useState(false);
+  const [showLegalModal, setShowLegalModal] = useState(false);
+  const [showCookieModal, setShowCookieModal] = useState(false);
 
   const [word, setWord] = useState('');
   const [langCode, setLangCode] = useState<SupportedLanguageCode>('uz');
@@ -647,12 +651,15 @@ export default function App() {
                   />
                 )
               ) : null}
-
             </div>
           </main>
         )}
 
-        <Footer />
+        {/* Footer, Legal va Cookie modal ochuvchilar bilan ulandi */}
+        <Footer 
+          onOpenLegal={() => setShowLegalModal(true)} 
+          onOpenCookie={() => setShowCookieModal(true)} 
+        />
       </div>
 
       {/* Word Blitz Modal */}
@@ -665,6 +672,17 @@ export default function App() {
         <QuickTranslator onClose={() => setShowTranslateModal(false)} />
       )}
 
+      {/* Legal Modal (Privacy & Terms) */}
+      {showLegalModal && (
+        <LegalModal onClose={() => setShowLegalModal(false)} />
+      )}
+
+      {/* Cookie Modal */}
+      {showCookieModal && (
+        <CookieModal onClose={() => setShowCookieModal(false)} />
+      )}
+
+      {/* Get More Modal */}
       {showGetMoreModal && isAdmin && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn">
           <div className="relative w-full max-w-sm p-6 sm:p-7 rounded-3xl bg-[#02130e] border border-amber-500/40 shadow-[0_0_40px_rgba(245,158,11,0.2)] text-center">
@@ -720,6 +738,7 @@ export default function App() {
         </div>
       )}
 
+      {/* Limit Modal */}
       {showLimitModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
           <div className="relative w-full max-w-md p-6 sm:p-8 rounded-3xl bg-[#02130e] border border-[#F8E7C9]/20 shadow-2xl text-center">
