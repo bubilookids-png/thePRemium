@@ -43,7 +43,12 @@ export async function initDatabase() {
       last_active DATETIME DEFAULT CURRENT_TIMESTAMP
     );`,
     `CREATE INDEX IF NOT EXISTS idx_words_term ON words(term);`,
-    `CREATE INDEX IF NOT EXISTS idx_users_tg ON users(telegram_id);`
+    `CREATE INDEX IF NOT EXISTS idx_users_tg ON users(telegram_id);`,
+    `CREATE TABLE IF NOT EXISTS reading_mocks (
+      id TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      content TEXT NOT NULL
+    );`
   ], 'write');
 
   console.log(`⚡ [DB] Connected successfully to: ${url.startsWith('libsql') ? 'Turso Cloud' : dbPath}`);
