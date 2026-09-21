@@ -15,7 +15,6 @@ import { CyberMatrixOrb } from './components/CyberMatrixOrb';
 import { LandingPage } from './components/LandingPage';
 import { WordBlitzModal } from './components/WordBlitzModal';
 import { QuickTranslator } from './components/QuickTranslator';
-import { ReadingView } from './components/ReadingView';
 
 import type {
   AnalyzeResponse,
@@ -649,11 +648,6 @@ export default function App() {
                 )
               ) : null}
 
-              {view === 'reading' && !loading && (
-                <div className="w-full">
-                  <ReadingView />
-                </div>
-              )}
             </div>
           </main>
         )}

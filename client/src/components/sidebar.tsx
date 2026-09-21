@@ -122,26 +122,7 @@ export function Sidebar({
               </div>
               {isOpen && <kbd className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-[#02130e] border border-[#F8E7C9]/20 text-[#F8E7C9]/60">⇧T</kbd>}
             </button>
-
-            {onOpenReading && (
-              <button
-                type="button"
-                onClick={() => {
-                  onOpenReading();
-                  if (window.innerWidth < 1024) onToggle();
-                }}
-                className={`group flex items-center p-2 rounded-xl transition cursor-pointer active:scale-[0.98] ${
-                  isOpen ? 'justify-between hover:bg-[#064E3B]/40 px-2.5' : 'justify-center hover:bg-[#064E3B]/40 w-full'
-                }`}
-                title="Reading"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-sm text-[#10b981]">📖</span>
-                  {isOpen && <span className="text-xs font-mono text-[#F8E7C9] font-medium whitespace-nowrap">Reading mocks</span>}
-                </div>
-                {isOpen && <kbd className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-[#02130e] border border-[#F8E7C9]/20 text-[#F8E7C9]/60">⇧R</kbd>}
-              </button>
-            )}
+            
 
             {isAdmin && onOpenGetMore && (
               <>
