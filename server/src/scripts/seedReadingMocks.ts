@@ -7,7 +7,7 @@ async function seedMocks() {
   await initDatabase();
 
   try {
-    const mocksModule = await import('../../../client/src/data/readingMocks.js');
+    const mocksModule = await import('./readingMocksData.js');
     const mocks = mocksModule.readingMocks;
 
     for (const mock of mocks) {

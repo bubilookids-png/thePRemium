@@ -14,7 +14,7 @@ export function ReadingView() {
     async function loadMocks() {
       try {
         setIsLoading(true);
-        const data = await apiFetch('/api/reading-mocks');
+        const data = await apiFetch('/api/reading-mocks') as any[];
         const formattedData = data.map((item: any) => item.content);
         setReadingMocks(formattedData);
       } catch (err: any) {
