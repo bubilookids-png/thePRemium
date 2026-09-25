@@ -362,7 +362,6 @@ export default function App() {
         onOpenBlitz={triggerBlitz}
         onOpenTranslate={triggerTranslate}
         onOpenGetMore={() => setShowGetMoreModal(true)}
-        onOpenReading={triggerReading}
         isAdmin={isAdmin}
       />
 
@@ -576,65 +575,6 @@ export default function App() {
                 </div>
               ) : null}
 
-              {!loading && !data && view !== 'reading' ? (
-                <div className="hidden sm:block w-full rounded-2xl bg-[#02130e]/70 border border-[#F8E7C9]/10 p-4 sm:p-5 backdrop-blur-md select-none">
-                  <div className="flex items-center justify-between pb-3 border-b border-[#F8E7C9]/10 text-xs font-mono text-[#F8E7C9]/60">
-                    <span className="flex items-center gap-1.5 text-[#F8E7C9] font-bold">
-                      <span className="text-[#10b981]">⌘</span> Live Shortcuts & Actions
-                    </span>
-                    <span className="text-[10px]">Press key or click item</span>
-                  </div>
-
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 font-mono text-xs">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (word.trim()) onAnalyze();
-                        else focusSearchInput();
-                      }}
-                      className="flex items-center justify-between p-2.5 rounded-xl bg-[#062b21]/40 hover:bg-[#064E3B]/40 border border-[#F8E7C9]/10 hover:border-[#F8E7C9]/30 transition active:scale-[0.98] text-left cursor-pointer"
-                    >
-                      <span className="text-[#F8E7C9]/70 text-[11px]">Analyze term</span>
-                      <kbd className="px-2 py-0.5 rounded bg-[#064E3B] border border-[#F8E7C9]/20 text-[#F8E7C9] text-[10px] shadow-sm font-bold">
-                        ↵ Enter
-                      </kbd>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={triggerBlitz}
-                      className="flex items-center justify-between p-2.5 rounded-xl bg-[#062b21]/40 hover:bg-[#064E3B]/40 border border-[#F8E7C9]/10 hover:border-[#F8E7C9]/30 transition active:scale-[0.98] text-left cursor-pointer"
-                    >
-                      <span className="text-[#F8E7C9]/70 text-[11px]">Quick Blitz</span>
-                      <kbd className="px-2 py-0.5 rounded bg-[#064E3B] border border-[#F8E7C9]/20 text-[#F8E7C9] text-[10px] shadow-sm font-bold">
-                        ⇧ Shift+B
-                      </kbd>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={triggerTranslate}
-                      className="flex items-center justify-between p-2.5 rounded-xl bg-[#062b21]/40 hover:bg-[#064E3B]/40 border border-[#F8E7C9]/10 hover:border-[#F8E7C9]/30 transition active:scale-[0.98] text-left cursor-pointer"
-                    >
-                      <span className="text-[#F8E7C9]/70 text-[11px]">Translation</span>
-                      <kbd className="px-2 py-0.5 rounded bg-[#064E3B] border border-[#F8E7C9]/20 text-[#F8E7C9] text-[10px] shadow-sm font-bold">
-                        ⇧ Shift+T
-                      </kbd>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setWord('')}
-                      className="flex items-center justify-between p-2.5 rounded-xl bg-[#062b21]/40 hover:bg-[#064E3B]/40 border border-[#F8E7C9]/10 hover:border-[#F8E7C9]/30 transition active:scale-[0.98] text-left cursor-pointer"
-                    >
-                      <span className="text-[#F8E7C9]/70 text-[11px]">Clear input</span>
-                      <kbd className="px-2 py-0.5 rounded bg-[#064E3B] border border-[#F8E7C9]/20 text-[#F8E7C9] text-[10px] shadow-sm font-bold">
-                        Esc
-                      </kbd>
-                    </button>
-                  </div>
-                </div>
-              ) : null}
 
               {!loading && data && view !== 'reading' ? (
                 view === 'analysis' ? (
