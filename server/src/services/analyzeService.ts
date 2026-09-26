@@ -201,18 +201,18 @@ Translation must be accurate in the target language (e.g. Uzbek).
     const modernSyns = Array.isArray(aiData.synonyms) ? aiData.synonyms : [];
     const modernAnts = Array.isArray(aiData.antonyms) ? aiData.antonyms : [];
     const modernColls = Array.isArray(aiData.collocations) ? aiData.collocations : [];
-    const modernExamp = Array.isArray(aiData.examples) && aiData.examples.length >= 2
-      ? aiData.examples
+    const modernExamp = Array.isArray(aiData.examples) && aiData.examples.length >= 2 
+      ? aiData.examples 
       : [`He used the word "${cleanWord}" correctly.`, `Can you explain what "${cleanWord}" means?`];
 
+    // AI natijasini bazaga saqlaymiz
     try {
       await db.execute({
         sql: `
           INSERT INTO words (
             term, ipa, part_of_speech, cefr_level, definition_en,
-            translation_uz, synonyms, antonyms, collocations, examples,
-            how_its_used, common_mistakes
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            translation_uz, synonyms, antonyms, collocations, examples
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           ON CONFLICT(term) DO UPDATE SET
             definition_en = excluded.definition_en,
             translation_uz = excluded.translation_uz,
@@ -222,9 +222,7 @@ Translation must be accurate in the target language (e.g. Uzbek).
             synonyms = excluded.synonyms,
             antonyms = excluded.antonyms,
             collocations = excluded.collocations,
-            examples = excluded.examples,
-            how_its_used = excluded.how_its_used,
-            common_mistakes = excluded.common_mistakes
+            examples = excluded.examples
         `,
         args: [
           cleanWord,
@@ -236,12 +234,9 @@ Translation must be accurate in the target language (e.g. Uzbek).
           JSON.stringify(modernSyns),
           JSON.stringify(modernAnts),
           JSON.stringify(modernColls),
-          JSON.stringify(modernExamp),
-          aiData.usage || '',
-          JSON.stringify(aiData.commonMistakes || [])
+          JSON.stringify(modernExamp)
         ]
       });
-
       logger.info(`[DB SAVED] Successfully cached modern data for "${cleanWord}"`);
     } catch (saveErr) {
       logger.warn('Error caching word to SQLite', { saveErr });
