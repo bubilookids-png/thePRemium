@@ -352,7 +352,9 @@ Respond ONLY with this JSON structure:
     "synonyms": ["syn1", "syn2", "syn3"],
     "antonyms": ["ant1", "ant2"],
     "collocations": ["collocation 1", "collocation 2", "collocation 3"],
-    "examples": ["Example sentence 1", "Example sentence 2"]
+    "examples": ["Example sentence 1", "Example sentence 2"],
+    "usage": "Practical usage guidance in modern English",
+    "commonMistakes": ["Common mistake to avoid"]
   },
   "quiz": {
     "question": "A concise multiple-choice question testing the term",
