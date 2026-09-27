@@ -102,7 +102,10 @@ bot.command('admin', async (ctx) => {
 
 // Admin tugmalarini boshqarish
 bot.callbackQuery('admin_stats', async (ctx) => {
-  if (ctx.from?.id !== ADMIN_ID) return ctx.answerCallbackQuery();
+  if (ctx.from?.id !== ADMIN_ID) {
+    await ctx.answerCallbackQuery();
+    return;
+  }
 
   const totalUsersRes = await db.execute('SELECT COUNT(*) as count FROM users');
   const totalSearchesRes = await db.execute('SELECT SUM(search_count) as total FROM users');
@@ -123,7 +126,10 @@ bot.callbackQuery('admin_stats', async (ctx) => {
 });
 
 bot.callbackQuery('admin_top', async (ctx) => {
-  if (ctx.from?.id !== ADMIN_ID) return ctx.answerCallbackQuery();
+  if (ctx.from?.id !== ADMIN_ID) {
+    await ctx.answerCallbackQuery();
+    return;
+  }
 
   const topUsersRes = await db.execute(`
     SELECT first_name, username, search_count 
@@ -153,7 +159,10 @@ bot.callbackQuery('admin_top', async (ctx) => {
 });
 
 bot.callbackQuery('admin_recent', async (ctx) => {
-  if (ctx.from?.id !== ADMIN_ID) return ctx.answerCallbackQuery();
+  if (ctx.from?.id !== ADMIN_ID) {
+    await ctx.answerCallbackQuery();
+    return;
+  }
 
   const recentUsersRes = await db.execute(`
     SELECT first_name, username, created_at 
@@ -182,13 +191,22 @@ bot.callbackQuery('admin_recent', async (ctx) => {
 });
 
 bot.callbackQuery('admin_refresh', async (ctx) => {
-  if (ctx.from?.id !== ADMIN_ID) return ctx.answerCallbackQuery();
+  if (ctx.from?.id !== ADMIN_ID) {
+    await ctx.answerCallbackQuery();
+    return;
+  }
 
   await ctx.editMessageText("👑 *Vacabbro Boshqaruv Paneli*\nMa'lumotlar yangilandi. Bo‘limni tanlang:", {
     parse_mode: 'Markdown',
     reply_markup: adminKeyboard,
   });
   await ctx.answerCallbackQuery({ text: 'Yangilandi! ⚡' });
+});
+
+// MUHIM: Bot kutilmagan xatolikdan o'chib qolmasligi uchun catch yozamiz
+bot.catch((err) => {
+  const ctx = err.ctx;
+  console.error(`❌ Bot xatolik yuz berdi (Update ID: ${ctx.update.update_id}):`, err.error);
 });
 
 export function startTelegramBot() {
