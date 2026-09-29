@@ -27,8 +27,10 @@ export function Card(props: {
 
     const centerX = rect.width / 2;
     const centerY = rect.height / 2;
-    const rx = ((y - centerY) / centerY) * -4;
-    const ry = ((x - centerX) / centerX) * 4;
+    
+    // Sezgirlik -4 dan -2 ga tushirildi (juda yumshoq egiladi)
+    const rx = ((y - centerY) / centerY) * -2;
+    const ry = ((x - centerX) / centerX) * 2;
 
     setTilt({ rx, ry });
   }
@@ -39,7 +41,7 @@ export function Card(props: {
   }
 
   return (
-    <div style={{ perspective: '1100px' }} className="w-full">
+    <div style={{ perspective: '1200px' }} className="w-full">
       <div
         ref={cardRef}
         onMouseMove={handleMouseMove}
@@ -47,9 +49,9 @@ export function Card(props: {
         onMouseLeave={handleMouseLeave}
         style={{
           transform: isHovered
-            ? `rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg) translateZ(4px)`
+            ? `rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg) translateZ(0px)`
             : 'rotateX(0deg) rotateY(0deg) translateZ(0px)',
-          transition: isHovered ? 'transform 0.08s ease-out' : 'transform 0.4s ease-out',
+          transition: isHovered ? 'transform 0.15s ease-out' : 'transform 0.4s ease-out',
         }}
         className="relative w-full"
       >
@@ -65,7 +67,7 @@ export function Card(props: {
           fillOpacity={0.65}
         >
           <section className={`section-card relative overflow-hidden p-4 sm:p-6 bg-[#02130e]/80 ${props.className || ''}`}>
-            {/* Sichqoncha nuri: Emerald & Champagne (desktop) */}
+            {/* Sichqoncha nuri: faqat card ustida bo'lganda ishlaydi */}
             <div
               className="hidden sm:block pointer-events-none absolute -inset-px transition-opacity duration-300 z-0"
               style={{
