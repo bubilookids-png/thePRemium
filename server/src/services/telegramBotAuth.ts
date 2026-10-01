@@ -1,25 +1,42 @@
 import { Bot, InlineKeyboard } from 'grammy';
 import { db } from '../db/database.js';
 
-// Sizning Telegram ID raqamingiz (Admin Guard)
-const ADMIN_ID = 7462228079;
+// SECURITY: Get admin ID from environment variable, not hardcoded
+const ADMIN_ID = process.env.ADMIN_TELEGRAM_ID
+  ? Number(process.env.ADMIN_TELEGRAM_ID)
+  : null;
+
+if (!ADMIN_ID) {
+  console.warn('ADMIN_TELEGRAM_ID not set in environment. Admin commands disabled.');
+}
 
 const botToken = process.env.TELEGRAM_BOT_TOKEN;
 if (!botToken) {
-  console.warn('⚠️ TELEGRAM_BOT_TOKEN .env faylida topilmadi!');
+  console.warn('TELEGRAM_BOT_TOKEN not found in environment!');
 }
 
 export const bot = new Bot(botToken || 'dummy_token');
 
-// Sessiyalarni xotirada saqlash
-const pendingSessions = new Map<string, any>();
+// SECURITY: Session timeout to prevent token reuse
+const SESSION_TIMEOUT = 5 * 60 * 1000; // 5 minutes
+const pendingSessions = new Map<string, { user: any; createdAt: number }>();
 
-// /start auth_xxx buyrug'ini ushlash
+// Clean up expired sessions every minute
+setInterval(() => {
+  const now = Date.now();
+  for (const [token, session] of pendingSessions.entries()) {
+    if (now - session.createdAt > SESSION_TIMEOUT) {
+      pendingSessions.delete(token);
+    }
+  }
+}, 60 * 1000);
+
+// /start auth_xxx command handler
 bot.command('start', async (ctx) => {
   const payload = ctx.match;
 
   if (!payload || !payload.startsWith('auth_')) {
-    await ctx.reply("Salom! Vacabbro'ga xush kelibsiz. Sayt orqali tizimga kiring.");
+    await ctx.reply('Hello! Welcome to Vacabbro. Please log in from the website.');
     return;
   }
 
@@ -37,7 +54,7 @@ bot.command('start', async (ctx) => {
       }
     }
   } catch (e) {
-    console.error('Foto olishda xatolik:', e);
+    console.error('Error getting photo:', e);
   }
 
   try {
@@ -67,32 +84,38 @@ bot.command('start', async (ctx) => {
     });
 
     const savedUser = userRes.rows[0];
-    pendingSessions.set(payload, savedUser);
+    // SECURITY: Store session with timestamp
+    pendingSessions.set(payload, {
+      user: savedUser,
+      createdAt: Date.now()
+    });
 
-    await ctx.reply(`✅ Tabriklaymiz, ${tgUser.first_name}! Saytga muvaffaqiyatli kirdingiz. Brauzerga qaytishingiz mumkin.`);
+    await ctx.reply(`Success, ${tgUser.first_name}! You have been logged in. You can return to the browser.`);
   } catch (dbErr) {
-    console.error('DB xatosi:', dbErr);
+    console.error('DB error:', dbErr);
+    await ctx.reply('Error occurred. Please try again.');
   }
 });
 
-// Admin Menyu Klavishi
+// Admin Menu Keyboard (only shown if ADMIN_ID is set)
 const adminKeyboard = new InlineKeyboard()
-  .text('📊 Umumiy Statistika', 'admin_stats')
+  .text('Stats', 'admin_stats')
   .row()
-  .text('🏆 Top 10 Foydalanuvchilar', 'admin_top')
+  .text('Top 10 Users', 'admin_top')
   .row()
-  .text('👥 So‘nggi kirganlar (5 ta)', 'admin_recent')
+  .text('Recent Users (5)', 'admin_recent')
   .row()
-  .text('🔄 Yangilash', 'admin_refresh');
+  .text('Refresh', 'admin_refresh');
 
-// /admin buyrug'i (faqat sizga ishlaydi)
+// /admin command (only for admin)
 bot.command('admin', async (ctx) => {
-  if (ctx.from?.id !== ADMIN_ID) {
+  if (!ADMIN_ID || ctx.from?.id !== ADMIN_ID) {
+    await ctx.reply('Sorry, this command is for administrators only.');
     return;
   }
 
   await ctx.reply(
-    "👑 *Vacabbro Boshqaruv Paneli*\nKerakli bo‘limni tanlang:",
+    'Vacabbro Admin Panel\nSelect an option:',
     {
       parse_mode: 'Markdown',
       reply_markup: adminKeyboard,
@@ -100,7 +123,7 @@ bot.command('admin', async (ctx) => {
   );
 });
 
-// Admin tugmalarini boshqarish
+// Admin buttons handler
 bot.callbackQuery('admin_stats', async (ctx) => {
   if (ctx.from?.id !== ADMIN_ID) {
     await ctx.answerCallbackQuery();
@@ -113,10 +136,10 @@ bot.callbackQuery('admin_stats', async (ctx) => {
   const totalUsers = Number(totalUsersRes.rows[0]?.count) || 0;
   const totalSearches = Number(totalSearchesRes.rows[0]?.total) || 0;
 
-  const text = `📊 *Umumiy Statistika:*\n\n` +
-               `👥 Jami foydalanuvchilar: *${totalUsers}*\n` +
-               `🔍 Jami qidiruvlar soni: *${totalSearches}*\n` +
-               `⚡ O‘rtacha har bir userga: *${totalUsers > 0 ? (totalSearches / totalUsers).toFixed(1) : 0}* ta so‘z`;
+  const text = `Stats:\n\n` +
+               `Total users: ${totalUsers}\n` +
+               `Total searches: ${totalSearches}\n` +
+               `Average per user: ${totalUsers > 0 ? (totalSearches / totalUsers).toFixed(1) : 0}`;
 
   await ctx.editMessageText(text, {
     parse_mode: 'Markdown',
@@ -132,22 +155,22 @@ bot.callbackQuery('admin_top', async (ctx) => {
   }
 
   const topUsersRes = await db.execute(`
-    SELECT first_name, username, search_count 
-    FROM users 
-    ORDER BY search_count DESC 
+    SELECT first_name, username, search_count
+    FROM users
+    ORDER BY search_count DESC
     LIMIT 10
   `);
 
   const topUsers = topUsersRes.rows;
 
-  let text = `🏆 *Top 10 Faol Foydalanuvchilar:*\n\n`;
+  let text = `Top 10 Active Users:\n\n`;
   if (topUsers.length === 0) {
-    text += "_Hozircha foydalanuvchilar yo‘q._";
+    text += 'No users yet.';
   } else {
     topUsers.forEach((u: any, i: number) => {
-      const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`;
+      const medal = i === 0 ? '1st' : i === 1 ? '2nd' : i === 2 ? '3rd' : `${i + 1}th`;
       const uname = u.username ? `(@${u.username})` : '';
-      text += `${medal} *${u.first_name}* ${uname} — *${u.search_count || 0}* ta so‘z\n`;
+      text += `${medal} ${u.first_name} ${uname} - ${u.search_count || 0} words\n`;
     });
   }
 
@@ -165,21 +188,21 @@ bot.callbackQuery('admin_recent', async (ctx) => {
   }
 
   const recentUsersRes = await db.execute(`
-    SELECT first_name, username, created_at 
-    FROM users 
-    ORDER BY id DESC 
+    SELECT first_name, username, created_at
+    FROM users
+    ORDER BY id DESC
     LIMIT 5
   `);
 
   const recentUsers = recentUsersRes.rows;
 
-  let text = `👥 *So‘nggi 5 ta foydalanuvchi:*\n\n`;
+  let text = `Recent 5 Users:\n\n`;
   if (recentUsers.length === 0) {
-    text += "_Hozircha foydalanuvchilar yo‘q._";
+    text += 'No users yet.';
   } else {
     recentUsers.forEach((u: any, i: number) => {
       const uname = u.username ? `(@${u.username})` : '';
-      text += `${i + 1}. *${u.first_name}* ${uname}\n`;
+      text += `${i + 1}. ${u.first_name} ${uname}\n`;
     });
   }
 
@@ -196,35 +219,47 @@ bot.callbackQuery('admin_refresh', async (ctx) => {
     return;
   }
 
-  await ctx.editMessageText("👑 *Vacabbro Boshqaruv Paneli*\nMa'lumotlar yangilandi. Bo‘limni tanlang:", {
+  await ctx.editMessageText('Vacabbro Admin Panel\nData refreshed. Select an option:', {
     parse_mode: 'Markdown',
     reply_markup: adminKeyboard,
   });
-  await ctx.answerCallbackQuery({ text: 'Yangilandi! ⚡' });
+  await ctx.answerCallbackQuery({ text: 'Refreshed!' });
 });
 
-// MUHIM: Bot kutilmagan xatolikdan o'chib qolmasligi uchun catch yozamiz
+// Error handler
 bot.catch((err) => {
   const ctx = err.ctx;
-  console.error(`❌ Bot xatolik yuz berdi (Update ID: ${ctx.update.update_id}):`, err.error);
+  console.error(`Bot error (Update ID: ${ctx.update.update_id}):`, err.error);
 });
 
 export function startTelegramBot() {
   if (!botToken) return;
   bot.start({
     onStart: (info) => {
-      console.log(`🤖 Telegram Bot ishga tushdi: @${info.username}`);
+      console.log(`Telegram Bot started: @${info.username}`);
     },
   }).catch((err) => {
-    console.error('Bot ishga tushishda xato:', err.message);
+    console.error('Bot start error:', err.message);
   });
 }
 
 export function checkAuthSession(token: string) {
-  if (pendingSessions.has(token)) {
-    const user = pendingSessions.get(token);
-    pendingSessions.delete(token);
-    return user;
+  if (!pendingSessions.has(token)) {
+    return null;
   }
-  return null;
+
+  const session = pendingSessions.get(token);
+  if (!session) return null;
+
+  // SECURITY: Check if session has expired
+  const now = Date.now();
+  if (now - session.createdAt > SESSION_TIMEOUT) {
+    pendingSessions.delete(token);
+    return null;
+  }
+
+  const user = session.user;
+  // SECURITY: Delete session after use to prevent token reuse
+  pendingSessions.delete(token);
+  return user;
 }

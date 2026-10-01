@@ -49,6 +49,39 @@ app.use(
 
 /*
  * ============================================================
+ * SECURITY HEADERS (Helmet)
+ * ============================================================
+ */
+
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", 'data:', 'https:'],
+        connectSrc: ["'self'", 'https://api.telegram.org'],
+        fontSrc: ["'self'"],
+        objectSrc: ["'none'"],
+        mediaSrc: ["'self'"],
+        frameSrc: ["'none'"]
+      }
+    },
+    referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+    hsts: {
+      maxAge: 31536000, // 1 year
+      includeSubDomains: true,
+      preload: true
+    },
+    noSniff: true,
+    xssFilter: true,
+    frameguard: { action: 'deny' }
+  })
+);
+
+/*
+ * ============================================================
  * CORS
  * ============================================================
  */
@@ -83,25 +116,35 @@ app.use(
 
     allowedHeaders: [
       'Content-Type'
-    ]
+    ],
+
+    credentials: true,
+    maxAge: 86400 // 24 hours
   })
 );
 
 /*
  * ============================================================
- * RATE LIMIT
+ * RATE LIMIT (Global)
  * ============================================================
  */
 
 app.use(
   rateLimit({
-    windowMs: 60_000,
+    windowMs: 60_000, // 1 minute
 
-    limit: 60,
+    limit: 100, // 100 requests per minute per IP
 
     standardHeaders: 'draft-7',
 
-    legacyHeaders: false
+    legacyHeaders: false,
+
+    message: 'Too many requests from this IP, please try again later.',
+
+    keyGenerator: (req) => {
+      // Use X-Forwarded-For header if behind proxy
+      return (req.headers['x-forwarded-for'] || req.ip || req.socket.remoteAddress || 'unknown') as string;
+    }
   })
 );
 
@@ -149,6 +192,27 @@ app.use(
     });
   }
 );
+
+/*
+ * ============================================================
+ * ERROR HANDLER
+ * ============================================================
+ */
+
+app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  logger.error('Unhandled error:', {
+    message: err.message,
+    code: err.code
+  });
+
+  // Never expose internal error details in production
+  const isDev = process.env.NODE_ENV === 'development';
+  const message = isDev ? err.message : 'Internal server error';
+
+  res.status(err.status || 500).json({
+    error: message
+  });
+});
 
 /*
  * ============================================================

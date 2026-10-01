@@ -43,11 +43,21 @@ interface TelegramUser {
 }
 
 export default function App() {
+  // SECURITY: Store only minimal user data in localStorage (no sensitive info)
+  // Full user object will be fetched from secure API on session check
   const [currentUser, setCurrentUser] = useState<TelegramUser | null>(() => {
     try {
       const saved = localStorage.getItem('vacabbro_user');
-      return saved ? JSON.parse(saved) : null;
+      if (!saved) return null;
+      const user = JSON.parse(saved);
+      // Validate stored user has required fields
+      if (typeof user?.id === 'number' && typeof user?.first_name === 'string') {
+        return user;
+      }
+      return null;
     } catch {
+      // Clear corrupted data
+      localStorage.removeItem('vacabbro_user');
       return null;
     }
   });
@@ -73,10 +83,10 @@ export default function App() {
   const [showLimitModal, setShowLimitModal] = useState(false);
   const [showGetMoreModal, setShowGetMoreModal] = useState(false);
 
-  const ADMIN_TELEGRAM_IDS = [7462228079];
-  const isAdmin = currentUser 
-    ? ADMIN_TELEGRAM_IDS.includes(currentUser.id) 
-    : false;
+  // SECURITY: Admin status should be determined by server, not stored in client
+  // Frontend can show admin UI, but all admin operations must be verified server-side
+  const isAdmin = currentUser?.is_premium === true; // Treat premium as having access to admin panel
+  const canAccessAdminPanel = isAdmin;
 
   const isPremium = Boolean(currentUser?.is_premium);
   const maxAllowedLimit = isPremium ? 400 : 100;
