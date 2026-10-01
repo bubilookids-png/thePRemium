@@ -33,23 +33,23 @@ export function Sidebar({
 
       <aside
         className={`fixed top-0 left-0 h-full z-50 flex flex-col justify-between
-          bg-[#02130e]/95 backdrop-blur-2xl border-r border-[#F8E7C9]/15 shadow-[10px_0_30px_rgba(0,0,0,0.4)] select-none
+          bg-slate-950/75 backdrop-blur-lg border-r border-lime-400/15 shadow-[10px_0_30px_rgba(0,0,0,0.5)] select-none
           transition-all duration-300 ease-in-out
           ${isOpen ? 'w-64 translate-x-0' : '-translate-x-full lg:translate-x-0 lg:w-12'}
         `}
       >
         <div className="flex flex-col">
-          <div className="h-14 flex items-center justify-between px-2 border-b border-[#F8E7C9]/10">
+          <div className="h-14 flex items-center justify-between px-2 border-b border-lime-400/10">
             {isOpen ? (
               <div className="flex items-center gap-2.5 overflow-hidden">
-                <div className="min-w-[28px] h-[28px] rounded-lg bg-gradient-to-tr from-[#064E3B] to-[#10b981] border border-[#F8E7C9]/30 flex items-center justify-center text-xs shadow-md">
+                <div className="min-w-[28px] h-[28px] rounded-lg bg-gradient-to-tr from-blue-600 to-lime-400 border border-lime-300/40 flex items-center justify-center text-xs shadow-lg shadow-lime-500/30">
                   ✦
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-mono text-xs font-bold tracking-wider text-[#F8E7C9]">
+                  <span className="font-mono text-xs font-bold tracking-wider text-lime-300">
                     UniveBooster
                   </span>
-                  <span className="text-[9px] font-mono text-[#F8E7C9]/50">
+                  <span className="text-[9px] font-mono text-slate-400">
                     Workspace
                   </span>
                 </div>
@@ -59,7 +59,7 @@ export function Sidebar({
             <button
               type="button"
               onClick={onToggle}
-              className={`p-1.5 rounded-lg text-[#F8E7C9]/70 hover:text-[#F8E7C9] hover:bg-[#062b21]/70 transition active:scale-95 cursor-pointer ${
+              className={`p-1.5 rounded-lg text-slate-300 hover:text-lime-300 hover:bg-lime-500/10 transition active:scale-95 cursor-pointer ${
                 !isOpen ? 'mx-auto' : ''
               }`}
               title={isOpen ? "Sidebarni toraytirish" : "Sidebarni kengaytirish"}
@@ -75,16 +75,16 @@ export function Sidebar({
             <button
               type="button"
               onClick={onFocusSearch}
-              className={`group flex items-center p-2 rounded-xl transition cursor-pointer active:scale-[0.98] ${
-                isOpen ? 'justify-between hover:bg-[#064E3B]/40 px-2.5' : 'justify-center hover:bg-[#064E3B]/40 w-full'
+              className={`group flex items-center p-2 rounded-xl transition-all duration-200 cursor-pointer active:scale-[0.98] ${
+                isOpen ? 'justify-between hover:bg-lime-500/15 hover:shadow-[0_0_15px_rgba(132,204,22,0.3)] hover:border-lime-400/40 px-2.5 border border-transparent' : 'justify-center hover:bg-lime-500/15 hover:shadow-[0_0_15px_rgba(132,204,22,0.3)] w-full border border-transparent'
               }`}
               title="New Lookup"
             >
               <div className="flex items-center gap-3">
-                <span className="text-sm text-[#10b981]">🔍</span>
-                {isOpen && <span className="text-xs font-mono text-[#F8E7C9] font-medium whitespace-nowrap">New Lookup</span>}
+                <span className="text-sm text-lime-400">🔍</span>
+                {isOpen && <span className="text-xs font-mono text-slate-200 font-medium whitespace-nowrap">New Lookup</span>}
               </div>
-              {isOpen && <kbd className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-[#02130e] border border-[#F8E7C9]/20 text-[#F8E7C9]/60">/</kbd>}
+              {isOpen && <kbd className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-slate-900/70 border border-lime-400/30 text-lime-300/70">/</kbd>}
             </button>
 
             <button
@@ -93,16 +93,16 @@ export function Sidebar({
                 onOpenBlitz();
                 if (window.innerWidth < 1024) onToggle();
               }}
-              className={`group flex items-center p-2 rounded-xl transition cursor-pointer active:scale-[0.98] ${
-                isOpen ? 'justify-between hover:bg-[#064E3B]/40 px-2.5' : 'justify-center hover:bg-[#064E3B]/40 w-full'
+              className={`group flex items-center p-2 rounded-xl transition-all duration-200 cursor-pointer active:scale-[0.98] ${
+                isOpen ? 'justify-between hover:bg-lime-500/15 hover:shadow-[0_0_15px_rgba(132,204,22,0.3)] hover:border-lime-400/40 px-2.5 border border-transparent' : 'justify-center hover:bg-lime-500/15 hover:shadow-[0_0_15px_rgba(132,204,22,0.3)] w-full border border-transparent'
               }`}
               title="Word Blitz"
             >
               <div className="flex items-center gap-3">
-                <span className="text-sm text-[#10b981]">⚡</span>
-                {isOpen && <span className="text-xs font-mono text-[#F8E7C9] font-medium whitespace-nowrap">Word Blitz</span>}
+                <span className="text-sm text-lime-400">⚡</span>
+                {isOpen && <span className="text-xs font-mono text-slate-200 font-medium whitespace-nowrap">Word Blitz</span>}
               </div>
-              {isOpen && <kbd className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-[#02130e] border border-[#F8E7C9]/20 text-[#F8E7C9]/60">⇧B</kbd>}
+              {isOpen && <kbd className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-slate-900/70 border border-lime-400/30 text-lime-300/70">⇧B</kbd>}
             </button>
 
             <button
@@ -111,43 +111,43 @@ export function Sidebar({
                 onOpenTranslate();
                 if (window.innerWidth < 1024) onToggle();
               }}
-              className={`group flex items-center p-2 rounded-xl transition cursor-pointer active:scale-[0.98] ${
-                isOpen ? 'justify-between hover:bg-[#064E3B]/40 px-2.5' : 'justify-center hover:bg-[#064E3B]/40 w-full'
+              className={`group flex items-center p-2 rounded-xl transition-all duration-200 cursor-pointer active:scale-[0.98] ${
+                isOpen ? 'justify-between hover:bg-lime-500/15 hover:shadow-[0_0_15px_rgba(132,204,22,0.3)] hover:border-lime-400/40 px-2.5 border border-transparent' : 'justify-center hover:bg-lime-500/15 hover:shadow-[0_0_15px_rgba(132,204,22,0.3)] w-full border border-transparent'
               }`}
               title="Translator"
             >
               <div className="flex items-center gap-3">
-                <span className="text-sm text-[#F8E7C9]">✦</span>
-                {isOpen && <span className="text-xs font-mono text-[#F8E7C9] font-medium whitespace-nowrap">Translator</span>}
+                <span className="text-sm text-lime-300">✦</span>
+                {isOpen && <span className="text-xs font-mono text-slate-200 font-medium whitespace-nowrap">Translator</span>}
               </div>
-              {isOpen && <kbd className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-[#02130e] border border-[#F8E7C9]/20 text-[#F8E7C9]/60">⇧T</kbd>}
+              {isOpen && <kbd className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-slate-900/70 border border-lime-400/30 text-lime-300/70">⇧T</kbd>}
             </button>
             
 
             {isAdmin && onOpenGetMore && (
               <>
-                <div className="my-1.5 border-b border-[#F8E7C9]/10 mx-1" />
+                <div className="my-1.5 border-b border-lime-400/10 mx-1" />
                 <button
                   type="button"
                   onClick={onOpenGetMore}
-                  className={`group flex items-center p-2 rounded-xl bg-gradient-to-r from-amber-500/20 to-emerald-500/25 hover:from-amber-500/30 hover:to-emerald-500/35 border border-amber-500/40 transition cursor-pointer active:scale-[0.98] ${
+                  className={`group flex items-center p-2 rounded-xl bg-gradient-to-r from-blue-600/30 to-lime-400/30 hover:from-blue-600/40 hover:to-lime-400/40 border border-lime-400/50 hover:border-lime-300/70 transition-all duration-200 cursor-pointer active:scale-[0.98] hover:shadow-[0_0_20px_rgba(132,204,22,0.5)] ${
                     isOpen ? 'justify-between px-2.5' : 'justify-center w-full'
                   }`}
                   title="Get More (Admin Only)"
                 >
                   <div className="flex items-center gap-3">
                     <span className="text-sm">⭐</span>
-                    {isOpen && <span className="text-xs font-mono text-[#F8E7C9] font-bold whitespace-nowrap">Get More</span>}
+                    {isOpen && <span className="text-xs font-mono text-lime-300 font-bold whitespace-nowrap">Get More</span>}
                   </div>
-                  {isOpen && <span className="text-[8px] font-mono px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">VIP</span>}
+                  {isOpen && <span className="text-[8px] font-mono px-1.5 py-0.5 rounded bg-lime-500/30 text-lime-200 border border-lime-400/50">VIP</span>}
                 </button>
               </>
             )}
           </div>
         </div>
 
-        <div className="p-3 border-t border-[#F8E7C9]/10 flex items-center justify-center">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse" title="System Active" />
+        <div className="p-3 border-t border-lime-400/10 flex items-center justify-center">
+          <span className="w-1.5 h-1.5 rounded-full bg-lime-400 animate-pulse" title="System Active" />
         </div>
       </aside>
     </>

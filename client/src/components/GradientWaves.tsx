@@ -344,9 +344,9 @@ type GradientContext = {
 const ctxMap = new WeakMap<HTMLElement, GradientContext>();
 
 const GradientWaves = ({
-  horizonColor = '#02130e',
-  waveColor = '#064E3B',
-  crestColor = '#F8E7C9',
+  horizonColor = '#0f172a',
+  waveColor = '#1e3a8a',
+  crestColor = '#84cc16',
   speed = 0.22,
   amplitude = 2.2,
   waveScale = 0.55,

@@ -8,57 +8,57 @@ interface FooterProps {
 
 export function Footer({ onOpenLegal, onOpenCookie }: FooterProps) {
   return (
-    <footer className="w-full bg-[#02130e]/95 border-t border-[#F8E7C9]/15 text-[#F8E7C9] py-10 px-6 mt-auto font-mono select-none">
+    <footer className="w-full bg-slate-950/95 border-t border-lime-400/15 text-slate-100 py-10 px-6 mt-auto font-mono select-none">
       <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 mb-8 text-left text-xs">
-        
+
         {/* 1-ustun: Product */}
         <div>
-          <h4 className="font-bold uppercase tracking-wider text-[#10b981] mb-3">
+          <h4 className="font-bold uppercase tracking-wider text-lime-300 mb-3">
             Product
           </h4>
-          <ul className="space-y-2 text-[#F8E7C9]/70">
+          <ul className="space-y-2 text-slate-400">
             <li>
-              <a href="#" className="hover:text-[#F8E7C9] transition">Upgrade VIP</a>
+              <a href="#" className="hover:text-lime-300 transition">Upgrade VIP</a>
             </li>
             <li>
-              <a href="#" className="hover:text-[#F8E7C9] transition">Group Plans</a>
+              <a href="#" className="hover:text-lime-300 transition">Group Plans</a>
             </li>
             <li>
-              <a href="#" className="hover:text-[#F8E7C9] transition">Word Blitz</a>
+              <a href="#" className="hover:text-lime-300 transition">Word Blitz</a>
             </li>
           </ul>
         </div>
 
-        
+
         {/* 3-ustun: More & Legal & Cookie */}
         <div>
-          <h4 className="font-bold uppercase tracking-wider text-[#10b981] mb-3">
+          <h4 className="font-bold uppercase tracking-wider text-lime-300 mb-3">
             More
           </h4>
-          <ul className="space-y-2 text-[#F8E7C9]/70">
+          <ul className="space-y-2 text-slate-400">
             <li>
-              <button 
-                type="button" 
-                onClick={onOpenLegal} 
-                className="hover:text-[#F8E7C9] transition text-left cursor-pointer"
+              <button
+                type="button"
+                onClick={onOpenLegal}
+                className="hover:text-lime-300 transition text-left cursor-pointer"
               >
                 Privacy Policy
               </button>
             </li>
             <li>
-              <button 
-                type="button" 
-                onClick={onOpenLegal} 
-                className="hover:text-[#F8E7C9] transition text-left cursor-pointer"
+              <button
+                type="button"
+                onClick={onOpenLegal}
+                className="hover:text-lime-300 transition text-left cursor-pointer"
               >
                 Terms of Service
               </button>
             </li>
             <li>
-              <button 
-                type="button" 
-                onClick={onOpenCookie} 
-                className="hover:text-[#F8E7C9] transition text-left cursor-pointer"
+              <button
+                type="button"
+                onClick={onOpenCookie}
+                className="hover:text-lime-300 transition text-left cursor-pointer"
               >
                 Cookie Settings
               </button>
@@ -66,20 +66,20 @@ export function Footer({ onOpenLegal, onOpenCookie }: FooterProps) {
           </ul>
         </div>
 
-        
+
       </div>
       {/* Asl pastki qism (Hech narsa o'chmadi, hammasi saqlandi) */}
-      <div className="max-w-5xl mx-auto pt-6 border-t border-[#F8E7C9]/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#F8E7C9]/60">
+      <div className="max-w-5xl mx-auto pt-6 border-t border-lime-400/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
         <div className="flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#10b981]"></span>
-          <span className="text-[#F8E7C9] font-bold">UNIVEBOOSTER</span>
+          <span className="w-1.5 h-1.5 rounded-full bg-lime-400"></span>
+          <span className="text-slate-100 font-bold">UNIVEBOOSTER</span>
           <span>· Precision Vocabulary Engine</span>
         </div>
-        
+
         <div className="flex items-center flex-wrap justify-center gap-4 sm:gap-6 text-[11px]">
-          <span className="hover:text-[#F8E7C9] transition cursor-default">Instant Turso Cloud</span>
-          <span className="hover:text-[#F8E7C9] transition cursor-default">Active Recall</span>
-          <span className="text-[#F8E7C9]/40">© {new Date().getFullYear()}</span>
+          <span className="hover:text-lime-300 transition cursor-default">Instant Turso Cloud</span>
+          <span className="hover:text-lime-300 transition cursor-default">Active Recall</span>
+          <span className="text-slate-500">© {new Date().getFullYear()}</span>
         </div>
       </div>
     </footer>

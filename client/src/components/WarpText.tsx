@@ -331,15 +331,15 @@ void main() {
       1.0
     );
 
-  // Binafsha/Moviy o'rniga Champagne (#F8E7C9) va nozik Tilla tuslari
-  vec3 champagneLight = vec3(0.972, 0.905, 0.788); // #F8E7C9
-  vec3 champagneWarm  = vec3(0.880, 0.780, 0.620); // Warm champagne
-  vec3 emeraldGlow    = vec3(0.063, 0.725, 0.505); // #10b981 / soft emerald
+  // Lime & Cyan gradient effect
+  vec3 limeLight = vec3(0.518, 0.8, 0.0886); // #84cc16
+  vec3 limeWarm  = vec3(0.576, 0.902, 0.196); // Warm lime
+  vec3 blueGlow    = vec3(0.118, 0.227, 0.541); // #1e3a8a / soft blue
 
   vec3 gradientColor =
     mix(
-      champagneLight,
-      champagneWarm,
+      limeLight,
+      limeWarm,
       smoothstep(
         0.0,
         0.65,
@@ -350,12 +350,12 @@ void main() {
   gradientColor =
     mix(
       gradientColor,
-      emeraldGlow,
+      blueGlow,
       smoothstep(
         0.65,
         1.0,
         gradient
-      ) * 0.25 // Juda nozik zumrad akslanishi
+      ) * 0.25 // Juda nozik blue akslanishi
     );
 
   vec3 refracted =
@@ -691,7 +691,7 @@ const syncUniforms = (
 
 const WarpText = ({
   text = 'Ready to train',
-  color = '#F8E7C9',
+  color = '#84cc16',
   warpStrength = 0.08,
   warpScale = 1.7,
   speed = 0.55,

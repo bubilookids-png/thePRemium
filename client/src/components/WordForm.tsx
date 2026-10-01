@@ -117,7 +117,7 @@ export function WordForm({
             onChange={(e) => onWordChange(e.target.value)}
             disabled={disabled}
             placeholder='Try "resilient" or "take off"'
-            className="w-full px-4 py-2.5 rounded-2xl bg-slate-950/80 border border-white/10 focus:border-purple-500 text-slate-100 placeholder-slate-500 text-sm focus:outline-none transition-all duration-300 shadow-inner"
+            className="w-full px-4 py-2.5 rounded-2xl bg-slate-900/70 backdrop-blur-md border border-lime-400/25 focus:border-lime-400/50 text-slate-100 placeholder-slate-400 text-sm focus:outline-none transition-all duration-300 shadow-inner focus:shadow-[0_0_15px_rgba(132,204,22,0.2)]"
           />
         </div>
 
@@ -133,7 +133,7 @@ export function WordForm({
                 className="absolute inset-[-100%] animate-[spin_3s_linear_infinite]"
                 style={{
                   background:
-                    'conic-gradient(from 0deg, transparent 0 300deg, #c084fc 340deg, #38bdf8 360deg)',
+                    'conic-gradient(from 0deg, transparent 0 300deg, #84cc16 340deg, #06b6d4 360deg)',
                 }}
               />
             )}
@@ -142,14 +142,14 @@ export function WordForm({
               type="button"
               disabled={disabled}
               onClick={handleToggle}
-              className={`relative w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-slate-950/90 backdrop-blur-xl border transition-all duration-200 ${
+              className={`relative w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-slate-900/70 backdrop-blur-md border transition-all duration-200 ${
                 isOpen
-                  ? 'border-transparent text-white shadow-[0_0_20px_rgba(168,85,247,0.3)]'
-                  : 'border-white/10 hover:border-purple-500/40 text-slate-200'
+                  ? 'border-transparent text-slate-100 shadow-[0_0_20px_rgba(132,204,22,0.4)]'
+                  : 'border-lime-400/25 hover:border-lime-400/50 text-slate-200'
               } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
             >
               <div className="flex items-center gap-2">
-                <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-blue-900/70 text-lime-300 border border-lime-400/30">
                   {selectedLang.badge}
                 </span>
                 <span className="text-xs font-semibold tracking-wide">
@@ -158,7 +158,7 @@ export function WordForm({
               </div>
 
               <span
-                className={`text-[9px] text-purple-400 transition-transform duration-300 ${
+                className={`text-[9px] text-lime-300 transition-transform duration-300 ${
                   isOpen ? 'rotate-180' : 'rotate-0'
                 }`}
               >
@@ -195,11 +195,11 @@ export function WordForm({
               className="absolute inset-[-100%] animate-[spin_4s_linear_infinite]"
               style={{
                 background:
-                  'conic-gradient(from 0deg, transparent 0 320deg, #a855f7 350deg, #38bdf8 360deg)',
+                  'conic-gradient(from 0deg, transparent 0 320deg, #84cc16 350deg, #06b6d4 360deg)',
               }}
             />
 
-            <div className="relative w-full rounded-2xl bg-slate-950/95 backdrop-blur-3xl border border-white/10 p-1.5 flex flex-col gap-1 max-h-56 overflow-y-auto">
+            <div className="relative w-full rounded-2xl bg-slate-950/95 backdrop-blur-3xl border border-lime-400/20 p-1.5 flex flex-col gap-1 max-h-56 overflow-y-auto">
               {LANGUAGES.map((lang) => {
                 const isSelected = lang.code === selectedLang.code;
                 return (
@@ -212,12 +212,12 @@ export function WordForm({
                     }}
                     className={`group flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all duration-150 ${
                       isSelected
-                        ? 'bg-purple-600/30 text-purple-200 border border-purple-500/40 shadow-sm'
-                        : 'text-slate-300 hover:text-white hover:bg-white/[0.06]'
+                        ? 'bg-lime-500/20 text-lime-200 border border-lime-400/40 shadow-sm shadow-lime-500/20'
+                        : 'text-slate-300 hover:text-lime-300 hover:bg-lime-500/10'
                     }`}
                   >
                     <div className="flex items-center gap-2.5">
-                      <span className="px-1.5 py-0.5 rounded text-[9px] font-mono bg-white/5 text-slate-400">
+                      <span className="px-1.5 py-0.5 rounded text-[9px] font-mono bg-slate-800/70 text-slate-400">
                         {lang.badge}
                       </span>
                       <div className="flex flex-col text-left">
@@ -229,7 +229,7 @@ export function WordForm({
                     </div>
 
                     {isSelected && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_#38bdf8]" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-lime-400 shadow-[0_0_8px_rgba(132,204,22,0.6)]" />
                     )}
                   </button>
                 );

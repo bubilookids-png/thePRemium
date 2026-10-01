@@ -143,26 +143,27 @@ export default function App() {
     function handleGlobalKeyDown(e: KeyboardEvent) {
       const target = e.target as HTMLElement;
       const isInput = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA';
+      const keyLower = e.key.toLowerCase();
 
-      if ((e.metaKey || e.ctrlKey) && (e.code === 'KeyB' || e.key.toLowerCase() === 'b')) {
+      if ((e.metaKey || e.ctrlKey) && keyLower === 'b') {
         e.preventDefault();
         setIsSidebarOpen((prev) => !prev);
         return;
       }
 
-      if (e.shiftKey && (e.code === 'KeyB' || e.key === 'B' || e.key === 'b')) {
+      if (e.shiftKey && keyLower === 'b') {
         e.preventDefault();
         triggerBlitz();
         return;
       }
 
-      if (e.shiftKey && (e.code === 'KeyT' || e.key === 'T' || e.key === 't')) {
+      if (e.shiftKey && keyLower === 't') {
         e.preventDefault();
         triggerTranslate();
         return;
       }
 
-      if (e.shiftKey && (e.code === 'KeyR' || e.key === 'R' || e.key === 'r')) {
+      if (e.shiftKey && keyLower === 'r') {
         e.preventDefault();
         triggerReading();
         return;
@@ -183,9 +184,12 @@ export default function App() {
 
     window.addEventListener('keydown', handleGlobalKeyDown);
     return () => window.removeEventListener('keydown', handleGlobalKeyDown);
-  }, [word]);
+  }, [word, triggerBlitz, triggerTranslate, triggerReading, focusSearchInput]);
 
   async function handleTelegramLogin() {
+    let interval: NodeJS.Timeout | null = null;
+    let timeout: NodeJS.Timeout | null = null;
+
     try {
       setWaitingAuth(true);
       const backendUrl = window.location.hostname === 'localhost'
@@ -201,13 +205,14 @@ export default function App() {
       const botUsername = 'GIvacabbro_bot';
       window.open(`https://t.me/${botUsername}?start=${token}`, '_blank');
 
-      const interval = setInterval(async () => {
+      interval = setInterval(async () => {
         try {
           const checkRes = await fetch(`${backendUrl}/api/auth/check-session/${token}`);
           const checkData = await checkRes.json();
 
           if (checkData.authenticated && checkData.user) {
-            clearInterval(interval);
+            if (interval) clearInterval(interval);
+            if (timeout) clearTimeout(timeout);
             setWaitingAuth(false);
             const userData: TelegramUser = {
               id: checkData.user.telegram_id,
@@ -227,13 +232,15 @@ export default function App() {
         }
       }, 2000);
 
-      setTimeout(() => {
-        clearInterval(interval);
+      timeout = setTimeout(() => {
+        if (interval) clearInterval(interval);
         setWaitingAuth(false);
       }, 60000);
 
     } catch (err) {
       console.error(err);
+      if (interval) clearInterval(interval);
+      if (timeout) clearTimeout(timeout);
       setWaitingAuth(false);
     }
   }
@@ -271,9 +278,8 @@ export default function App() {
       const res = await analyzeWord({
         word: term,
         targetLanguageCode: langCode,
-        targetLanguageLabel: langLabel,
-        telegramId: currentUser?.id
-      } as any);
+        targetLanguageLabel: langLabel
+      });
 
       const newCount = sessionCount + 1;
       setSessionCount(newCount);
@@ -332,9 +338,9 @@ export default function App() {
     <div className="app-shell min-h-screen flex flex-col w-full overflow-x-hidden">
       <div className="app-background">
         <GradientWaves
-          horizonColor="#02130e"
-          waveColor="#064E3B"
-          crestColor="#F8E7C9"
+          horizonColor="#051e3e"
+          waveColor="#0d3b66"
+          crestColor="#84cc16"
           speed={0.2}
           amplitude={2.1}
           waveScale={0.55}
@@ -382,7 +388,7 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => setShowLanding(true)}
-                className="px-3 py-1 rounded-full bg-[#062b21]/70 hover:bg-[#064E3B] border border-[#F8E7C9]/20 text-[11px] font-mono text-[#F8E7C9] transition cursor-pointer"
+                className="px-3 py-1 rounded-full bg-slate-900/70 hover:bg-blue-900/70 border border-lime-400/20 text-[11px] font-mono text-lime-300 transition cursor-pointer"
               >
                 ← Bosh sahifa
               </button>
@@ -390,7 +396,7 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => setShowLanding(false)}
-                className="px-3 py-1 rounded-full bg-[#064E3B] hover:bg-[#08634c] border border-[#F8E7C9]/30 text-[11px] font-mono text-[#F8E7C9] transition cursor-pointer"
+                className="px-3 py-1 rounded-full bg-blue-900/70 hover:bg-blue-800/70 border border-lime-400/30 text-[11px] font-mono text-lime-300 transition cursor-pointer"
               >
                 Trainerga o'tish →
               </button>
@@ -412,22 +418,22 @@ export default function App() {
               <div className="lg:col-span-7 flex flex-col items-start">
                 <button
                   type="button"
-                  className="group flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#062b21]/60 hover:bg-[#064E3B]/60 border border-[#F8E7C9]/15 text-xs font-mono text-[#F8E7C9] transition-all duration-200 mb-4 cursor-pointer"
+                  className="group flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/60 hover:bg-blue-900/60 border border-lime-400/15 text-xs font-mono text-lime-300 transition-all duration-200 mb-4 cursor-pointer"
                   onClick={handleTryFirstWord}
                 >
-                  <span className="text-[#F8E7C9]">✦</span>
+                  <span className="text-lime-300">✦</span>
                   <span>Try your first word</span>
-                  <span className="group-hover:translate-x-0.5 transition-transform text-[#F8E7C9]/70">→</span>
+                  <span className="group-hover:translate-x-0.5 transition-transform text-lime-300/70">→</span>
                 </button>
 
                 <h1 className="w-full">
                   <WarpText
                     text={
-                      currentUser?.first_name 
-                        ? `Ready to train,\n${currentUser.first_name}.` 
+                      currentUser?.first_name
+                        ? `Ready to train,\n${currentUser.first_name}.`
                         : 'Vocabulary Lab\nActive.'
                     }
-                    color="#F8E7C9"
+                    color="#84cc16"
                     warpStrength={0.08}
                     warpScale={1.7}
                     speed={0.55}
@@ -446,40 +452,40 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="lg:col-span-5 w-full rounded-3xl bg-[#02130e]/85 backdrop-blur-xl border border-[#F8E7C9]/15 p-5 sm:p-6 shadow-2xl flex flex-col justify-between min-h-[310px]">
-                <div className="text-xs font-mono font-bold uppercase tracking-wider text-[#F8E7C9] pb-3 border-b border-[#F8E7C9]/10 flex items-center justify-between">
+              <div className="lg:col-span-5 w-full rounded-3xl bg-slate-950/85 backdrop-blur-xl border border-lime-400/15 p-5 sm:p-6 shadow-2xl flex flex-col justify-between min-h-[310px]">
+                <div className="text-xs font-mono font-bold uppercase tracking-wider text-lime-300 pb-3 border-b border-lime-400/10 flex items-center justify-between">
                   <span className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse" />
+                    <span className="w-2 h-2 rounded-full bg-lime-400 animate-pulse" />
                     Session Telemetry
                   </span>
-                  <span className="text-[10px] text-[#F8E7C9]/40 font-normal">Realtime</span>
+                  <span className="text-[10px] text-slate-400 font-normal">Realtime</span>
                 </div>
 
-                <div className="my-4 p-4 rounded-2xl bg-[#062b21]/40 border border-[#F8E7C9]/10 flex items-center justify-between">
+                <div className="my-4 p-4 rounded-2xl bg-slate-900/40 border border-lime-400/10 flex items-center justify-between">
                   <div>
-                    <span className="text-[11px] font-mono text-[#F8E7C9]/60 block mb-0.5">
+                    <span className="text-[11px] font-mono text-slate-400 block mb-0.5">
                       Words Analyzed ({periodDays === 1 ? '1-day quota' : '2-day quota'})
                     </span>
                     <div className="flex items-baseline gap-1.5">
-                      <span className="text-3xl font-extrabold font-mono text-[#F8E7C9]">
+                      <span className="text-3xl font-extrabold font-mono text-slate-100">
                         {totalSearches}
                       </span>
-                      <span className="text-xs font-mono text-[#F8E7C9]/40">/ {maxAllowedLimit}</span>
+                      <span className="text-xs font-mono text-slate-500">/ {maxAllowedLimit}</span>
                     </div>
                   </div>
 
-                  <div className="px-3 py-1.5 rounded-xl bg-[#064E3B]/60 border border-[#F8E7C9]/20 text-right">
-                    <span className="text-[10px] font-mono text-[#10b981] block font-bold">STATUS</span>
-                    <span className="text-xs font-mono text-[#F8E7C9]">
+                  <div className="px-3 py-1.5 rounded-xl bg-blue-900/60 border border-lime-400/20 text-right">
+                    <span className="text-[10px] font-mono text-lime-300 block font-bold">STATUS</span>
+                    <span className="text-xs font-mono text-slate-100">
                       {isPremium ? 'Premium' : 'Free (2d/100w)'}
                     </span>
                   </div>
                 </div>
 
                 <div className="mb-4">
-                  <div className="flex items-center justify-between text-xs font-mono text-[#F8E7C9]/80 mb-1.5">
+                  <div className="flex items-center justify-between text-xs font-mono text-slate-300 mb-1.5">
                     <span>Practice Goal</span>
-                    <span className="text-[#F8E7C9] font-bold">
+                    <span className="text-slate-100 font-bold">
                       {isGoalSet ? `${progressPercent}%` : 'Set Goal'}
                     </span>
                   </div>
@@ -493,34 +499,34 @@ export default function App() {
                         value={tempGoalInput}
                         onChange={(e) => setTempGoalInput(e.target.value)}
                         placeholder={`Max ${maxAllowedLimit}`}
-                        className="flex-1 px-3 py-1.5 bg-[#062b21] border border-[#F8E7C9]/30 rounded-xl text-[#F8E7C9] text-xs font-mono focus:outline-none focus:border-[#10b981]"
+                        className="flex-1 px-3 py-1.5 bg-slate-900/60 border border-lime-400/30 rounded-xl text-slate-100 text-xs font-mono focus:outline-none focus:border-lime-400/50 focus:shadow-[0_0_10px_rgba(132,204,22,0.2)]"
                       />
                       <button
                         type="button"
                         onClick={handleConfirmGoal}
-                        className="px-4 py-1.5 rounded-xl bg-[#10b981] hover:bg-[#059669] text-[#02130e] text-xs font-mono font-bold transition cursor-pointer"
+                        className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-lime-400 to-cyan-400 hover:shadow-[0_0_15px_rgba(132,204,22,0.4)] text-slate-950 text-xs font-mono font-bold transition cursor-pointer"
                       >
                         Set
                       </button>
                     </div>
                   ) : (
                     <>
-                      <div className="w-full h-2 rounded-full bg-[#062b21] border border-[#F8E7C9]/10 overflow-hidden">
-                        <div 
-                          className="h-full bg-gradient-to-r from-[#064E3B] via-[#10b981] to-[#F8E7C9] transition-all duration-500 rounded-full"
+                      <div className="w-full h-2 rounded-full bg-slate-900/60 border border-lime-400/10 overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-blue-500 via-lime-400 to-cyan-400 transition-all duration-500 rounded-full"
                           style={{ width: `${progressPercent}%` }}
                         />
                       </div>
-                      <span className="text-[10px] font-mono text-[#F8E7C9]/40 mt-1 block">
+                      <span className="text-[10px] font-mono text-slate-500 mt-1 block">
                         Target: {dailyTarget} words (Locked for this cycle)
                       </span>
                     </>
                   )}
                 </div>
 
-                <div className="pt-3 border-t border-[#F8E7C9]/10 flex items-center justify-between text-xs font-mono">
-                  <span className="text-[#F8E7C9]/60">Recall Readiness</span>
-                  <span className="px-2 py-0.5 rounded-full bg-[#10b981]/15 text-[#10b981] border border-[#10b981]/30 text-[10px] font-bold">
+                <div className="pt-3 border-t border-lime-400/10 flex items-center justify-between text-xs font-mono">
+                  <span className="text-slate-400">Recall Readiness</span>
+                  <span className="px-2 py-0.5 rounded-full bg-lime-500/15 text-lime-300 border border-lime-400/30 text-[10px] font-bold">
                     Active System
                   </span>
                 </div>
@@ -548,9 +554,9 @@ export default function App() {
                     disabled={loading}
                   />
 
-                  <div className="entered-line mt-3 text-xs font-mono text-[#F8E7C9]/60">
+                  <div className="entered-line mt-3 text-xs font-mono text-slate-400">
                     You entered:{' '}
-                    <strong className="text-[#F8E7C9]">
+                    <strong className="text-slate-100">
                       {normalized || '—'}
                     </strong>
                   </div>
@@ -625,37 +631,37 @@ export default function App() {
       {/* Get More Modal */}
       {showGetMoreModal && isAdmin && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn">
-          <div className="relative w-full max-w-sm p-6 sm:p-7 rounded-3xl bg-[#02130e] border border-amber-500/40 shadow-[0_0_40px_rgba(245,158,11,0.2)] text-center">
-            <button 
+          <div className="relative w-full max-w-sm p-6 sm:p-7 rounded-3xl bg-slate-950 border border-lime-400/30 shadow-[0_0_40px_rgba(132,204,22,0.15)] text-center">
+            <button
               onClick={() => setShowGetMoreModal(false)}
-              className="absolute top-4 right-4 text-[#F8E7C9]/50 hover:text-white transition text-lg w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/5 cursor-pointer"
+              className="absolute top-4 right-4 text-slate-400 hover:text-lime-300 transition text-lg w-8 h-8 flex items-center justify-center rounded-full hover:bg-lime-500/10 cursor-pointer"
             >
               ✕
             </button>
 
-            <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-gradient-to-tr from-amber-500 to-emerald-500 border border-[#F8E7C9]/30 flex items-center justify-center text-2xl shadow-lg">
+            <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-gradient-to-tr from-amber-500 to-lime-500 border border-lime-400/30 flex items-center justify-center text-2xl shadow-lg">
               ⭐
             </div>
 
-            <h3 className="text-xl font-bold text-[#F8E7C9] mb-1">
+            <h3 className="text-xl font-bold text-lime-300 mb-1">
               UniveBooster VIP
             </h3>
             <p className="text-xs text-amber-300/80 font-mono mb-4">
               Maxsus Admin Tarifi
             </p>
 
-            <div className="p-4 rounded-2xl bg-[#062b21]/60 border border-[#F8E7C9]/10 text-left mb-6 space-y-2 text-xs font-mono text-[#F8E7C9]/80">
+            <div className="p-4 rounded-2xl bg-slate-900/60 border border-lime-400/15 text-left mb-6 space-y-2 text-xs font-mono text-slate-300">
               <div className="flex items-center justify-between">
                 <span>Kunlik limit:</span>
-                <span className="text-[#10b981] font-bold">400 ta so'z</span>
+                <span className="text-lime-300 font-bold">400 ta so'z</span>
               </div>
               <div className="flex items-center justify-between">
                 <span>Davomiylik:</span>
-                <span className="text-[#F8E7C9] font-bold">1 kunlik sikl</span>
+                <span className="text-slate-100 font-bold">1 kunlik sikl</span>
               </div>
               <div className="flex items-center justify-between">
                 <span>AI Generator:</span>
-                <span className="text-[#10b981] font-bold">Cheklovsiz VIP</span>
+                <span className="text-lime-300 font-bold">Cheklovsiz VIP</span>
               </div>
             </div>
 
@@ -670,7 +676,7 @@ export default function App() {
                 alert('🎉 Premium muvaffaqiyatli faollashtirildi!');
                 window.location.reload();
               }}
-              className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-amber-500 to-emerald-500 text-[#02130e] font-extrabold text-sm shadow-lg hover:opacity-95 transition flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-lime-400 to-cyan-400 hover:shadow-[0_0_25px_rgba(132,204,22,0.4)] text-slate-950 font-extrabold text-sm shadow-lg transition flex items-center justify-center gap-2 cursor-pointer"
             >
               🚀 Xarid qilish va Yoqish
             </button>
@@ -681,24 +687,24 @@ export default function App() {
       {/* Limit Modal */}
       {showLimitModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
-          <div className="relative w-full max-w-md p-6 sm:p-8 rounded-3xl bg-[#02130e] border border-[#F8E7C9]/20 shadow-2xl text-center">
-            <button 
+          <div className="relative w-full max-w-md p-6 sm:p-8 rounded-3xl bg-slate-950 border border-lime-400/20 shadow-2xl text-center">
+            <button
               onClick={() => setShowLimitModal(false)}
-              className="absolute top-4 right-4 text-[#F8E7C9]/50 hover:text-white transition text-lg w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/5 cursor-pointer"
+              className="absolute top-4 right-4 text-slate-400 hover:text-lime-300 transition text-lg w-8 h-8 flex items-center justify-center rounded-full hover:bg-lime-500/10 cursor-pointer"
             >
               ✕
             </button>
 
-            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-[#064E3B] border border-[#F8E7C9]/20 flex items-center justify-center text-3xl shadow-lg">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-blue-900/70 border border-lime-400/30 flex items-center justify-center text-3xl shadow-lg">
               ✨
             </div>
 
-            <h3 className="text-xl font-bold text-[#F8E7C9] mb-2">
+            <h3 className="text-xl font-bold text-lime-300 mb-2">
               Limit tugadi
             </h3>
 
-            <p className="text-xs sm:text-sm text-[#F8E7C9]/80 leading-relaxed mb-6">
-              Siz {periodDays === 2 ? '2 kunlik' : '1 kunlik'} limitga yetdingiz ({maxAllowedLimit} ta so'z). 
+            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed mb-6">
+              Siz {periodDays === 2 ? '2 kunlik' : '1 kunlik'} limitga yetdingiz ({maxAllowedLimit} ta so'z).
               Davr yangilangach yoki Premium orqali cheklovni kengaytirishingiz mumkin.
             </p>
 
@@ -706,7 +712,7 @@ export default function App() {
               onClick={() => {
                 setShowLimitModal(false);
               }}
-              className="w-full py-3.5 px-6 rounded-xl bg-[#F8E7C9] text-[#064E3B] font-bold text-sm shadow-lg hover:bg-[#ebd7b5] transition flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-lime-400 to-cyan-400 hover:shadow-[0_0_25px_rgba(132,204,22,0.4)] text-slate-950 font-bold text-sm shadow-lg transition flex items-center justify-center gap-2 cursor-pointer"
             >
               Tushunarli
             </button>

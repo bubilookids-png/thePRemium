@@ -36,13 +36,13 @@ export function Header({ currentUser, onLogout, onToggleSidebar }: HeaderProps) 
         onMouseMove={handleMouseMove}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        className="relative flex items-center justify-between w-full max-w-4xl px-3 sm:px-4 py-1.5 rounded-full bg-[#02130e]/85 backdrop-blur-xl border border-[#F8E7C9]/15 shadow-[0_4px_20px_rgba(0,0,0,0.5)]"
+        className="relative flex items-center justify-between w-full max-w-4xl px-3 sm:px-4 py-1.5 rounded-full bg-slate-950/85 backdrop-blur-xl border border-lime-400/20 shadow-[0_4px_20px_rgba(0,0,0,0.5)]"
       >
         <div
           className="hidden sm:block pointer-events-none absolute -inset-px rounded-full transition-opacity duration-500"
           style={{
             opacity: isHovered ? 1 : 0,
-            background: `radial-gradient(130px circle at ${mousePos.x}px ${mousePos.y}px, rgba(248, 231, 201, 0.1), rgba(6, 78, 59, 0.25), transparent 80%)`,
+            background: `radial-gradient(130px circle at ${mousePos.x}px ${mousePos.y}px, rgba(132, 204, 22, 0.15), rgba(30, 58, 138, 0.25), transparent 80%)`,
           }}
         />
 
@@ -52,7 +52,7 @@ export function Header({ currentUser, onLogout, onToggleSidebar }: HeaderProps) 
             <button
               type="button"
               onClick={onToggleSidebar}
-              className="lg:hidden p-1.5 rounded-lg text-[#F8E7C9] hover:bg-[#064E3B]/50 transition cursor-pointer"
+              className="lg:hidden p-1.5 rounded-lg text-lime-300 hover:bg-lime-500/10 transition cursor-pointer"
               title="Menu"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -64,10 +64,10 @@ export function Header({ currentUser, onLogout, onToggleSidebar }: HeaderProps) 
           )}
 
           <div className="flex items-center gap-1.5">
-            <div className="flex items-center justify-center w-6 h-6 rounded-full bg-[#064E3B] border border-[#F8E7C9]/30">
-              <span className="text-[11px] font-black text-[#F8E7C9]">U</span>
+            <div className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-900/70 border border-lime-400/30">
+              <span className="text-[11px] font-black text-lime-300">U</span>
             </div>
-            <span className="text-xs font-bold tracking-wider text-[#F8E7C9] font-mono uppercase">
+            <span className="text-xs font-bold tracking-wider text-lime-300 font-mono uppercase">
               UniveBooster
             </span>
           </div>
@@ -80,20 +80,20 @@ export function Header({ currentUser, onLogout, onToggleSidebar }: HeaderProps) 
           </div>
 
           {currentUser && (
-            <div className="flex items-center gap-2 pl-2.5 ml-1 border-l border-[#F8E7C9]/15">
+            <div className="flex items-center gap-2 pl-2.5 ml-1 border-l border-lime-400/15">
               {currentUser.photo_url ? (
                 <img
                   src={currentUser.photo_url}
                   alt={currentUser.first_name}
-                  className="w-6 h-6 rounded-full object-cover border border-[#F8E7C9]/30"
+                  className="w-6 h-6 rounded-full object-cover border border-lime-400/30"
                 />
               ) : (
-                <div className="w-6 h-6 rounded-full bg-[#064E3B] border border-[#F8E7C9]/30 flex items-center justify-center text-[10px] font-bold text-[#F8E7C9] uppercase">
+                <div className="w-6 h-6 rounded-full bg-blue-900/70 border border-lime-400/30 flex items-center justify-center text-[10px] font-bold text-lime-300 uppercase">
                   {currentUser.first_name ? currentUser.first_name.charAt(0) : 'U'}
                 </div>
               )}
 
-              <span className="text-xs font-semibold text-[#F8E7C9] max-w-[90px] truncate">
+              <span className="text-xs font-semibold text-lime-300 max-w-[90px] truncate">
                 {currentUser.first_name}
               </span>
 
@@ -101,7 +101,7 @@ export function Header({ currentUser, onLogout, onToggleSidebar }: HeaderProps) 
                 <button
                   type="button"
                   onClick={onLogout}
-                  className="p-1 rounded-full text-[#F8E7C9]/40 hover:text-rose-400 hover:bg-rose-500/10 transition cursor-pointer"
+                  className="p-1 rounded-full text-lime-300/40 hover:text-rose-400 hover:bg-rose-500/10 transition cursor-pointer"
                   title="Chiqish"
                 >
                   <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
