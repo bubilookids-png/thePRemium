@@ -264,8 +264,5 @@ export function checkAuthSession(token: string) {
     return null;
   }
 
-  const user = session.user;
-  // SECURITY: Delete session after use to prevent token reuse
-  pendingSessions.delete(token);
-  return user;
+  return session.user;
 }
