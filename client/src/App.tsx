@@ -211,33 +211,38 @@ export default function App() {
 
       interval = setInterval(async () => {
         try {
+          console.log(`🔄 Polling session... (token: ${token.slice(0, 20)}...)`);
           const checkRes = await fetch(`${backendUrl}/api/auth/check-session/${token}`);
           const checkData = await checkRes.json();
-          
-          console.log("Auth check response:", checkData);
 
-          // Serverdan authenticated yoki user kelganini tekshiramiz
-          if (checkData && (checkData.authenticated || checkData.user)) {
+          console.log("📡 Auth check response:", checkData);
+
+          // Check if authenticated
+          if (checkData?.authenticated === true && checkData?.user) {
+            console.log("✅ Authentication successful!");
             if (interval) clearInterval(interval);
             if (timeout) clearTimeout(timeout);
             setWaitingAuth(false);
 
-            const userObj = checkData.user || checkData;
+            const savedUser = checkData.user;
             const userData: TelegramUser = {
-              id: userObj.telegram_id || userObj.id,
-              first_name: userObj.first_name,
-              last_name: userObj.last_name,
-              username: userObj.username,
-              photo_url: userObj.photo_url,
-              search_count: userObj.search_count || 0,
-              is_premium: userObj.is_premium || false
+              id: savedUser.telegram_id,
+              first_name: savedUser.first_name,
+              last_name: savedUser.last_name,
+              username: savedUser.username,
+              photo_url: savedUser.photo_url,
+              search_count: savedUser.search_count || 0,
+              is_premium: savedUser.is_premium || false
             };
+            console.log("💾 Saving user to localStorage:", userData);
             localStorage.setItem('vacabbro_user', JSON.stringify(userData));
             setCurrentUser(userData);
             setShowLanding(false);
+          } else {
+            console.log("⏳ Still waiting for Telegram auth...");
           }
         } catch (e) {
-          console.error("Auth tekshirishda xatolik:", e);
+          console.error("❌ Auth polling error:", e);
         }
       }, 2000);
 

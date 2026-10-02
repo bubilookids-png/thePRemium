@@ -90,6 +90,10 @@ bot.command('start', async (ctx) => {
       createdAt: Date.now()
     });
 
+    console.log(`✅ Session stored for token: ${payload}`);
+    console.log(`📊 Pending sessions count: ${pendingSessions.size}`);
+    console.log(`👤 User data: telegram_id=${savedUser.telegram_id}, first_name=${savedUser.first_name}`);
+
     await ctx.reply(`Success, ${tgUser.first_name}! You have been logged in. You can return to the browser.`);
   } catch (dbErr) {
     console.error('DB error:', dbErr);

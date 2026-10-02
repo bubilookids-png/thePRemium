@@ -43,15 +43,19 @@ router.get('/check-session/:token', checkSessionLimiter, (req: Request, res: Res
 
   // Validate token format: must start with 'auth_' and be exactly 80 chars (auth_ + 64 hex chars)
   if (!token || typeof token !== 'string' || !token.match(/^auth_[a-f0-9]{64}$/i)) {
+    console.log(`❌ Invalid token format: ${token}`);
     return res.status(400).json({ success: false, authenticated: false, error: 'Invalid token format' });
   }
 
+  console.log(`🔍 Checking session for token: ${token}`);
   const user = checkAuthSession(String(token));
 
   if (user) {
+    console.log(`✅ Session found! User: ${user.telegram_id}`);
     return res.json({ success: true, authenticated: true, user });
   }
 
+  console.log(`⚠️ No session found for token: ${token}`);
   return res.json({ success: true, authenticated: false });
 });
 
