@@ -43,20 +43,16 @@ interface TelegramUser {
 }
 
 export default function App() {
-  // SECURITY: Store only minimal user data in localStorage (no sensitive info)
-  // Full user object will be fetched from secure API on session check
   const [currentUser, setCurrentUser] = useState<TelegramUser | null>(() => {
     try {
       const saved = localStorage.getItem('vacabbro_user');
       if (!saved) return null;
       const user = JSON.parse(saved);
-      // Validate stored user has required fields
       if (typeof user?.id === 'number' && typeof user?.first_name === 'string') {
         return user;
       }
       return null;
     } catch {
-      // Clear corrupted data
       localStorage.removeItem('vacabbro_user');
       return null;
     }
@@ -83,9 +79,7 @@ export default function App() {
   const [showLimitModal, setShowLimitModal] = useState(false);
   const [showGetMoreModal, setShowGetMoreModal] = useState(false);
 
-  // SECURITY: Admin status should be determined by server, not stored in client
-  // Frontend can show admin UI, but all admin operations must be verified server-side
-  const isAdmin = currentUser?.is_premium === true; // Treat premium as having access to admin panel
+  const isAdmin = currentUser?.is_premium === true;
   const canAccessAdminPanel = isAdmin;
 
   const isPremium = Boolean(currentUser?.is_premium);
@@ -194,7 +188,7 @@ export default function App() {
 
     window.addEventListener('keydown', handleGlobalKeyDown);
     return () => window.removeEventListener('keydown', handleGlobalKeyDown);
-  }, [word, triggerBlitz, triggerTranslate, triggerReading, focusSearchInput]);
+  }, [word]);
 
   async function handleTelegramLogin() {
     let interval: NodeJS.Timeout | null = null;
@@ -219,19 +213,24 @@ export default function App() {
         try {
           const checkRes = await fetch(`${backendUrl}/api/auth/check-session/${token}`);
           const checkData = await checkRes.json();
+          
+          console.log("Auth check response:", checkData);
 
-          if (checkData.authenticated && checkData.user) {
+          // Serverdan authenticated yoki user kelganini tekshiramiz
+          if (checkData && (checkData.authenticated || checkData.user)) {
             if (interval) clearInterval(interval);
             if (timeout) clearTimeout(timeout);
             setWaitingAuth(false);
+
+            const userObj = checkData.user || checkData;
             const userData: TelegramUser = {
-              id: checkData.user.telegram_id,
-              first_name: checkData.user.first_name,
-              last_name: checkData.user.last_name,
-              username: checkData.user.username,
-              photo_url: checkData.user.photo_url,
-              search_count: checkData.user.search_count || 0,
-              is_premium: checkData.user.is_premium || false
+              id: userObj.telegram_id || userObj.id,
+              first_name: userObj.first_name,
+              last_name: userObj.last_name,
+              username: userObj.username,
+              photo_url: userObj.photo_url,
+              search_count: userObj.search_count || 0,
+              is_premium: userObj.is_premium || false
             };
             localStorage.setItem('vacabbro_user', JSON.stringify(userData));
             setCurrentUser(userData);
@@ -439,8 +438,8 @@ export default function App() {
                 <h1 className="w-full">
                   <WarpText
                     text={
-                      currentUser?.first_name
-                        ? `Ready to train,\n${currentUser.first_name}.`
+                      currentUser?.first_name 
+                        ? `Ready to train,\n${currentUser.first_name}.` 
                         : 'Vocabulary Lab\nActive.'
                     }
                     color="#84cc16"
@@ -522,7 +521,7 @@ export default function App() {
                   ) : (
                     <>
                       <div className="w-full h-2 rounded-full bg-slate-900/60 border border-lime-400/10 overflow-hidden">
-                        <div
+                        <div 
                           className="h-full bg-gradient-to-r from-blue-500 via-lime-400 to-cyan-400 transition-all duration-500 rounded-full"
                           style={{ width: `${progressPercent}%` }}
                         />
@@ -611,38 +610,32 @@ export default function App() {
           </main>
         )}
 
-        {/* Footer, Legal va Cookie modal ochuvchilar bilan ulandi */}
         <Footer 
           onOpenLegal={() => setShowLegalModal(true)} 
           onOpenCookie={() => setShowCookieModal(true)} 
         />
       </div>
 
-      {/* Word Blitz Modal */}
       {showBlitzModal && (
         <WordBlitzModal onClose={() => setShowBlitzModal(false)} />
       )}
 
-      {/* Quick Translator Modal */}
       {showTranslateModal && (
         <QuickTranslator onClose={() => setShowTranslateModal(false)} />
       )}
 
-      {/* Legal Modal (Privacy & Terms) */}
       {showLegalModal && (
         <LegalModal onClose={() => setShowLegalModal(false)} />
       )}
 
-      {/* Cookie Modal */}
       {showCookieModal && (
         <CookieModal onClose={() => setShowCookieModal(false)} />
       )}
 
-      {/* Get More Modal */}
       {showGetMoreModal && isAdmin && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn">
           <div className="relative w-full max-w-sm p-6 sm:p-7 rounded-3xl bg-slate-950 border border-lime-400/30 shadow-[0_0_40px_rgba(132,204,22,0.15)] text-center">
-            <button
+            <button 
               onClick={() => setShowGetMoreModal(false)}
               className="absolute top-4 right-4 text-slate-400 hover:text-lime-300 transition text-lg w-8 h-8 flex items-center justify-center rounded-full hover:bg-lime-500/10 cursor-pointer"
             >
@@ -694,11 +687,10 @@ export default function App() {
         </div>
       )}
 
-      {/* Limit Modal */}
       {showLimitModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
           <div className="relative w-full max-w-md p-6 sm:p-8 rounded-3xl bg-slate-950 border border-lime-400/20 shadow-2xl text-center">
-            <button
+            <button 
               onClick={() => setShowLimitModal(false)}
               className="absolute top-4 right-4 text-slate-400 hover:text-lime-300 transition text-lg w-8 h-8 flex items-center justify-center rounded-full hover:bg-lime-500/10 cursor-pointer"
             >
@@ -714,7 +706,7 @@ export default function App() {
             </h3>
 
             <p className="text-xs sm:text-sm text-slate-300 leading-relaxed mb-6">
-              Siz {periodDays === 2 ? '2 kunlik' : '1 kunlik'} limitga yetdingiz ({maxAllowedLimit} ta so'z).
+              Siz {periodDays === 2 ? '2 kunlik' : '1 kunlik'} limitga yetdingiz ({maxAllowedLimit} ta so'z). 
               Davr yangilangach yoki Premium orqali cheklovni kengaytirishingiz mumkin.
             </p>
 
