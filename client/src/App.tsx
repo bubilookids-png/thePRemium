@@ -206,8 +206,17 @@ export default function App() {
 
       if (!token) throw new Error('Sessiya tokeni olinmadi');
 
-      const botUsername = 'GIvacabbro_bot';
-      window.open(`https://t.me/${botUsername}?start=${token}`, '_blank');
+      const botUsername = 'Givacabbro_bot';
+      // Telegram requires the start parameter to be passed as part of the deep link
+      // Format: https://t.me/botname?start=PAYLOAD
+      // The payload is automatically extracted by Telegram and passed to the bot
+      const deepLink = `https://t.me/${botUsername}?start=${token}`;
+      console.log(`🔗 Opening Telegram bot with link: ${deepLink}`);
+
+      // Store token in sessionStorage as backup in case deep link fails
+      sessionStorage.setItem('telegram_auth_token', token);
+
+      window.open(deepLink, '_blank');
 
       interval = setInterval(async () => {
         try {

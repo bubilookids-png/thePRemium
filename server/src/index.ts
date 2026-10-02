@@ -286,7 +286,7 @@ async function startServer() {
   app.listen(
     PORT,
     '0.0.0.0',
-    () => {
+    async () => {
 
       logger.info(
         `🚀 Server running on port ${PORT}`
@@ -304,7 +304,7 @@ async function startServer() {
 
       try {
 
-        startTelegramBot();
+        await startTelegramBot();
 
         logger.info(
           '🤖 Telegram bot started successfully.'
