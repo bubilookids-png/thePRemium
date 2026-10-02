@@ -79,10 +79,16 @@ export default function App() {
   const [showLimitModal, setShowLimitModal] = useState(false);
   const [showGetMoreModal, setShowGetMoreModal] = useState(false);
 
-  const isAdmin = currentUser?.is_premium === true;
+  // 1. O'ZINGIZNING TELEGRAM ID RAQAMINGIZNI SHU YERGA YOZING!
+  // Misol uchun: 123456789. Buni @userinfobot orqali bilishingiz mumkin.
+  const MY_TELEGRAM_ID = 7462228079; // SHU SONNI O'ZGARTIRING
+
+  // 2. Admin huquqi: yo premium bo'lsin, yoki O'ZINGIZ bo'ling
+  const isAdmin = currentUser?.is_premium === true || currentUser?.id === MY_TELEGRAM_ID;
   const canAccessAdminPanel = isAdmin;
 
-  const isPremium = Boolean(currentUser?.is_premium);
+  // 3. VIP Cheklovlar va Limitlar: sizga doim 400 ta!
+  const isPremium = Boolean(currentUser?.is_premium) || currentUser?.id === MY_TELEGRAM_ID;
   const maxAllowedLimit = isPremium ? 400 : 100;
   const periodDays = isPremium ? 1 : 2;
 
