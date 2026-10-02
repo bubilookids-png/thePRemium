@@ -6,32 +6,44 @@ import { getTopUsers } from '../services/telegramAuthService.js';
 
 const router = Router();
 
-// Strict rate limiting for authentication endpoints
+// Relaxed rate limiting for check-session (polling endpoint)
+const checkSessionLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  limit: 60, // 60 requests per minute (1 per second is fine for polling)
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: 'Too many requests. Please try again later.' },
+  skip: (req) => req.method === 'GET',
+  keyGenerator: (req) => {
+    return (req.ip || req.socket.remoteAddress || 'unknown') as string;
+  }
+});
+
+// Strict rate limiting for authentication endpoints (get session)
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   limit: 10, // 10 requests per window
   standardHeaders: true,
   legacyHeaders: false,
-  message: 'Too many authentication attempts. Please try again later.',
+  message: { success: false, error: 'Too many authentication attempts. Please try again later.' },
   keyGenerator: (req) => {
-    // Rate limit by IP address
     return (req.ip || req.socket.remoteAddress || 'unknown') as string;
   }
 });
 
-// Session endpoint: Generate new auth token (16 bytes = 128 bits of entropy)
+// Session endpoint: Generate new auth token (32 bytes = 256 bits of entropy)
 router.get('/session', authLimiter, (_req: Request, res: Response) => {
-  const token = 'auth_' + crypto.randomBytes(16).toString('hex');
+  const token = 'auth_' + crypto.randomBytes(32).toString('hex');
   return res.json({ success: true, token });
 });
 
 // Check session endpoint with strict validation
-router.get('/check-session/:token', authLimiter, (req: Request, res: Response) => {
+router.get('/check-session/:token', checkSessionLimiter, (req: Request, res: Response) => {
   const { token } = req.params;
 
   // Validate token format: must start with 'auth_' and be exactly 80 chars (auth_ + 64 hex chars)
   if (!token || typeof token !== 'string' || !token.match(/^auth_[a-f0-9]{64}$/i)) {
-    return res.status(400).json({ success: false, error: 'Invalid token format' });
+    return res.status(400).json({ success: false, authenticated: false, error: 'Invalid token format' });
   }
 
   const user = checkAuthSession(String(token));
