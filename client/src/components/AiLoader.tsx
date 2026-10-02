@@ -1,8 +1,19 @@
 // src/components/AiLoader.tsx
 import React, { useState, useEffect } from 'react';
 
-export const AiLoader = ({ word }: { word: string }) => {
+interface Particle {
+  id: number;
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  life: number;
+}
+
+export const AiLoader = ({ word, onCancel }: { word: string; onCancel?: () => void }) => {
   const [phase, setPhase] = useState(0);
+  const [particles, setParticles] = useState<Particle[]>([]);
+  const [particleId, setParticleId] = useState(0);
 
   const messages = [
     "Reading linguistic DNA...",
@@ -18,9 +29,59 @@ export const AiLoader = ({ word }: { word: string }) => {
     return () => clearInterval(timer);
   }, []);
 
+  // Generate particles
+  useEffect(() => {
+    const particleInterval = setInterval(() => {
+      const newParticle: Particle = {
+        id: particleId,
+        x: Math.random() * 100,
+        y: Math.random() * 100,
+        vx: (Math.random() - 0.5) * 2,
+        vy: (Math.random() - 0.5) * 2,
+        life: 1
+      };
+      setParticles(prev => [...prev.slice(-20), newParticle]);
+      setParticleId(prev => prev + 1);
+    }, 100);
+    return () => clearInterval(particleInterval);
+  }, [particleId]);
+
+  // Animate particles
+  useEffect(() => {
+    const animationFrame = setInterval(() => {
+      setParticles(prev =>
+        prev
+          .map(p => ({
+            ...p,
+            x: p.x + p.vx,
+            y: p.y + p.vy,
+            life: p.life - 0.05
+          }))
+          .filter(p => p.life > 0)
+      );
+    }, 30);
+    return () => clearInterval(animationFrame);
+  }, []);
+
   return (
     <div className="relative overflow-hidden rounded-3xl bg-slate-950/90 border border-lime-400/15 p-10 sm:p-16 text-center shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-2xl">
-      {/* Chetlaridagi harakatlanuvchi va yorug'lik tarqatuvchi animatsiyali elementlar */}
+      {/* Particle field */}
+      <div className="absolute inset-0 pointer-events-none">
+        {particles.map(p => (
+          <div
+            key={p.id}
+            className="absolute w-1 h-1 rounded-full bg-lime-400"
+            style={{
+              left: `${p.x}%`,
+              top: `${p.y}%`,
+              opacity: p.life,
+              boxShadow: '0 0 4px rgba(132, 204, 22, 0.6)'
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Glow elements */}
       <div className="absolute top-4 left-6 w-2 h-2 bg-lime-400 rounded-full animate-ping opacity-75" style={{ animationDuration: '3s' }} />
       <div className="absolute bottom-6 right-8 w-1.5 h-1.5 bg-cyan-300 rounded-full animate-ping opacity-60" style={{ animationDuration: '2s' }} />
       <div className="absolute top-1/2 right-4 w-24 h-24 bg-lime-500/10 rounded-full blur-2xl pointer-events-none animate-pulse" />
@@ -48,20 +109,30 @@ export const AiLoader = ({ word }: { word: string }) => {
           Analyzing <span className="font-semibold text-lime-400">"{word}"</span>
         </h2>
 
-        {/* Smooth Fade Transition Message */}
+        {/* Message */}
         <div className="h-6 flex items-center justify-center">
           <p className="text-sm font-light text-slate-400 transition-all duration-500 transform">
             {messages[phase]}
           </p>
         </div>
 
-        {/* Minimalist Linear Progress */}
+        {/* Progress */}
         <div className="w-48 h-1 bg-slate-800/60 rounded-full mx-auto mt-6 overflow-hidden">
           <div
             className="h-full bg-gradient-to-r from-lime-400 to-cyan-400 rounded-full transition-all duration-700 ease-out"
             style={{ width: `${((phase + 1) / messages.length) * 100}%` }}
           />
         </div>
+
+        {/* Cancel Button */}
+        {onCancel && (
+          <button
+            onClick={onCancel}
+            className="mt-6 px-4 py-2 text-xs font-medium text-slate-400 hover:text-slate-200 border border-slate-700/50 hover:border-slate-600 rounded-lg transition-all duration-200"
+          >
+            Cancel
+          </button>
+        )}
       </div>
     </div>
   );

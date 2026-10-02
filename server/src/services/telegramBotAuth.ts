@@ -232,14 +232,20 @@ bot.catch((err) => {
   console.error(`Bot error (Update ID: ${ctx.update.update_id}):`, err.error);
 });
 
+let botStarted = false;
+
 export function startTelegramBot() {
-  if (!botToken) return;
+  if (!botToken || botStarted) return;
+
+  botStarted = true;
+
   bot.start({
     onStart: (info) => {
       console.log(`Telegram Bot started: @${info.username}`);
     },
   }).catch((err) => {
     console.error('Bot start error:', err.message);
+    botStarted = false;
   });
 }
 
