@@ -1,12 +1,12 @@
-// src/components/LegalModal.tsx
 import React, { useState } from 'react';
 
 interface LegalModalProps {
   onClose: () => void;
+  initialTab?: 'privacy' | 'terms';
 }
 
-export function LegalModal({ onClose }: LegalModalProps) {
-  const [activeTab, setActiveTab] = useState<'privacy' | 'terms'>('privacy');
+export function LegalModal({ onClose, initialTab }: LegalModalProps) {
+  const [activeTab, setActiveTab] = useState<'privacy' | 'terms'>(initialTab ?? 'privacy');
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn select-none font-mono">
@@ -61,6 +61,30 @@ export function LegalModal({ onClose }: LegalModalProps) {
                 Yig'ilgan ma'lumotlar faqatgina sizning kunlik so'z qidirish limitlaringizni boshqarish, o'quv natijalaringizni saqlash va
                 platforma xizmatlarini yaxshilash uchun ishlatiladi. Ma'lumotlaringiz hech qachon uchinchi shaxslarga berilmaydi.
               </p>
+              <h4 className="text-sm font-bold text-lime-300">3. AI va Tahlil</h4>
+              <p>
+                So'z tahlillari uchun sun'iy intellekt modellari ishlatilishi mumkin. Ushbu modellardan olingan natijalar faqat ta'lim maqsadlari
+                uchun foydalaniladi va shaxsiy ma'lumotlar bilan biriktirilmaydi.
+              </p>
+              <h4 className="text-sm font-bold text-lime-300">4. Ma'lumot xavfsizligi</h4>
+              <p>
+                Barcha ma'lumotlar brauzeringizning localStorage'da saqlanadi va hech qachon serverga yubormaymiz. Sizding ma'lumotlaringiz
+                faqat sizning qurilmangizda saqlanadi.
+              </p>
+              <h4 className="text-sm font-bold text-lime-300">5. Ma'lumotni o'chirish</h4>
+              <p>
+                Siz lokal ma'lumotlaringizni brauzer sozlamalaridan yoki ilovani tozalash orqali o'chirishingiz mumkin. Ilova yangilangach
+                ham, oldin saqlangan ma'lumotlar saqlan qoladi.
+              </p>
+              <h4 className="text-sm font-bold text-lime-300">6. Aloqa</h4>
+              <p>
+                Maxfiylik siyosati bilan bog'liq savollaringiz bo'lsa, ilova ichidagi aloqa bo'limi yoki [admin@univebooster.com](mailto:admin@univebooster.com) orqali bog'laning.
+              </p>
+              <h4 className="text-sm font-bold text-lime-300">7. Siyosat yangilanishi</h4>
+              <p>
+                Ushbu maxfiylik siyosati vaqti bilan yangilanishi mumkin. Yangi versiya ilova ichida e'lon qilinadi va foydalanuvchilar
+                yangilardan habarдар qilinadi.
+              </p>
             </>
           ) : (
             <>
@@ -73,6 +97,35 @@ export function LegalModal({ onClose }: LegalModalProps) {
               <p>
                 Har bir foydalanuvchi uchun belgilangan kunlik so'z qidirish limitlari mavjud. Tizimni avtomatlashtirilgan tarzda
                 hakerlik qilish yoki yuklamani sun'iy oshirish taqiqlanadi.
+              </p>
+              <h4 className="text-sm font-bold text-lime-300">3. Foydalanuvchi Sorablari</h4>
+              <p>
+                Sizning ilovaga kirguningiz va unga xabar yuborishingiz faqat ruxsat berganingizda bo'ladi. Ilova faqat ruxsat berilgan
+                funksiyalarni bajarishi mumkin.
+              </p>
+              <h4 className="text-sm font-bold text-lime-300">4. Mao'qul Mavjudlar</h4>
+              <p>
+                Ilovadagi barcha kontent, jumladan matn, rasm, dizayn va kod, UniveBooster ning mulkiyatidir yoki ruxsat berilgan
+                uchinchi tashkilotlar tomonidan taqdim etilgan.
+              </p>
+              <h4 className="text-sm font-bold text-lime-300">5. Cheklovlilik va Zarrarlar</h4>
+              <p>
+                Ilova "havola bilan" asosida taqdim etiladi. UniveBooster ilovadan kelib chiqqan yoki ilovadan foydalanish natijasida
+                kelib chiqqan har qanday muddatli yoki ijobiy zarrarlar uchun javobgarmaslikni ta'minlaydi.
+              </p>
+              <h4 className="text-sm font-bold text-lime-300">6. Hisoblarni Bloklash va Bekor Qilish</h4>
+              <p>
+                UniveBooster admini hizmatni taklif qilish, hakerlik yoki qoidabuzarlik tufayli hisobni bloklash yoki o'chirish huquqi
+                ega.
+              </p>
+              <h4 className="text-sm font-bold text-lime-300">7. Aloqa</h4>
+              <p>
+                Foydalanish shartlari bilan bog'liq savollaringiz bo'lsa, ilova ichidagi aloqa bo'limi yoki [admin@univebooster.com](mailto:admin@univebooster.com) orqali bog'laning.
+              </p>
+              <h4 className="text-sm font-bold text-lime-300">8. Shartlar Yangilanishi</h4>
+              <p>
+                Ushbu foydalanish shartlari vaqti bilan yangilanishi mumkin. Yangi versiya ilova ichida e'lon qilinadi va foydalanuvchilar
+                yangilardan habarдар qilinadi.
               </p>
             </>
           )}

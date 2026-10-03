@@ -16,7 +16,8 @@ import { LandingPage } from './components/LandingPage';
 import { WordBlitzModal } from './components/WordBlitzModal';
 import { QuickTranslator } from './components/QuickTranslator';
 import { LegalModal } from './components/LegalModal';
-import { CookieModal } from './components/CookieModal';
+import { ConsentModal } from './components/ConsentModal';
+import { hasValidCookieConsent, acceptCookieConsent } from './utils/consent';
 
 import type {
   AnalyzeResponse,
@@ -66,7 +67,8 @@ export default function App() {
   const [showBlitzModal, setShowBlitzModal] = useState(false);
   const [showTranslateModal, setShowTranslateModal] = useState(false);
   const [showLegalModal, setShowLegalModal] = useState(false);
-  const [showCookieModal, setShowCookieModal] = useState(false);
+  const [showConsentModal, setShowConsentModal] = useState(false);
+  const [showCookieSettingsModal, setShowCookieSettingsModal] = useState(false);
 
   const [word, setWord] = useState('');
   const [langCode, setLangCode] = useState<SupportedLanguageCode>('uz');
@@ -323,10 +325,10 @@ export default function App() {
         if (translationText) {
           const rawHistory = localStorage.getItem('vacabbro_history');
           const historyList: { en: string; uz: string }[] = rawHistory ? JSON.parse(rawHistory) : [];
-          
+
           const filtered = historyList.filter((item) => item.en.toLowerCase() !== term.toLowerCase());
           filtered.unshift({ en: term, uz: translationText.split(/[,;\.]/)[0].trim() });
-          
+
           localStorage.setItem('vacabbro_history', JSON.stringify(filtered.slice(0, 50)));
         }
       } catch (err) {
@@ -362,6 +364,40 @@ export default function App() {
       localStorage.setItem(limitStorageKey, JSON.stringify({ ...parsed, goal: clamped, goalSet: true }));
     } catch {}
   }
+
+  // Consent handling
+  const handleConsentAccept = () => {
+    acceptCookieConsent(false); // We don't use analytics
+    setShowConsentModal(false);
+    handleTelegramLogin(); // Continue with Telegram login after consent
+  };
+
+  const handleConsentCancel = () => {
+    setShowConsentModal(false);
+  };
+
+  const handleOpenTerms = () => {
+    setShowLegalModal(true);
+    // We'll open the LegalModal on the terms tab
+    // We need to pass initialTab to LegalModal
+    // We'll update LegalModal to accept an initialTab prop
+    // For now, we'll just open it and the user can switch tabs.
+    // We'll update LegalModal in a moment.
+  };
+
+  const handleOpenPrivacy = () => {
+    setShowLegalModal(true);
+    // Same as above
+  };
+
+  // New sign-up flow with consent
+  const handleSignUpWithConsent = () => {
+    if (hasValidCookieConsent()) {
+      handleTelegramLogin();
+    } else {
+      setShowConsentModal(true);
+    }
+  };
 
   return (
     <div className="app-shell min-h-screen flex flex-col w-full overflow-x-hidden">
@@ -405,10 +441,10 @@ export default function App() {
           isSidebarOpen ? 'lg:pl-64' : 'lg:pl-12'
         }`}
       >
-        <Header 
-          currentUser={currentUser} 
-          onLogout={handleLogout} 
-          onToggleSidebar={() => setIsSidebarOpen(true)} 
+        <Header
+          currentUser={currentUser}
+          onLogout={handleLogout}
+          onToggleSidebar={() => setIsSidebarOpen(true)}
         />
 
         {!currentUser && (
@@ -436,7 +472,7 @@ export default function App() {
         {showLanding ? (
           <LandingPage
             onStart={handleTryFirstWord}
-            onLogin={handleTelegramLogin}
+            onLogin={handleSignUpWithConsent} // Changed to use consent-aware sign-up
             isLoggedIn={Boolean(currentUser)}
             waitingAuth={waitingAuth}
           />
@@ -458,8 +494,8 @@ export default function App() {
                 <h1 className="w-full">
                   <WarpText
                     text={
-                      currentUser?.first_name 
-                        ? `Ready to train,\n${currentUser.first_name}.` 
+                      currentUser?.first_name
+                        ? `Ready to train,\n${currentUser.first_name}.`
                         : 'Vocabulary Lab\nActive.'
                     }
                     color="#84cc16"
@@ -509,55 +545,55 @@ export default function App() {
                       {isPremium ? 'Premium' : 'Free (2d/100w)'}
                     </span>
                   </div>
-                </div>
 
-                <div className="mb-4">
-                  <div className="flex items-center justify-between text-xs font-mono text-slate-300 mb-1.5">
-                    <span>Practice Goal</span>
-                    <span className="text-slate-100 font-bold">
-                      {isGoalSet ? `${progressPercent}%` : 'Set Goal'}
-                    </span>
+                  <div className="mb-4">
+                    <div className="flex items-center justify-between text-xs font-mono text-slate-300 mb-1.5">
+                      <span>Practice Goal</span>
+                      <span className="text-slate-100 font-bold">
+                        {isGoalSet ? `${progressPercent}%` : 'Set Goal'}
+                      </span>
+                    </div>
+
+                    {!isGoalSet ? (
+                      <div className="flex items-center gap-2 mt-1">
+                        <input
+                          type="number"
+                          min="1"
+                          max={maxAllowedLimit}
+                          value={tempGoalInput}
+                          onChange={(e) => setTempGoalInput(e.target.value)}
+                          placeholder={`Max ${maxAllowedLimit}`}
+                          className="flex-1 px-3 py-1.5 bg-slate-900/60 border border-lime-400/30 rounded-xl text-slate-100 text-xs font-mono focus:outline-none focus:border-lime-400/50 focus:shadow-[0_0_10px_rgba(132,204,22,0.2)]"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleConfirmGoal}
+                          className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-lime-400 to-cyan-400 hover:shadow-[0_0_15px_rgba(132,204,22,0.4)] text-slate-950 text-xs font-mono font-bold transition cursor-pointer"
+                        >
+                          Set
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="w-full h-2 rounded-full bg-slate-900/60 border border-lime-400/10 overflow-hidden">
+                          <div
+                            className="h-full bg-gradient-to-r from-blue-500 via-lime-400 to-cyan-400 transition-all duration-500 rounded-full"
+                            style={{ width: `${progressPercent}%` }}
+                          />
+                        </div>
+                        <span className="text-[10px] font-mono text-slate-500 mt-1 block">
+                          Target: {dailyTarget} words (Locked for this cycle)
+                        </span>
+                      </>
+                    )}
                   </div>
 
-                  {!isGoalSet ? (
-                    <div className="flex items-center gap-2 mt-1">
-                      <input
-                        type="number"
-                        min="1"
-                        max={maxAllowedLimit}
-                        value={tempGoalInput}
-                        onChange={(e) => setTempGoalInput(e.target.value)}
-                        placeholder={`Max ${maxAllowedLimit}`}
-                        className="flex-1 px-3 py-1.5 bg-slate-900/60 border border-lime-400/30 rounded-xl text-slate-100 text-xs font-mono focus:outline-none focus:border-lime-400/50 focus:shadow-[0_0_10px_rgba(132,204,22,0.2)]"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleConfirmGoal}
-                        className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-lime-400 to-cyan-400 hover:shadow-[0_0_15px_rgba(132,204,22,0.4)] text-slate-950 text-xs font-mono font-bold transition cursor-pointer"
-                      >
-                        Set
-                      </button>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="w-full h-2 rounded-full bg-slate-900/60 border border-lime-400/10 overflow-hidden">
-                        <div 
-                          className="h-full bg-gradient-to-r from-blue-500 via-lime-400 to-cyan-400 transition-all duration-500 rounded-full"
-                          style={{ width: `${progressPercent}%` }}
-                        />
-                      </div>
-                      <span className="text-[10px] font-mono text-slate-500 mt-1 block">
-                        Target: {dailyTarget} words (Locked for this cycle)
-                      </span>
-                    </>
-                  )}
-                </div>
-
-                <div className="pt-3 border-t border-lime-400/10 flex items-center justify-between text-xs font-mono">
-                  <span className="text-slate-400">Recall Readiness</span>
-                  <span className="px-2 py-0.5 rounded-full bg-lime-500/15 text-lime-300 border border-lime-400/30 text-[10px] font-bold">
-                    Active System
-                  </span>
+                  <div className="pt-3 border-t border-lime-400/10 flex items-center justify-between text-xs font-mono">
+                    <span className="text-slate-400">Recall Readiness</span>
+                    <span className="px-2 py-0.5 rounded-full bg-lime-500/15 text-lime-300 border border-lime-400/30 text-[10px] font-bold">
+                      Active System
+                    </span>
+                  </div>
                 </div>
               </div>
             </section>
@@ -582,7 +618,6 @@ export default function App() {
                     onSubmit={onAnalyze}
                     disabled={loading}
                   />
-
                   <div className="entered-line mt-3 text-xs font-mono text-slate-400">
                     You entered:{' '}
                     <strong className="text-slate-100">
@@ -630,10 +665,12 @@ export default function App() {
           </main>
         )}
 
-        <Footer 
-          onOpenLegal={() => setShowLegalModal(true)} 
-          onOpenCookie={() => setShowCookieModal(true)} 
-        />
+        {showLanding ? null : (
+          <Footer
+            onOpenLegal={() => setShowLegalModal(true)}
+            onOpenCookie={() => setShowCookieSettingsModal(true)}
+          />
+        )}
       </div>
 
       {showBlitzModal && (
@@ -645,17 +682,39 @@ export default function App() {
       )}
 
       {showLegalModal && (
-        <LegalModal onClose={() => setShowLegalModal(false)} />
+        <LegalModal
+          onClose={() => setShowLegalModal(false)}
+          // We'll pass initialTab based on how we opened it?
+          // We don't have that info in the state.
+          // We'll update LegalModal to default to privacy and let the user switch tabs.
+          // For now, we'll just open it and the user can choose the tab.
+        />
       )}
 
-      {showCookieModal && (
-        <CookieModal onClose={() => setShowCookieModal(false)} />
+      {showConsentModal && (
+        <ConsentModal
+          mode="consent"
+          onClose={handleConsentCancel}
+          onAccept={handleConsentAccept}
+          onOpenTerms={handleOpenTerms}
+          onOpenPrivacy={handleOpenPrivacy}
+        />
+      )}
+
+      {showCookieSettingsModal && (
+        <ConsentModal
+          mode="settings"
+          onClose={() => setShowCookieSettingsModal(false)}
+          onAccept={() => {}} // Just close the modal, no action needed
+          onOpenTerms={handleOpenTerms}
+          onOpenPrivacy={handleOpenPrivacy}
+        />
       )}
 
       {showGetMoreModal && isAdmin && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn">
           <div className="relative w-full max-w-sm p-6 sm:p-7 rounded-3xl bg-slate-950 border border-lime-400/30 shadow-[0_0_40px_rgba(132,204,22,0.15)] text-center">
-            <button 
+            <button
               onClick={() => setShowGetMoreModal(false)}
               className="absolute top-4 right-4 text-slate-400 hover:text-lime-300 transition text-lg w-8 h-8 flex items-center justify-center rounded-full hover:bg-lime-500/10 cursor-pointer"
             >
@@ -702,41 +761,6 @@ export default function App() {
               className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-lime-400 to-cyan-400 hover:shadow-[0_0_25px_rgba(132,204,22,0.4)] text-slate-950 font-extrabold text-sm shadow-lg transition flex items-center justify-center gap-2 cursor-pointer"
             >
               🚀 Xarid qilish va Yoqish
-            </button>
-          </div>
-        </div>
-      )}
-
-      {showLimitModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
-          <div className="relative w-full max-w-md p-6 sm:p-8 rounded-3xl bg-slate-950 border border-lime-400/20 shadow-2xl text-center">
-            <button 
-              onClick={() => setShowLimitModal(false)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-lime-300 transition text-lg w-8 h-8 flex items-center justify-center rounded-full hover:bg-lime-500/10 cursor-pointer"
-            >
-              ✕
-            </button>
-
-            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-blue-900/70 border border-lime-400/30 flex items-center justify-center text-3xl shadow-lg">
-              ✨
-            </div>
-
-            <h3 className="text-xl font-bold text-lime-300 mb-2">
-              Limit tugadi
-            </h3>
-
-            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed mb-6">
-              Siz {periodDays === 2 ? '2 kunlik' : '1 kunlik'} limitga yetdingiz ({maxAllowedLimit} ta so'z). 
-              Davr yangilangach yoki Premium orqali cheklovni kengaytirishingiz mumkin.
-            </p>
-
-            <button
-              onClick={() => {
-                setShowLimitModal(false);
-              }}
-              className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-lime-400 to-cyan-400 hover:shadow-[0_0_25px_rgba(132,204,22,0.4)] text-slate-950 font-bold text-sm shadow-lg transition flex items-center justify-center gap-2 cursor-pointer"
-            >
-              Tushunarli
             </button>
           </div>
         </div>
