@@ -59,6 +59,10 @@ export default function App() {
     }
   });
 
+  // Pronunciation state
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [speechUtterance, setSpeechUtterance] = useState<SpeechSynthesisUtterance | null>(null);
+
   const [showLanding, setShowLanding] = useState<boolean>(() => {
     return !localStorage.getItem('vacabbro_user');
   });
@@ -365,6 +369,35 @@ export default function App() {
     } catch {}
   }
 
+  // Pronunciation handling
+  const handlePronounce = () => {
+    if (!normalized || !('speechSynthesis' in window)) return;
+
+    // Cancel any ongoing speech
+    if (speechUtterance) {
+      window.speechSynthesis.cancel();
+    }
+
+    // Create new utterance
+    const utterance = new SpeechSynthesisUtterance(normalized);
+    utterance.lang = 'en-US';
+    utterance.rate = 0.9; // For clarity
+
+    utterance.onend = () => {
+      setIsPlaying(false);
+      setSpeechUtterance(null);
+    };
+
+    utterance.onerror = () => {
+      setIsPlaying(false);
+      setSpeechUtterance(null);
+    };
+
+    setIsPlaying(true);
+    setSpeechUtterance(utterance);
+    window.speechSynthesis.speak(utterance);
+  };
+
   // Consent handling
   const handleConsentAccept = () => {
     acceptCookieConsent(false); // We don't use analytics
@@ -622,11 +655,34 @@ export default function App() {
                     onSubmit={onAnalyze}
                     disabled={loading}
                   />
-                  <div className="entered-line mt-3 text-xs font-mono text-slate-400">
+                  <div className="entered-line mt-3 flex items-baseline gap-2 text-xs font-mono text-slate-400">
                     You entered:{' '}
                     <strong className="text-slate-100">
                       {normalized || '—'}
                     </strong>
+                    {/* Pronunciation Button */}
+                    <button
+                      onClick={handlePronounce}
+                      disabled={!normalized || loading || !('speechSynthesis' in window)}
+                      className={`flex items-center justify-center w-8 h-8 rounded-full transition-all duration-200 ${
+                        isPlaying
+                          ? 'bg-lime-500/20 text-lime-400 animate-pulse'
+                          : 'bg-slate-900/60 text-slate-400 hover:bg-slate-900/70'
+                      }`}
+                      aria-label={isPlaying ? 'Stop pronunciation' : 'Pronounce word'}
+                      title={isPlaying ? 'Stop pronunciation' : 'Pronounce word'}
+                    >
+                      {isPlaying ? (
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.5a9 9 0 11-4.5 18.5" />
+                        </svg>
+                      ) : (
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m7.072 0a5 5 0 01-7.072 0M4.464 4.464A5 5 0 003.393 11.527l-.392.392a1 1 0 001.414 1.414l.392.392a1 1 0 001.414-1.414l.392-.392A5 5 0 0111.527 3.393l.392-.392a1 1 0 00-1.414-1.414l-.392-.392z" />
+                        </svg>
+                      )}
+                    </button>
                   </div>
 
                   {error ? (

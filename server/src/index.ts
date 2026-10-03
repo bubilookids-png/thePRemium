@@ -22,6 +22,7 @@ const PORT = Number(
 
 const CLIENT_ORIGINS = [
   'http://localhost:5173',
+  'http://localhost:5174', // Fallback for Vite dev server when 5173 is in use
 
   // Current production frontend
   'https://univebooster.vercel.app',
