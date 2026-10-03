@@ -526,28 +526,31 @@ export default function App() {
                   <span className="text-[10px] text-slate-400 font-normal">Realtime</span>
                 </div>
 
-                <div className="my-4 p-4 rounded-2xl bg-slate-900/40 border border-lime-400/10 flex items-center justify-between">
-                  <div>
-                    <span className="text-[11px] font-mono text-slate-400 block mb-0.5">
-                      Words Analyzed ({periodDays === 1 ? '1-day quota' : '2-day quota'})
-                    </span>
-                    <div className="flex items-baseline gap-1.5">
-                      <span className="text-3xl font-extrabold font-mono text-slate-100">
-                        {totalSearches}
+                <div className="space-y-4">
+                  {/* Usage Stats */}
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div className="flex flex-col">
+                      <span className="text-[11px] font-mono text-slate-400">
+                        Words Analyzed ({periodDays === 1 ? '1-day quota' : '2-day quota'})
                       </span>
-                      <span className="text-xs font-mono text-slate-500">/ {maxAllowedLimit}</span>
+                      <div className="flex items-baseline mt-1">
+                        <span className="text-2xl font-bold font-mono text-slate-100">
+                          {totalSearches}
+                        </span>
+                        <span className="text-xs font-mono text-slate-500 ml-1.5">/ {maxAllowedLimit}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-blue-900/60 border border-lime-400/20 text-center">
+                      <span className="text-[10px] font-mono text-lime-300 block font-bold">STATUS</span>
+                      <span className="text-xs font-mono text-slate-100">
+                        {isPremium ? 'Premium' : 'Free (2d/100w)'}
+                      </span>
                     </div>
                   </div>
 
-                  <div className="px-3 py-1.5 rounded-xl bg-blue-900/60 border border-lime-400/20 text-right">
-                    <span className="text-[10px] font-mono text-lime-300 block font-bold">STATUS</span>
-                    <span className="text-xs font-mono text-slate-100">
-                      {isPremium ? 'Premium' : 'Free (2d/100w)'}
-                    </span>
-                  </div>
-
-                  <div className="mb-4">
-                    <div className="flex items-center justify-between text-xs font-mono text-slate-300 mb-1.5">
+                  {/* Practice Goal */}
+                  <div className="flex flex-col">
+                    <div className="flex items-center justify-between text-xs font-mono text-slate-300 mb-2">
                       <span>Practice Goal</span>
                       <span className="text-slate-100 font-bold">
                         {isGoalSet ? `${progressPercent}%` : 'Set Goal'}
@@ -555,7 +558,7 @@ export default function App() {
                     </div>
 
                     {!isGoalSet ? (
-                      <div className="flex items-center gap-2 mt-1">
+                      <div className="flex items-center gap-2">
                         <input
                           type="number"
                           min="1"
@@ -563,31 +566,32 @@ export default function App() {
                           value={tempGoalInput}
                           onChange={(e) => setTempGoalInput(e.target.value)}
                           placeholder={`Max ${maxAllowedLimit}`}
-                          className="flex-1 px-3 py-1.5 bg-slate-900/60 border border-lime-400/30 rounded-xl text-slate-100 text-xs font-mono focus:outline-none focus:border-lime-400/50 focus:shadow-[0_0_10px_rgba(132,204,22,0.2)]"
+                          className="flex-1 px-3 py-2 bg-slate-900/60 border border-lime-400/30 rounded-xl text-slate-100 text-xs font-mono focus:outline-none focus:border-lime-400/50 focus:shadow-[0_0_10px_rgba(132,204,22,0.2)]"
                         />
                         <button
                           type="button"
                           onClick={handleConfirmGoal}
-                          className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-lime-400 to-cyan-400 hover:shadow-[0_0_15px_rgba(132,204,22,0.4)] text-slate-950 text-xs font-mono font-bold transition cursor-pointer"
+                          className="px-4 py-2 rounded-xl bg-gradient-to-r from-lime-400 to-cyan-400 hover:shadow-[0_0_15px_rgba(132,204,22,0.4)] text-slate-950 text-xs font-mono font-bold transition cursor-pointer"
                         >
-                          Set
+                          Set Goal
                         </button>
                       </div>
                     ) : (
                       <>
-                        <div className="w-full h-2 rounded-full bg-slate-900/60 border border-lime-400/10 overflow-hidden">
+                        <div className="w-full h-2.5 rounded-full bg-slate-900/60 border border-lime-400/10 overflow-hidden mt-2">
                           <div
                             className="h-full bg-gradient-to-r from-blue-500 via-lime-400 to-cyan-400 transition-all duration-500 rounded-full"
                             style={{ width: `${progressPercent}%` }}
                           />
                         </div>
-                        <span className="text-[10px] font-mono text-slate-500 mt-1 block">
-                          Target: {dailyTarget} words (Locked for this cycle)
-                        </span>
+                        <div className="text-xs font-mono text-slate-500 mt-1.5">
+                          Target: {dailyTarget} words • Locked for this period
+                        </div>
                       </>
                     )}
                   </div>
 
+                  {/* System Status */}
                   <div className="pt-3 border-t border-lime-400/10 flex items-center justify-between text-xs font-mono">
                     <span className="text-slate-400">Recall Readiness</span>
                     <span className="px-2 py-0.5 rounded-full bg-lime-500/15 text-lime-300 border border-lime-400/30 text-[10px] font-bold">
@@ -684,10 +688,6 @@ export default function App() {
       {showLegalModal && (
         <LegalModal
           onClose={() => setShowLegalModal(false)}
-          // We'll pass initialTab based on how we opened it?
-          // We don't have that info in the state.
-          // We'll update LegalModal to default to privacy and let the user switch tabs.
-          // For now, we'll just open it and the user can choose the tab.
         />
       )}
 
