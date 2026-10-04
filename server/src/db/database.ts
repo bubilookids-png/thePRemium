@@ -70,6 +70,28 @@ export async function initDatabase() {
       `
       CREATE INDEX IF NOT EXISTS idx_users_tg
       ON users(telegram_id);
+      `,
+
+      `
+      CREATE TABLE IF NOT EXISTS user_saved_words (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        telegram_id INTEGER NOT NULL,
+        word TEXT NOT NULL,
+        translation TEXT NOT NULL,
+        level TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+      `,
+
+      `
+      CREATE TABLE IF NOT EXISTS reading_sessions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        telegram_id INTEGER NOT NULL,
+        level TEXT NOT NULL,
+        score REAL NOT NULL,
+        words_recalled INTEGER NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
       `
     ],
     'write'

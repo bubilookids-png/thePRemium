@@ -14,6 +14,7 @@ import { QuizView } from './components/QuizView';
 import { AiLoader } from './components/AiLoader';
 import { CyberMatrixOrb } from './components/CyberMatrixOrb';
 import { LandingPage } from './components/LandingPage';
+import { RetentionReading } from './components/RetentionReading';
 import { WordBlitzModal } from './components/WordBlitzModal';
 import { QuickTranslator } from './components/QuickTranslator';
 import { LegalModal } from './components/LegalModal';
@@ -731,6 +732,11 @@ export default function App() {
                   />
                 )
               ) : null}
+              {view === 'reading' && (
+                <section id="reading-section" className="w-full">
+                  <RetentionReading currentUser={currentUser} />
+                </section>
+              )}
             </div>
           </main>
         )}
