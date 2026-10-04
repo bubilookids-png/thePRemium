@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 
 import { analyzeRouter } from './routes/analyze.js';
 import authRoutes from './routes/authRoutes.js';
+import { readingRouter } from './routes/readingRoutes.js';
 
 import { logger } from './utils/logger.js';
 import { initDatabase } from './db/database.js';
@@ -178,6 +179,11 @@ app.use(
 app.use(
   '/api/auth',
   authRoutes
+);
+
+app.use(
+  '/api/reading',
+  readingRouter
 );
 
 /*

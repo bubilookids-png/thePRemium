@@ -8,6 +8,7 @@ export function Card(props: {
   className?: string;
   rightSlot?: React.ReactNode;
   subtitle?: string;
+  onClick?: () => void;
 }) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
@@ -66,7 +67,7 @@ export function Card(props: {
           coneSpread={25}
           fillOpacity={0.65}
         >
-          <section className={`section-card relative overflow-hidden p-4 sm:p-6 bg-slate-950/80 backdrop-blur-md border border-lime-400/20 ${props.className || ''}`}>
+          <section className={`section-card relative overflow-hidden p-4 sm:p-6 bg-slate-950/80 backdrop-blur-md border border-lime-400/20 ${props.className || ''}`} onClick={props.onClick}>
             {/* Mouse glow: only works when hovering over card */}
             <div
               className="hidden sm:block pointer-events-none absolute -inset-px transition-opacity duration-300 z-0"
