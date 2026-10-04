@@ -21,6 +21,7 @@ import { LegalModal } from './components/LegalModal';
 import { ConsentModal } from './components/ConsentModal';
 import { hasValidCookieConsent, acceptCookieConsent } from './utils/consent';
 
+
 import type {
   AnalyzeResponse,
   SupportedLanguageCode
@@ -462,14 +463,15 @@ export default function App() {
       </div>
 
       <Sidebar
-        isOpen={isSidebarOpen}
-        onToggle={() => setIsSidebarOpen((prev) => !prev)}
-        onFocusSearch={focusSearchInput}
-        onOpenBlitz={triggerBlitz}
-        onOpenTranslate={triggerTranslate}
-        onOpenGetMore={() => setShowGetMoreModal(true)}
-        isAdmin={isAdmin}
-      />
+  isOpen={isSidebarOpen}
+  onToggle={() => setIsSidebarOpen((prev) => !prev)}
+  onFocusSearch={focusSearchInput}
+  onOpenBlitz={triggerBlitz}
+  onOpenTranslate={triggerTranslate}
+  onOpenReading={triggerReading}
+  onOpenGetMore={() => setShowGetMoreModal(true)}
+  isAdmin={isAdmin}
+/>
 
       <div
         className={`app-content relative z-10 flex flex-col min-h-screen transition-all duration-300 ease-in-out ${
