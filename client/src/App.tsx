@@ -1,6 +1,7 @@
 // src/App.tsx
 import GradientWaves from './components/GradientWaves';
 import WarpText from './components/WarpText';
+import { ActiveRecallWidget } from './components/ActiveRecallWidget';
 import React, { useMemo, useState, useEffect } from 'react';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
@@ -637,6 +638,15 @@ export default function App() {
             )}
 
             <div className="flex flex-col gap-6 w-full">
+              {/* Active Recall Warmup Widget */}
+              {currentUser && !showLanding && view !== 'reading' && (
+                <ActiveRecallWidget
+                  onTryFirstWord={handleTryFirstWord}
+                  onRestart={() => {
+                    // Optional: handle widget restart if needed
+                  }}
+                />
+              )}
               {view !== 'reading' && (
                 <div id="analyze-word-section" className="w-full">
                 <Card
