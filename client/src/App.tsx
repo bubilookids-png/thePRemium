@@ -166,7 +166,7 @@ export default function App() {
 
       if ((e.metaKey || e.ctrlKey) && keyLower === 'b') {
         e.preventDefault();
-        setIsSidebarOpen((prev) => !prev);
+        if (!showLanding) setIsSidebarOpen((prev) => !prev);
         return;
       }
 
@@ -203,7 +203,7 @@ export default function App() {
 
     window.addEventListener('keydown', handleGlobalKeyDown);
     return () => window.removeEventListener('keydown', handleGlobalKeyDown);
-  }, [word]);
+  }, [word, showLanding]);
 
   async function handleTelegramLogin() {
     let interval: NodeJS.Timeout | null = null;
@@ -462,26 +462,28 @@ export default function App() {
         />
       </div>
 
-      <Sidebar
-  isOpen={isSidebarOpen}
-  onToggle={() => setIsSidebarOpen((prev) => !prev)}
-  onFocusSearch={focusSearchInput}
-  onOpenBlitz={triggerBlitz}
-  onOpenTranslate={triggerTranslate}
-  onOpenReading={triggerReading}
-  onOpenGetMore={() => setShowGetMoreModal(true)}
-  isAdmin={isAdmin}
-/>
+      {!showLanding && (
+        <Sidebar
+          isOpen={isSidebarOpen}
+          onToggle={() => setIsSidebarOpen((prev) => !prev)}
+          onFocusSearch={focusSearchInput}
+          onOpenBlitz={triggerBlitz}
+          onOpenTranslate={triggerTranslate}
+          onOpenReading={triggerReading}
+          onOpenGetMore={() => setShowGetMoreModal(true)}
+          isAdmin={isAdmin}
+        />
+      )}
 
       <div
         className={`app-content relative z-10 flex flex-col min-h-screen transition-all duration-300 ease-in-out ${
-          isSidebarOpen ? 'lg:pl-64' : 'lg:pl-12'
+          showLanding ? '' : isSidebarOpen ? 'lg:pl-64' : 'lg:pl-12'
         }`}
       >
         <Header
           currentUser={currentUser}
           onLogout={handleLogout}
-          onToggleSidebar={() => setIsSidebarOpen(true)}
+          onToggleSidebar={showLanding ? undefined : () => setIsSidebarOpen(true)}
         />
 
         {!currentUser && (
@@ -489,7 +491,10 @@ export default function App() {
             {!showLanding ? (
               <button
                 type="button"
-                onClick={() => setShowLanding(true)}
+                onClick={() => {
+                  setIsSidebarOpen(false);
+                  setShowLanding(true);
+                }}
                 className="px-3 py-1 rounded-full bg-slate-900/70 hover:bg-blue-900/70 border border-lime-400/20 text-[11px] font-mono text-lime-300 transition cursor-pointer"
               >
                 ← Bosh sahifa
