@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Card } from './Card';
-import { apiFetch } from '../services/apiClient';
-import { translateText } from '../services/translatorApi';
+import { apiFetch } from '../client/src/services/apiClient';
+import { translateText } from '../client/src/services/translatorApi';
 
 // --- Types ---
 type Level = 'A2' | 'B1' | 'B2';
@@ -73,9 +72,8 @@ export function RetentionReading({ currentUser }: RetentionReadingProps) {
   const [wordSaved, setWordSaved] = useState(false);
   const [isEvaluating, setIsEvaluating] = useState(false);
 
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const activeWordRef = useRef<string | null>(null);
 
   useEffect(() => {
     return () => stopTimer();
@@ -227,35 +225,13 @@ export function RetentionReading({ currentUser }: RetentionReadingProps) {
 
   // Word Interaction
   const handleWordClick = async (word: string, e: React.MouseEvent) => {
-    if (phase !== 'review') return; // Only allow translation in Review phase
-
     const cleanWord = word.replace(/[.,!?;:"()]/g, '').toLowerCase();
     if (!cleanWord) return;
 
-    activeWordRef.current = cleanWord;
-
-    const target = e.target as HTMLElement;
-    const rect = target.getBoundingClientRect();
-    
-    // Popup approximate dimensions to calculate boundaries
-    const POPUP_WIDTH = 260;
-    const POPUP_HEIGHT = 130;
-    
-    let x = rect.left + window.scrollX;
-    let y = rect.bottom + window.scrollY + 8;
-    
-    // Prevent clipping right edge
-    if (x + POPUP_WIDTH > window.innerWidth) {
-      x = window.innerWidth - POPUP_WIDTH - 16;
-    }
-    // Prevent clipping left edge
-    if (x < 16) {
-      x = 16;
-    }
-    // Prevent clipping bottom edge
-    if (rect.bottom + POPUP_HEIGHT > window.innerHeight) {
-       y = rect.top + window.scrollY - POPUP_HEIGHT - 8;
-    }
+    const rect = (e.target as HTMLElement).getBoundingClientRect();
+    // Intelligent positioning
+    const x = Math.min(rect.left + window.scrollX, window.innerWidth - 260);
+    const y = rect.bottom + window.scrollY + 8;
     
     setShowTooltip({ word: cleanWord, x, y });
     setTranslation(null);
@@ -264,8 +240,6 @@ export function RetentionReading({ currentUser }: RetentionReadingProps) {
 
     try {
       const translationResult = await translateText(cleanWord, 'uz');
-      if (activeWordRef.current !== cleanWord) return; // Prevent race conditions
-
       if (translationResult) {
         setTranslation(translationResult);
       } else {
@@ -273,12 +247,9 @@ export function RetentionReading({ currentUser }: RetentionReadingProps) {
       }
     } catch (err) {
       console.error(err);
-      if (activeWordRef.current !== cleanWord) return;
       setTranslation('Error translating');
     } finally {
-      if (activeWordRef.current === cleanWord) {
-        setTranslating(false);
-      }
+      setTranslating(false);
     }
   };
 
@@ -444,7 +415,11 @@ export function RetentionReading({ currentUser }: RetentionReadingProps) {
             {currentText.content.split(/\s+/).map((word, i) => (
               <span
                 key={i}
-                className="mr-1.5 inline-block"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleWordClick(word, e);
+                }}
+                className="mr-1.5 cursor-pointer hover:bg-lime-500/20 hover:text-lime-300 rounded px-1 transition-colors inline-block"
               >
                 {word}
               </span>
@@ -461,6 +436,36 @@ export function RetentionReading({ currentUser }: RetentionReadingProps) {
             <span className="group-hover:translate-x-1 transition-transform">&rarr;</span>
           </button>
         </div>
+
+        {/* Tooltip */}
+        {showTooltip && (
+          <div
+            className="absolute z-50 bg-slate-950/95 backdrop-blur-sm border border-lime-400/50 rounded-2xl p-4 shadow-[0_10px_40px_rgba(0,0,0,0.5)] flex flex-col gap-3 min-w-[220px] max-w-[280px] fade-in"
+            style={{ top: showTooltip.y, left: showTooltip.x }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-center border-b border-slate-800 pb-2">
+              <span className="font-bold text-lime-300 text-lg truncate pr-2">{showTooltip.word}</span>
+              <button 
+                onClick={() => playAudio(showTooltip.word)} 
+                className="text-slate-400 hover:text-cyan-300 bg-slate-900 p-1.5 rounded-full transition-colors"
+                title="Pronounce"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m7.072 0a5 5 0 01-7.072 0M4.464 4.464A5 5 0 003.393 11.527l-.392.392a1 1 0 001.414 1.414l.392.392a1 1 0 001.414-1.414l.392-.392A5 5 0 0111.527 3.393l.392-.392a1 1 0 00-1.414-1.414l-.392-.392z" /></svg>
+              </button>
+            </div>
+            <div className="text-slate-200 text-sm py-1 font-medium">
+              {translating ? <span className="animate-pulse text-slate-400">Translating...</span> : translation}
+            </div>
+            <button
+              onClick={saveWord}
+              disabled={wordSaved || !translation || translating}
+              className={`w-full text-xs font-bold py-2 px-3 rounded-xl transition-all ${wordSaved ? 'bg-lime-500/20 text-lime-400 border border-lime-400/30' : 'bg-slate-800 text-cyan-300 hover:bg-slate-700 border border-transparent'}`}
+            >
+              {wordSaved ? '✓ Saved to Vocab' : '+ Save Word'}
+            </button>
+          </div>
+        )}
       </div>
     );
   }
@@ -619,8 +624,8 @@ export function RetentionReading({ currentUser }: RetentionReadingProps) {
       <div className="w-full max-w-3xl mx-auto flex flex-col gap-6 fade-in relative" onClick={() => showTooltip && setShowTooltip(null)}>
         <div className="flex justify-between items-center bg-slate-900/90 backdrop-blur-md border border-lime-400/30 p-4 rounded-2xl shadow-lg sticky top-4 z-40">
            <div>
-             <h2 className="text-lg font-bold text-lime-300">Review & Learn</h2>
-             <p className="text-xs text-slate-400">Click any word to see its translation</p>
+             <h2 className="text-lg font-bold text-lime-300">Original Text Review</h2>
+             <p className="text-xs text-slate-400">{currentText.title}</p>
            </div>
            <button 
              onClick={() => setPhase('evaluation')} 

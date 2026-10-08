@@ -92,6 +92,17 @@ export async function initDatabase() {
         words_recalled INTEGER NOT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       );
+      `,
+
+      `
+      CREATE TABLE IF NOT EXISTS reading_articles (
+        id TEXT PRIMARY KEY,
+        level TEXT NOT NULL,
+        title TEXT NOT NULL,
+        content TEXT NOT NULL,
+        key_concepts TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
       `
     ],
     'write'
