@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import type { VocabAnalysis, FieldSources, SourceType } from '../types/vocab';
 import { Card } from './Card';
 import { SourceBadge } from './SourceBadge';
+import { apiFetch } from '../services/apiClient';
 
 function Pill({
   children,
@@ -26,14 +27,56 @@ interface AnalysisViewProps {
   source?: 'local_database' | 'ai_engine' | string;
   sources?: FieldSources;
   onStartQuiz: () => void;
+  currentUser?: { id: number; first_name?: string } | null;
 }
 
 export function AnalysisView({
   analysis: a,
   source,
   sources,
-  onStartQuiz
+  onStartQuiz,
+  currentUser
 }: AnalysisViewProps) {
+  const [isSaving, setIsSaving] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const [saveFeedback, setSaveFeedback] = useState<string | null>(null);
+
+  // Reset saved state when analyzed word changes
+  useEffect(() => {
+    setIsSaved(false);
+    setSaveFeedback(null);
+  }, [a.word]);
+
+  const handleSaveWord = async () => {
+    if (isSaving || isSaved) return;
+
+    if (!currentUser?.id) {
+      alert("So'zni Turso bulut bazasiga saqlash uchun avval Telegram orqali kiring!");
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      await apiFetch('/api/saved-words', {
+        method: 'POST',
+        body: JSON.stringify({
+          telegram_id: currentUser.id,
+          english_word: a.word,
+          translation: a.translation,
+          source_feature: 'analyzer'
+        })
+      });
+      setIsSaved(true);
+      setSaveFeedback('Saved to Turso!');
+      setTimeout(() => setSaveFeedback(null), 3000);
+    } catch (err) {
+      console.error('Failed to save word:', err);
+      alert('So\'zni saqlashda xatolik yuz berdi. Qayta urinib ko\'ring.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const isOverallDb = source === 'local_database' || source === 'db';
   const defaultSource: SourceType = isOverallDb ? 'db' : 'ai';
 
@@ -50,8 +93,38 @@ export function AnalysisView({
           title="Word overview"
           subtitle="The essentials at a glance"
           rightSlot={
-            <div className="flex items-center gap-2">
+            <div className="flex items-center flex-wrap gap-2">
               <SourceBadge type={getSource(sources?.definition)} />
+              
+              <button
+                type="button"
+                onClick={handleSaveWord}
+                disabled={isSaving}
+                className={`action-btn flex items-center gap-1.5 transition-all duration-200 cursor-pointer ${
+                  isSaved
+                    ? 'bg-lime-500/20 text-lime-300 border border-lime-400/40 shadow-[0_0_12px_rgba(163,230,53,0.3)]'
+                    : 'hover:border-lime-400/40 hover:text-lime-300'
+                }`}
+                title="Save word to Turso database"
+              >
+                {isSaving ? (
+                  <>
+                    <span className="inline-block animate-spin text-xs">⟳</span>
+                    <span>Saving...</span>
+                  </>
+                ) : isSaved ? (
+                  <>
+                    <span className="text-lime-400">✓</span>
+                    <span>Saved</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-lime-400 font-bold">+</span>
+                    <span>Save Word</span>
+                  </>
+                )}
+              </button>
+
               <button
                 onClick={onStartQuiz}
                 className="action-btn"

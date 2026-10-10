@@ -7,6 +7,7 @@ import dotenv from 'dotenv';
 import { analyzeRouter } from './routes/analyze.js';
 import authRoutes from './routes/authRoutes.js';
 import { readingRouter } from './routes/readingRoutes.js';
+import { savedWordsRouter } from './routes/savedWordsRoutes.js';
 
 import { logger } from './utils/logger.js';
 import { initDatabase } from './db/database.js';
@@ -113,11 +114,15 @@ app.use(
     methods: [
       'POST',
       'GET',
+      'DELETE',
+      'PUT',
+      'PATCH',
       'OPTIONS'
     ],
 
     allowedHeaders: [
-      'Content-Type'
+      'Content-Type',
+      'Authorization'
     ],
 
     credentials: true,
@@ -184,6 +189,11 @@ app.use(
 app.use(
   '/api/reading',
   readingRouter
+);
+
+app.use(
+  '/api/saved-words',
+  savedWordsRouter
 );
 
 /*

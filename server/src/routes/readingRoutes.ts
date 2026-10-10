@@ -28,17 +28,25 @@ router.post('/session', async (req, res) => {
 
 const saveWordSchema = z.object({
   telegram_id: z.number(),
-  word: z.string(),
+  word: z.string().optional(),
+  english_word: z.string().optional(),
   translation: z.string(),
-  level: z.string()
+  source_feature: z.string().optional(),
+  level: z.string().optional()
 });
 
 router.post('/save-word', async (req, res) => {
   try {
     const data = saveWordSchema.parse(req.body);
+    const englishWord = (data.english_word || data.word || '').trim();
+    if (!englishWord) {
+      return res.status(400).json({ error: 'Word is required' });
+    }
+    const sourceFeature = data.source_feature || (data.level ? `reading_${data.level}` : 'retention_reading');
+
     await db.execute({
-      sql: `INSERT INTO user_saved_words (telegram_id, word, translation, level) VALUES (?, ?, ?, ?)`,
-      args: [data.telegram_id, data.word, data.translation, data.level]
+      sql: `INSERT INTO user_saved_words (telegram_id, english_word, translation, source_feature) VALUES (?, ?, ?, ?)`,
+      args: [data.telegram_id, englishWord, data.translation.trim(), sourceFeature]
     });
     res.json({ success: true });
   } catch (error) {
@@ -88,8 +96,9 @@ router.get('/translate', async (req, res) => {
       args: [cleanWord]
     });
 
-    if (result.rows.length > 0 && result.rows[0].translation_uz) {
-      return res.json({ translation: result.rows[0].translation_uz });
+    const firstRow = result.rows[0] as any;
+    if (firstRow && firstRow.translation_uz) {
+      return res.json({ translation: firstRow.translation_uz });
     }
     
     return res.json({ translation: null });
@@ -100,3 +109,4 @@ router.get('/translate', async (req, res) => {
 });
 
 export const readingRouter = router;
+

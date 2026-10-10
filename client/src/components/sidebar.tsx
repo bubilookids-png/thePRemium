@@ -8,6 +8,7 @@ interface SidebarProps {
   onOpenTranslate: () => void;
   onOpenGetMore?: () => void;
   onOpenReading?: () => void;
+  onOpenSavedWords?: () => void;
   isAdmin?: boolean;
 }
 
@@ -25,6 +26,7 @@ export function Sidebar({
   onOpenTranslate,
   onOpenGetMore,
   onOpenReading,
+  onOpenSavedWords,
   isAdmin = false
 }: SidebarProps) {
   const [ripples, setRipples] = useState<RippleEffect[]>([]);
@@ -521,6 +523,26 @@ export function Sidebar({
     {isOpen && <span className="text-xs font-mono text-slate-200 font-medium whitespace-nowrap">Retention Reading</span>}
   </div>
   {isOpen && <kbd className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-slate-900/70 border border-lime-400/30 text-lime-300/70">⇧R</kbd>}
+</button>
+
+<button
+  type="button"
+  onClick={() => {
+    if (onOpenSavedWords) onOpenSavedWords();
+    if (window.innerWidth < 1024) onToggle();
+  }}
+  className={`group flex items-center p-2 rounded-xl transition-all duration-200 cursor-pointer active:scale-[0.98] ${
+    isOpen 
+      ? 'justify-between hover:bg-lime-500/15 hover:shadow-[0_0_15px_rgba(132,204,22,0.3)] hover:border-lime-400/40 px-2.5 border border-transparent' 
+      : 'justify-center hover:bg-lime-500/15 hover:shadow-[0_0_15px_rgba(132,204,22,0.3)] w-full border border-transparent'
+  }`}
+  title="My Saved Words"
+>
+  <div className="flex items-center gap-3">
+    <span className="text-sm text-lime-400">🔖</span>
+    {isOpen && <span className="text-xs font-mono text-slate-200 font-medium whitespace-nowrap">My Saved Words</span>}
+  </div>
+  {isOpen && <kbd className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-slate-900/70 border border-lime-400/30 text-lime-300/70">⇧S</kbd>}
 </button>
 
             {/* Admin Only Section */}
