@@ -93,7 +93,7 @@ export function CookieModal({ onClose, onOpenLegal }: CookieModalProps) {
                   </span>
                 </div>
                 <p className="text-[11px] text-slate-400 mt-0.5">
-                  Telegram orqali kirish (avtorizatsiya), seans holati va kunlik so'z kvotasini nazorat qilish.
+                  Telegram orqali kirish (avtorizatsiya), brauzer bot tekshiruvi (BotD), seans holati va kunlik so'z kvotasini nazorat qilish.
                 </p>
               </div>
               <input

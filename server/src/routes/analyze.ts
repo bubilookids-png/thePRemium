@@ -1,10 +1,22 @@
 import { Router } from 'express';
 import { z } from 'zod';
+import rateLimit from 'express-rate-limit';
 import { analyzeWordService } from '../services/analyzeService.js';
 import { isLikelyValidTerm, normalizeTerm } from '../utils/validate.js';
 import { incrementUserSearch } from '../services/telegramAuthService.js';
 
 export const analyzeRouter = Router();
+
+const analyzeLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  limit: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    error: 'Too many analysis requests. Please wait a moment and try again.'
+  },
+  keyGenerator: (req) => (req.headers['x-forwarded-for'] || req.ip || req.socket.remoteAddress || 'unknown') as string
+});
 
 const bodySchema = z.object({
   word: z.string().min(1).max(80),
@@ -15,7 +27,12 @@ const bodySchema = z.object({
   telegramId: z.number().optional()
 });
 
-analyzeRouter.post('/', async (req, res) => {
+analyzeRouter.post('/', analyzeLimiter, async (req, res) => {
+  const clientBotSignal = req.headers['x-client-bot-signal'];
+  if (clientBotSignal) {
+    console.warn(`[Telemetry] Client reported bot signal: ${clientBotSignal} for IP ${req.ip}`);
+  }
+
   console.log('REQUEST BODY:', req.body);
 
   const parsed = bodySchema.safeParse(req.body);

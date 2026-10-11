@@ -66,24 +66,31 @@ export function LegalModal({ onClose, initialTab }: LegalModalProps) {
                 So'z tahlillari uchun sun'iy intellekt modellari ishlatilishi mumkin. Ushbu modellardan olingan natijalar faqat ta'lim maqsadlari
                 uchun foydalaniladi va shaxsiy ma'lumotlar bilan biriktirilmaydi.
               </p>
-              <h4 className="text-sm font-bold text-lime-300">4. Ma'lumot xavfsizligi</h4>
+              <h4 className="text-sm font-bold text-lime-300">4. Xavfsizlik va Botdan Himoya (Bot Detection)</h4>
               <p>
-                Barcha ma'lumotlar brauzeringizning localStorage'da saqlanadi va hech qachon serverga yubormaymiz. Sizding ma'lumotlaringiz
+                Platforma avtomatlashtirilgan spam va soxta bot so'rovlaridan himoyalanish uchun ochiq manbali brauzer darajasidagi
+                FingerprintJS BotD kutubxonasidan (<code className="text-lime-300 font-bold">monitoring: false</code> parametrida) foydalanadi.
+                Ushbu tekshiruv faqat brauzeringiz ichida lokal bajariladi, uchinchi tomon serverlariga tahliliy ma'lumotlar yubormaydi,
+                doimiy visitor barmoq izi (fingerprint) saqlamaydi va reklama cookie fayllarini ishlatmaydi.
+              </p>
+              <h4 className="text-sm font-bold text-lime-300">5. Ma'lumot xavfsizligi</h4>
+              <p>
+                Barcha ma'lumotlar brauzeringizning localStorage'da saqlanadi va hech qachon shaxsiy parollarni saqlamaymiz. Sizning ma'lumotlaringiz
                 faqat sizning qurilmangizda saqlanadi.
               </p>
-              <h4 className="text-sm font-bold text-lime-300">5. Ma'lumotni o'chirish</h4>
+              <h4 className="text-sm font-bold text-lime-300">6. Ma'lumotni o'chirish</h4>
               <p>
                 Siz lokal ma'lumotlaringizni brauzer sozlamalaridan yoki ilovani tozalash orqali o'chirishingiz mumkin. Ilova yangilangach
-                ham, oldin saqlangan ma'lumotlar saqlan qoladi.
+                ham, oldin saqlangan ma'lumotlar saqlanib qoladi.
               </p>
-              <h4 className="text-sm font-bold text-lime-300">6. Aloqa</h4>
+              <h4 className="text-sm font-bold text-lime-300">7. Aloqa</h4>
               <p>
                 Maxfiylik siyosati bilan bog'liq savollaringiz bo'lsa, ilova ichidagi aloqa bo'limi yoki [admin@univebooster.com](mailto:admin@univebooster.com) orqali bog'laning.
               </p>
-              <h4 className="text-sm font-bold text-lime-300">7. Siyosat yangilanishi</h4>
+              <h4 className="text-sm font-bold text-lime-300">8. Siyosat yangilanishi</h4>
               <p>
                 Ushbu maxfiylik siyosati vaqti bilan yangilanishi mumkin. Yangi versiya ilova ichida e'lon qilinadi va foydalanuvchilar
-                yangilardan habarдар qilinadi.
+                yangilardan xabardor qilinadi.
               </p>
             </>
           ) : (

@@ -8,21 +8,20 @@ const router = Router();
 
 const checkSessionLimiter = rateLimit({
   windowMs: 60 * 1000, 
-  limit: 60, 
+  limit: 90, 
   standardHeaders: true,
   legacyHeaders: false,
-  message: { success: false, error: 'Too many requests.' },
-  skip: (req) => req.method === 'GET',
-  keyGenerator: (req) => (req.ip || req.socket.remoteAddress || 'unknown') as string
+  message: { success: false, error: 'Too many status check requests. Please slow down.' },
+  keyGenerator: (req) => (req.headers['x-forwarded-for'] || req.ip || req.socket.remoteAddress || 'unknown') as string
 });
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, 
-  limit: 10, 
+  limit: 20, 
   standardHeaders: true,
   legacyHeaders: false,
-  message: { success: false, error: 'Too many authentication attempts.' },
-  keyGenerator: (req) => (req.ip || req.socket.remoteAddress || 'unknown') as string
+  message: { success: false, error: 'Too many authentication attempts. Please try again later.' },
+  keyGenerator: (req) => (req.headers['x-forwarded-for'] || req.ip || req.socket.remoteAddress || 'unknown') as string
 });
 
 // Session endpoint

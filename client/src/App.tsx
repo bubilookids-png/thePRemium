@@ -21,7 +21,9 @@ import { LegalModal } from './components/LegalModal';
 import { ConsentModal } from './components/ConsentModal';
 import { CookieModal, hasGivenCookieConsent } from './components/CookieModal';
 import { MySavedWords } from './components/MySavedWords';
+import { BotWarningModal } from './components/BotWarningModal';
 import { hasValidCookieConsent, acceptCookieConsent } from './utils/consent';
+import { detectBot } from './services/botDetection';
 
 
 import type {
@@ -88,6 +90,8 @@ export default function App() {
   const [data, setData] = useState<AnalyzeResponse | null>(null);
   const [view, setView] = useState<View>('analysis');
   const [waitingAuth, setWaitingAuth] = useState(false);
+  const [isCheckingBot, setIsCheckingBot] = useState(false);
+  const [botWarning, setBotWarning] = useState<{ isBot: boolean; botKind?: string } | null>(null);
   const [showLimitModal, setShowLimitModal] = useState(false);
   const [showGetMoreModal, setShowGetMoreModal] = useState(false);
 
@@ -415,11 +419,30 @@ export default function App() {
     window.speechSynthesis.speak(utterance);
   };
 
+  // BotD verification prior to initiating Telegram login
+  const runBotCheckAndLogin = async () => {
+    setIsCheckingBot(true);
+    try {
+      const check = await detectBot();
+      if (check.bot) {
+        setBotWarning({ isBot: true, botKind: check.botKind });
+        return;
+      }
+      handleTelegramLogin();
+    } catch (err) {
+      console.warn('[BotD] Error checking bot status, gracefully proceeding:', err);
+      handleTelegramLogin();
+    } finally {
+      setIsCheckingBot(false);
+    }
+  };
+
   // Consent handling
   const handleConsentAccept = () => {
     acceptCookieConsent(false); // We don't use analytics
     setShowConsentModal(false);
-    handleTelegramLogin(); // Continue with Telegram login after consent
+    // User agreed to consent -> perform BotD check -> Telegram auth
+    runBotCheckAndLogin();
   };
 
   const handleConsentCancel = () => {
@@ -428,22 +451,16 @@ export default function App() {
 
   const handleOpenTerms = () => {
     setShowLegalModal(true);
-    // We'll open the LegalModal on the terms tab
-    // We need to pass initialTab to LegalModal
-    // We'll update LegalModal to accept an initialTab prop
-    // For now, we'll just open it and the user can switch tabs.
-    // We'll update LegalModal in a moment.
   };
 
   const handleOpenPrivacy = () => {
     setShowLegalModal(true);
-    // Same as above
   };
 
-  // New sign-up flow with consent
+  // New sign-up flow with consent and BotD check
   const handleSignUpWithConsent = () => {
     if (hasValidCookieConsent()) {
-      handleTelegramLogin();
+      runBotCheckAndLogin();
     } else {
       setShowConsentModal(true);
     }
@@ -531,7 +548,7 @@ export default function App() {
             onStart={handleTryFirstWord}
             onLogin={handleSignUpWithConsent} // Changed to use consent-aware sign-up
             isLoggedIn={Boolean(currentUser)}
-            waitingAuth={waitingAuth}
+            waitingAuth={waitingAuth || isCheckingBot}
           />
         ) : (
           <main className="page flex-1 w-full max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
@@ -896,6 +913,17 @@ export default function App() {
           onAccept={handleConsentAccept}
           onOpenTerms={handleOpenTerms}
           onOpenPrivacy={handleOpenPrivacy}
+        />
+      )}
+
+      {botWarning?.isBot && (
+        <BotWarningModal
+          botKind={botWarning.botKind}
+          onClose={() => setBotWarning(null)}
+          onRetry={() => {
+            setBotWarning(null);
+            runBotCheckAndLogin();
+          }}
         />
       )}
 
