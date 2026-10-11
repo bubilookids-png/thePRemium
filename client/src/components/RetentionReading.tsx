@@ -133,6 +133,7 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
   const [phase, setPhase] = useState<Phase>('selection');
   const [level, setLevel] = useState<Level | null>(null);
   const [currentText, setCurrentText] = useState<TextData | null>(null);
+  const [availableArticles, setAvailableArticles] = useState<TextData[]>([]);
 
   // Timer State
   const [timeLeft, setTimeLeft] = useState(0);
@@ -241,6 +242,7 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
     try {
       const res = await apiFetch<{ articles: TextData[] }>(`/api/reading/articles?level=${selectedLevel}`);
       if (res.articles && res.articles.length > 0) {
+        setAvailableArticles(res.articles);
         const randomText = res.articles[Math.floor(Math.random() * res.articles.length)];
         setCurrentText(randomText);
         setPhase('setup');
@@ -292,24 +294,51 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
   const evaluateRecall = async (text: string) => {
     if (!currentText) return;
 
-    const lowerText = text.toLowerCase();
+    // Clean user text by lowercasing and replacing punctuation with spaces
+    const cleanUserText = text.toLowerCase().replace(/[.,!?;:()\[\]{}"'\\\/—\-]/g, ' ');
+    const userWords = cleanUserText.split(/\s+/).filter(Boolean);
+
     const matched: string[] = [];
     const missed: string[] = [];
 
-    currentText.keyConcepts.forEach((concept) => {
-      const conceptWords = concept.toLowerCase().split(' ').filter((w) => w.length > 2);
-      const isMatched = conceptWords.length > 0
-        ? conceptWords.some((w) => lowerText.includes(w)) || lowerText.includes(concept.toLowerCase())
-        : lowerText.includes(concept.toLowerCase());
+    // Helper for fuzzy word matching (stem / root matching for plurals and suffixes)
+    const matchesWord = (conceptWord: string, userWord: string) => {
+      if (conceptWord === userWord) return true;
+      if (conceptWord.length >= 4 && userWord.length >= 4) {
+        const stemLength = Math.min(conceptWord.length, userWord.length, 5);
+        if (conceptWord.slice(0, stemLength) === userWord.slice(0, stemLength)) {
+          return true;
+        }
+      }
+      return false;
+    };
 
-      if (isMatched) {
+    currentText.keyConcepts.forEach((concept) => {
+      const cleanConcept = concept.toLowerCase().replace(/[.,!?;:()\[\]{}"'\\\/—\-]/g, ' ').trim();
+      
+      // 1. Direct phrase match
+      if (cleanUserText.includes(cleanConcept)) {
+        matched.push(concept);
+        return;
+      }
+
+      // 2. Word-level breakdown (key facts and names)
+      const conceptWords = cleanConcept.split(/\s+/).filter((w) => w.length > 2);
+      const hasMatch = conceptWords.length > 0
+        ? conceptWords.some((cWord) => userWords.some((uWord) => matchesWord(cWord, uWord)))
+        : userWords.some((uWord) => matchesWord(cleanConcept, uWord));
+
+      if (hasMatch) {
         matched.push(concept);
       } else {
         missed.push(concept);
       }
     });
 
-    const calculatedScore = Math.round((matched.length / currentText.keyConcepts.length) * 100);
+    const calculatedScore = Math.min(
+      100,
+      Math.max(0, Math.round((matched.length / Math.max(1, currentText.keyConcepts.length)) * 100))
+    );
     setScore(calculatedScore);
     setMatchedConcepts(matched);
     setMissedConcepts(missed);
@@ -323,7 +352,7 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
             telegram_id: currentUser.id,
             level: currentText.level,
             score: calculatedScore,
-            words_recalled: text.split(/\s+/).filter((w) => w.length > 0).length
+            words_recalled: userWords.length
           })
         });
       } catch (err) {
@@ -640,6 +669,42 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
               </p>
             </div>
 
+            {/* Topic Selector / Shuffle Bar */}
+            {availableArticles.length > 1 && (
+              <div className="p-3.5 bg-slate-950/80 rounded-xl border border-lime-400/20 space-y-2">
+                <div className="flex items-center justify-between text-[11px] text-slate-400">
+                  <span className="font-mono font-bold text-lime-400">
+                    ARTICLE {(availableArticles.findIndex((a) => a.id === currentText.id) + 1)} OF {availableArticles.length}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const curIdx = availableArticles.findIndex((a) => a.id === currentText.id);
+                      const nextIdx = (curIdx + 1) % availableArticles.length;
+                      setCurrentText(availableArticles[nextIdx]);
+                    }}
+                    className="text-xs text-lime-400 hover:text-lime-300 font-bold cursor-pointer flex items-center gap-1 transition"
+                  >
+                    <span>🔀 Next Article</span>
+                  </button>
+                </div>
+                <select
+                  value={currentText.id}
+                  onChange={(e) => {
+                    const found = availableArticles.find((a) => a.id === e.target.value);
+                    if (found) setCurrentText(found);
+                  }}
+                  className="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-2 text-xs text-lime-300 font-medium focus:outline-none focus:border-lime-400/60 cursor-pointer"
+                >
+                  {availableArticles.map((art, idx) => (
+                    <option key={art.id} value={art.id}>
+                      [{idx + 1 < 10 ? `0${idx + 1}` : idx + 1}] {art.title} ({art.content.split(/\s+/).length} words)
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             <div className="space-y-3 bg-slate-950/60 p-4 rounded-xl border border-slate-800/80 text-xs text-slate-300">
               <div className="flex items-center justify-between">
                 <span className="flex items-center gap-2 text-slate-400">
@@ -859,7 +924,10 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
             <div className="leading-relaxed text-sm sm:text-base font-sans select-text">
               {words.map((w, idx) => {
                 const clean = w.toLowerCase().replace(/[.,!?;:"()]/g, '');
-                const isMatched = clean.length > 2 && matchedConcepts.some((c) => c.toLowerCase().includes(clean));
+                const isMatched = clean.length > 2 && matchedConcepts.some((c) => {
+                  const cLow = c.toLowerCase();
+                  return cLow.includes(clean) || clean.includes(cLow) || (clean.length >= 4 && cLow.includes(clean.slice(0, 4)));
+                });
                 if (isMatched) {
                   return (
                     <span

@@ -63,8 +63,8 @@ router.get('/articles', async (req, res) => {
     }
 
     const result = await db.execute({
-      sql: `SELECT id, level, title, content, key_concepts FROM reading_articles WHERE level = ?`,
-      args: [level]
+      sql: `SELECT id, level, title, content, key_concepts FROM reading_articles WHERE UPPER(level) = UPPER(?) ORDER BY id ASC`,
+      args: [level.trim()]
     });
 
     const articles = result.rows.map((r: any) => ({

@@ -1,6 +1,7 @@
 import { createClient } from '@libsql/client';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { ALL_60_ARTICLES } from './readingArticlesData.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -150,44 +151,23 @@ export async function initDatabase() {
     await db.execute(`ALTER TABLE words ADD COLUMN updated_at DATETIME DEFAULT CURRENT_TIMESTAMP`);
   } catch {}
 
-  // Seed default reading articles if table is empty
+  // Seed retention reading articles if fewer than 60 articles are present
   try {
     const articleCountRes = await db.execute(`SELECT COUNT(*) as count FROM reading_articles`);
     const articleCount = Number((articleCountRes.rows[0] as any)?.count || 0);
 
-    if (articleCount === 0) {
-      console.log('📚 [DB] Seeding default reading articles into Turso/SQLite database...');
-      const seedArticles = [
-        {
-          id: 'a2-1',
-          level: 'A2',
-          title: 'The Tallest Mammals',
-          content: 'Giraffes are the tallest mammals on Earth. They live in Africa. A giraffe has a very long neck, but it has only seven bones in its neck. This is the same number of bones as a human has. Giraffes eat leaves from high trees. Their favorite food is the acacia tree. A giraffe has a long, blue tongue to help it pull leaves from branches. They do not drink a lot of water because they get water from the leaves they eat.',
-          key_concepts: JSON.stringify(['giraffes', 'tallest', 'africa', 'long neck', 'seven bones', 'leaves', 'acacia', 'blue tongue', 'water'])
-        },
-        {
-          id: 'b1-1',
-          level: 'B1',
-          title: 'The Dawn of Computing',
-          content: 'Early computing began long before modern electronic devices existed. One of the first mechanical computers was the Analytical Engine, designed by Charles Babbage in the 1830s. It used punch cards for input and could perform complex mathematical calculations. Ada Lovelace is often considered the first computer programmer because she wrote an algorithm for this machine. The transition to electronic computers happened during World War II with machines like ENIAC. These massive computers used vacuum tubes, generated an enormous amount of heat, and filled entire rooms, yet they were less powerful than a simple modern smartphone.',
-          key_concepts: JSON.stringify(['early computing', 'analytical engine', 'charles babbage', 'punch cards', 'ada lovelace', 'programmer', 'eniac', 'world war ii', 'vacuum tubes', 'smartphone'])
-        },
-        {
-          id: 'b2-1',
-          level: 'B2',
-          title: 'Quantum Entanglement',
-          content: 'Quantum entanglement is a complex physical phenomenon that occurs when pairs or groups of particles interact in ways such that the quantum state of each particle cannot be described independently of the state of the others, even when the particles are separated by a large distance. Instead, a quantum state must be described for the system as a whole. Measurements of physical properties such as position, momentum, spin, and polarization performed on entangled particles are found to be perfectly correlated. For example, if one particle is observed to have a spin pointing upward, the spin of its entangled partner will immediately be observed pointing downward, regardless of the distance separating them. This phenomenon puzzled Albert Einstein, who famously referred to it as "spooky action at a distance." Today, entanglement is a primary focus of quantum information theory and is crucial for developing quantum cryptography and quantum computing.',
-          key_concepts: JSON.stringify(['quantum entanglement', 'physical phenomenon', 'particles', 'quantum state', 'correlated', 'momentum', 'spin', 'polarization', 'albert einstein', 'spooky action', 'quantum cryptography', 'quantum computing'])
-        }
-      ];
+    if (articleCount < 60) {
+      console.log(`📚 [DB] Found ${articleCount} reading articles. Upserting complete set of 60 articles into Turso/SQLite database...`);
+      // Clean up legacy test IDs if present
+      await db.execute(`DELETE FROM reading_articles WHERE id IN ('a2-1', 'b1-1', 'b2-1')`);
 
-      for (const art of seedArticles) {
+      for (const art of ALL_60_ARTICLES) {
         await db.execute({
           sql: `INSERT OR REPLACE INTO reading_articles (id, level, title, content, key_concepts) VALUES (?, ?, ?, ?, ?)`,
           args: [art.id, art.level, art.title, art.content, art.key_concepts]
         });
       }
-      console.log('✅ [DB] Reading articles seeded successfully.');
+      console.log('✅ [DB] All 60 reading articles seeded successfully.');
     }
   } catch (seedErr) {
     console.error('⚠️ [DB] Error seeding reading articles:', seedErr);
