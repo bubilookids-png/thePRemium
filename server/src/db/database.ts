@@ -1,7 +1,7 @@
 import { createClient } from '@libsql/client';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { ALL_60_ARTICLES } from './readingArticlesData.js';
+import { ALL_180_ARTICLES } from './readingArticlesData.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -151,23 +151,23 @@ export async function initDatabase() {
     await db.execute(`ALTER TABLE words ADD COLUMN updated_at DATETIME DEFAULT CURRENT_TIMESTAMP`);
   } catch {}
 
-  // Seed retention reading articles if fewer than 60 articles are present
+  // Seed retention reading articles if fewer than 180 articles are present
   try {
     const articleCountRes = await db.execute(`SELECT COUNT(*) as count FROM reading_articles`);
     const articleCount = Number((articleCountRes.rows[0] as any)?.count || 0);
 
-    if (articleCount < 60) {
-      console.log(`📚 [DB] Found ${articleCount} reading articles. Upserting complete set of 60 articles into Turso/SQLite database...`);
+    if (articleCount < 180) {
+      console.log(`📚 [DB] Found ${articleCount} reading articles. Upserting complete set of 180 articles into Turso/SQLite database...`);
       // Clean up legacy test IDs if present
       await db.execute(`DELETE FROM reading_articles WHERE id IN ('a2-1', 'b1-1', 'b2-1')`);
 
-      for (const art of ALL_60_ARTICLES) {
+      for (const art of ALL_180_ARTICLES) {
         await db.execute({
           sql: `INSERT OR REPLACE INTO reading_articles (id, level, title, content, key_concepts) VALUES (?, ?, ?, ?, ?)`,
           args: [art.id, art.level, art.title, art.content, art.key_concepts]
         });
       }
-      console.log('✅ [DB] All 60 reading articles seeded successfully.');
+      console.log('✅ [DB] All 180 reading articles seeded successfully.');
     }
   } catch (seedErr) {
     console.error('⚠️ [DB] Error seeding reading articles:', seedErr);
