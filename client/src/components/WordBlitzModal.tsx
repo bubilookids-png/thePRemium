@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { BLITZ_VOCAB } from '../data/blitzWords';
+import { useAnimatedDismiss, useMotionEntrance } from '../utils/motion';
 
 interface Tile {
   id: string;
@@ -22,6 +23,8 @@ interface PowerUp {
 type Mode = 'preset' | 'custom';
 
 export function WordBlitzModal({ onClose }: { onClose: () => void }) {
+  const panelRef = useRef<HTMLDivElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
   const [mode, setMode] = useState<Mode>('preset');
   const [isPlaying, setIsPlaying] = useState(false);
   const [score, setScore] = useState(0);
@@ -33,6 +36,8 @@ export function WordBlitzModal({ onClose }: { onClose: () => void }) {
   const [activePowerUp, setActivePowerUp] = useState<PowerUp | null>(null);
   const [doublePointsActive, setDoublePointsActive] = useState(false);
   const [comboFlash, setComboFlash] = useState(false);
+  useMotionEntrance(panelRef, `${mode}:${isPlaying}`);
+  const dismiss = useAnimatedDismiss(overlayRef, panelRef, onClose);
 
   const [uzTiles, setUzTiles] = useState<Tile[]>([]);
   const [enTiles, setEnTiles] = useState<Tile[]>([]);
@@ -464,10 +469,6 @@ export function WordBlitzModal({ onClose }: { onClose: () => void }) {
           animation: timeWarning 0.6s ease-in-out infinite;
         }
 
-        .animate-button-hover {
-          animation: startButtonHover 0.8s ease-in-out infinite;
-        }
-
         .animate-icon-bounce {
           animation: iconBounce 2s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
         }
@@ -478,19 +479,21 @@ export function WordBlitzModal({ onClose }: { onClose: () => void }) {
       `}</style>
 
       <div
+        ref={overlayRef}
         className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-xl animate-in fade-in duration-200"
-        onClick={onClose}
+        onClick={() => dismiss()}
       >
         <div
-          className="relative w-full max-w-xl bg-gradient-to-b from-slate-900/95 via-slate-950/95 to-slate-950/95 border border-lime-400/25 rounded-3xl p-5 sm:p-7 shadow-[0_20px_80px_rgba(0,0,0,0.9)] text-slate-100 overflow-hidden backdrop-blur-xl animate-modal-slide"
+          ref={panelRef}
+          className="relative w-full max-w-xl bg-gradient-to-b from-slate-900/95 via-slate-950/95 to-slate-950/95 border border-lime-400/25 rounded-3xl p-5 sm:p-7 shadow-[0_20px_80px_rgba(0,0,0,0.9)] text-slate-100 overflow-hidden backdrop-blur-xl"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-4/5 h-32 bg-gradient-to-b from-lime-500/20 via-blue-500/15 to-transparent blur-3xl pointer-events-none animate-glow-pulse-top" />
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-4/5 h-32 bg-gradient-to-b from-lime-500/20 via-blue-500/15 to-transparent blur-3xl pointer-events-none" />
           <div className="absolute -top-20 -right-20 w-64 h-64 bg-lime-500/5 rounded-full blur-3xl pointer-events-none" />
 
           <button
             type="button"
-            onClick={onClose}
+            onClick={() => dismiss()}
             className="absolute top-4 right-4 z-20 w-8 h-8 flex items-center justify-center rounded-full bg-slate-900/80 text-slate-400 hover:text-lime-300 border border-lime-400/30 hover:bg-lime-500/20 transition-all duration-300 active:scale-90 shadow-lg cursor-pointer font-mono font-bold"
             aria-label="Close"
           >
@@ -547,7 +550,7 @@ export function WordBlitzModal({ onClose }: { onClose: () => void }) {
               <button
                 type="button"
                 onClick={startGame}
-                className="relative w-full sm:w-auto px-16 py-4 rounded-2xl bg-gradient-to-r from-lime-400 via-lime-300 to-cyan-400 hover:shadow-[0_0_50px_rgba(132,204,22,0.6)] text-slate-950 font-black text-sm tracking-widest uppercase transition-all duration-300 active:scale-95 cursor-pointer font-mono overflow-hidden group animate-button-hover"
+                className="relative w-full sm:w-auto px-16 py-4 rounded-2xl bg-gradient-to-r from-lime-400 via-lime-300 to-cyan-400 hover:shadow-[0_0_50px_rgba(132,204,22,0.6)] text-slate-950 font-black text-sm tracking-widest uppercase transition-all duration-300 active:scale-95 cursor-pointer font-mono overflow-hidden group"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-lime-300 to-cyan-300 opacity-0 group-hover:opacity-30 transition-opacity duration-300" />
                 <span className="relative z-10">Boshlash</span>

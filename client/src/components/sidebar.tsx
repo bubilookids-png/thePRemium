@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useMotionEntrance } from '../utils/motion';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -29,6 +30,8 @@ export function Sidebar({
   onOpenSavedWords,
   isAdmin = false
 }: SidebarProps) {
+  const sidebarRef = useRef<HTMLElement>(null);
+  useMotionEntrance(sidebarRef, isOpen, '.sidebar-nav-item');
   const [ripples, setRipples] = useState<RippleEffect[]>([]);
   const [hoveredButton, setHoveredButton] = useState<string | null>(null);
   const [rippleCounter, setRippleCounter] = useState(0);
@@ -281,6 +284,7 @@ export function Sidebar({
       )}
 
       <aside
+        ref={sidebarRef}
         className={`fixed top-0 left-0 h-full z-50 flex flex-col justify-between
           bg-slate-950/75 backdrop-blur-lg border-r border-lime-400/15 shadow-[10px_0_30px_rgba(0,0,0,0.5)] select-none
           transition-all duration-400 ease-out
@@ -356,7 +360,7 @@ export function Sidebar({
               }}
               onMouseEnter={() => setHoveredButton('search')}
               onMouseLeave={() => setHoveredButton(null)}
-              className={`group flex items-center p-2 rounded-xl transition-all duration-300 cursor-pointer active:scale-[0.95] button-ripple relative overflow-hidden ${
+              className={`sidebar-nav-item group flex items-center p-2 rounded-xl transition-[color,background-color,border-color,box-shadow,padding] duration-300 cursor-pointer active:scale-[0.95] button-ripple relative overflow-hidden ${
                 isOpen
                   ? 'justify-between hover:bg-lime-500/15 hover:shadow-[0_0_20px_rgba(132,204,22,0.3)] hover:border-lime-400/40 px-2.5 border border-transparent'
                   : 'justify-center hover:bg-lime-500/15 hover:shadow-[0_0_20px_rgba(132,204,22,0.3)] w-full border border-transparent'
@@ -405,7 +409,7 @@ export function Sidebar({
               }}
               onMouseEnter={() => setHoveredButton('blitz')}
               onMouseLeave={() => setHoveredButton(null)}
-              className={`group flex items-center p-2 rounded-xl transition-all duration-300 cursor-pointer active:scale-[0.95] button-ripple relative overflow-hidden ${
+              className={`sidebar-nav-item group flex items-center p-2 rounded-xl transition-[color,background-color,border-color,box-shadow,padding] duration-300 cursor-pointer active:scale-[0.95] button-ripple relative overflow-hidden ${
                 isOpen
                   ? 'justify-between hover:bg-lime-500/15 hover:shadow-[0_0_20px_rgba(132,204,22,0.3)] hover:border-lime-400/40 px-2.5 border border-transparent'
                   : 'justify-center hover:bg-lime-500/15 hover:shadow-[0_0_20px_rgba(132,204,22,0.3)] w-full border border-transparent'
@@ -460,7 +464,7 @@ export function Sidebar({
               }}
               onMouseEnter={() => setHoveredButton('translate')}
               onMouseLeave={() => setHoveredButton(null)}
-              className={`group flex items-center p-2 rounded-xl transition-all duration-300 cursor-pointer active:scale-[0.95] button-ripple relative overflow-hidden ${
+              className={`sidebar-nav-item group flex items-center p-2 rounded-xl transition-[color,background-color,border-color,box-shadow,padding] duration-300 cursor-pointer active:scale-[0.95] button-ripple relative overflow-hidden ${
                 isOpen
                   ? 'justify-between hover:bg-lime-500/15 hover:shadow-[0_0_20px_rgba(132,204,22,0.3)] hover:border-lime-400/40 px-2.5 border border-transparent'
                   : 'justify-center hover:bg-lime-500/15 hover:shadow-[0_0_20px_rgba(132,204,22,0.3)] w-full border border-transparent'
@@ -511,7 +515,7 @@ export function Sidebar({
     if (onOpenReading) onOpenReading();
     if (window.innerWidth < 1024) onToggle();
   }}
-  className={`group flex items-center p-2 rounded-xl transition-all duration-200 cursor-pointer active:scale-[0.98] ${
+  className={`sidebar-nav-item group flex items-center p-2 rounded-xl transition-[color,background-color,border-color,box-shadow,padding] duration-200 cursor-pointer active:scale-[0.98] ${
     isOpen 
       ? 'justify-between hover:bg-lime-500/15 hover:shadow-[0_0_15px_rgba(132,204,22,0.3)] hover:border-lime-400/40 px-2.5 border border-transparent' 
       : 'justify-center hover:bg-lime-500/15 hover:shadow-[0_0_15px_rgba(132,204,22,0.3)] w-full border border-transparent'
@@ -531,7 +535,7 @@ export function Sidebar({
     if (onOpenSavedWords) onOpenSavedWords();
     if (window.innerWidth < 1024) onToggle();
   }}
-  className={`group flex items-center p-2 rounded-xl transition-all duration-200 cursor-pointer active:scale-[0.98] ${
+  className={`sidebar-nav-item group flex items-center p-2 rounded-xl transition-[color,background-color,border-color,box-shadow,padding] duration-200 cursor-pointer active:scale-[0.98] ${
     isOpen 
       ? 'justify-between hover:bg-lime-500/15 hover:shadow-[0_0_15px_rgba(132,204,22,0.3)] hover:border-lime-400/40 px-2.5 border border-transparent' 
       : 'justify-center hover:bg-lime-500/15 hover:shadow-[0_0_15px_rgba(132,204,22,0.3)] w-full border border-transparent'
@@ -557,7 +561,7 @@ export function Sidebar({
                   }}
                   onMouseEnter={() => setHoveredButton('admin')}
                   onMouseLeave={() => setHoveredButton(null)}
-                  className={`group flex items-center p-2 rounded-xl bg-gradient-to-r from-blue-600/30 to-lime-400/30 hover:from-blue-600/50 hover:to-lime-400/50 border border-lime-400/50 hover:border-lime-300/80 transition-all duration-300 cursor-pointer active:scale-[0.95] button-ripple relative overflow-hidden animate-admin-glow ${
+                  className={`sidebar-nav-item group flex items-center p-2 rounded-xl bg-gradient-to-r from-blue-600/30 to-lime-400/30 hover:from-blue-600/50 hover:to-lime-400/50 border border-lime-400/50 hover:border-lime-300/80 transition-[color,background-color,border-color,box-shadow,padding] duration-300 cursor-pointer active:scale-[0.95] button-ripple relative overflow-hidden animate-admin-glow ${
                     isOpen ? 'justify-between px-2.5' : 'justify-center w-full'
                   }`}
                   title="Get More (Admin Only)"

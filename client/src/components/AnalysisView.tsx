@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import type { VocabAnalysis, FieldSources, SourceType } from '../types/vocab';
 import { Card } from './Card';
 import { SourceBadge } from './SourceBadge';
 import { apiFetch } from '../services/apiClient';
+import { useMotionEntrance } from '../utils/motion';
 
 function Pill({
   children,
@@ -37,9 +38,13 @@ export function AnalysisView({
   onStartQuiz,
   currentUser
 }: AnalysisViewProps) {
+  const resultsRef = useRef<HTMLDivElement>(null);
+  const saveButtonRef = useRef<HTMLButtonElement>(null);
+  useMotionEntrance(resultsRef, a.word, '.result-reveal');
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [saveFeedback, setSaveFeedback] = useState<string | null>(null);
+  useMotionEntrance(saveButtonRef, `${isSaving}:${isSaved}`);
 
   // Reset saved state when analyzed word changes
   useEffect(() => {
@@ -86,7 +91,7 @@ export function AnalysisView({
   };
 
   return (
-    <div className="analysis-results">
+    <div ref={resultsRef} className="analysis-results">
       {/* 01 — Word overview */}
       <div className="result-reveal result-1">
         <Card
@@ -98,6 +103,7 @@ export function AnalysisView({
               
               <button
                 type="button"
+                ref={saveButtonRef}
                 onClick={handleSaveWord}
                 disabled={isSaving}
                 className={`action-btn flex items-center gap-1.5 transition-all duration-200 cursor-pointer ${

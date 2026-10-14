@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { translateText } from '../services/translatorApi';
+import { useAnimatedDismiss, useMotionEntrance } from '../utils/motion';
 
 const LANGUAGES = [
   { code: 'uz', label: 'Uzbek' },
@@ -16,6 +17,9 @@ interface QuickTranslatorProps {
 }
 
 export function QuickTranslator({ onClose }: QuickTranslatorProps) {
+  const panelRef = useRef<HTMLDivElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const resultRef = useRef<HTMLDivElement>(null);
   const [inputText, setInputText] = useState('');
   const [targetLang, setTargetLang] = useState('uz');
   const [result, setResult] = useState('');
@@ -24,6 +28,9 @@ export function QuickTranslator({ onClose }: QuickTranslatorProps) {
   const [copied, setCopied] = useState(false);
   const [focusedInput, setFocusedInput] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  useMotionEntrance(panelRef, true);
+  useMotionEntrance(resultRef, result || error || '');
+  const dismiss = useAnimatedDismiss(overlayRef, panelRef, onClose);
 
   async function handleTranslate() {
     if (!inputText.trim()) return;
@@ -278,19 +285,20 @@ export function QuickTranslator({ onClose }: QuickTranslatorProps) {
         }
       `}</style>
 
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl animate-in fade-in duration-200">
+      <div ref={overlayRef} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl animate-in fade-in duration-200">
         <div
-          className="relative w-full max-w-xl rounded-3xl bg-gradient-to-b from-slate-900/95 via-slate-950/95 to-slate-950/95 border border-lime-400/25 p-6 sm:p-8 shadow-[0_20px_80px_rgba(0,0,0,0.9)] text-slate-100 overflow-hidden translator-slide border-glow backdrop-blur-xl"
+          ref={panelRef}
+          className="relative w-full max-w-xl rounded-3xl bg-gradient-to-b from-slate-900/95 via-slate-950/95 to-slate-950/95 border border-lime-400/25 p-6 sm:p-8 shadow-[0_20px_80px_rgba(0,0,0,0.9)] text-slate-100 overflow-hidden backdrop-blur-xl"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
           {/* Top glow aura */}
-          <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-4/5 h-32 bg-gradient-to-b from-lime-500/25 via-blue-500/15 to-transparent blur-3xl pointer-events-none transition-all duration-500 ${isHovered ? 'top-2' : 'top-0'} top-glow-breathe`} />
+          <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-4/5 h-32 bg-gradient-to-b from-lime-500/25 via-blue-500/15 to-transparent blur-3xl pointer-events-none transition-all duration-500 ${isHovered ? 'top-2' : 'top-0'}`} />
           <div className="absolute -top-32 -right-32 w-80 h-80 bg-lime-500/5 rounded-full blur-3xl pointer-events-none" />
 
           {/* Close button */}
           <button
-            onClick={onClose}
+            onClick={() => dismiss()}
             className="absolute top-5 right-5 z-20 text-slate-400 hover:text-lime-300 transition-all duration-300 text-lg w-9 h-9 flex items-center justify-center rounded-full hover:bg-lime-500/15 cursor-pointer font-mono font-bold active:scale-90 border border-lime-400/20 hover:border-lime-400/40"
             title="Close translator"
           >
@@ -298,11 +306,11 @@ export function QuickTranslator({ onClose }: QuickTranslatorProps) {
           </button>
 
           {/* Header section */}
-          <div className="relative z-10 mb-6 flex items-center justify-between pb-4 border-b border-lime-400/15 pr-8 header-glide">
+          <div className="relative z-10 mb-6 flex items-center justify-between pb-4 border-b border-lime-400/15 pr-8">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600/50 to-lime-400/30 border border-lime-400/40 flex items-center justify-center text-sm font-bold shadow-lg shadow-lime-500/25 relative overflow-hidden group cursor-pointer transition-all duration-300 hover:border-lime-400/70 hover:shadow-lime-500/40">
                 <div className="absolute inset-0 bg-gradient-to-br from-lime-400 to-cyan-300 opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
-                <span className="relative z-10 icon-float">✦</span>
+                <span className="relative z-10">✦</span>
               </div>
               <div>
                 <h3 className="text-lg sm:text-xl font-black tracking-wider text-lime-300 font-mono uppercase drop-shadow-[0_0_15px_rgba(132,204,22,0.2)]">
@@ -386,7 +394,7 @@ export function QuickTranslator({ onClose }: QuickTranslatorProps) {
 
             {/* Result card */}
             {result && (
-              <div className={`mt-4 p-5 rounded-2xl bg-gradient-to-br from-slate-900/70 to-slate-950/60 backdrop-blur-md border border-lime-400/35 shadow-[0_0_30px_rgba(132,204,22,0.25)] flex items-start justify-between gap-4 result-slide glow-pulse group relative overflow-hidden`}>
+              <div ref={resultRef} className="mt-4 p-5 rounded-2xl bg-gradient-to-br from-slate-900/70 to-slate-950/60 backdrop-blur-md border border-lime-400/35 shadow-[0_0_30px_rgba(132,204,22,0.25)] flex items-start justify-between gap-4 group relative overflow-hidden">
                 <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-r from-lime-500/0 via-lime-500/5 to-cyan-500/0" />
                 
                 <div className="overflow-hidden flex-1 relative z-10">

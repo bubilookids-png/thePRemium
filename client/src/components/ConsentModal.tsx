@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { hasValidCookieConsent, acceptCookieConsent, CONSENT_VERSION } from '../utils/consent';
+import { useAnimatedDismiss, useMotionEntrance } from '../utils/motion';
 
 interface ConsentModalProps {
   onClose: () => void;
@@ -16,26 +17,30 @@ export function ConsentModal({
   onOpenPrivacy,
   mode = 'consent'
 }: ConsentModalProps) {
+  const panelRef = useRef<HTMLDivElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
+  useMotionEntrance(panelRef, mode);
+  const dismiss = useAnimatedDismiss(overlayRef, panelRef, onClose);
   // For settings mode, we don't have any real settings to save, so onAccept just closes the modal
   const handleAccept = () => {
     if (mode === 'consent') {
       // In consent mode, we accept the consent and then call the onAccept callback (which will continue the sign-up)
       acceptCookieConsent(false); // We don't use analytics, so set to false
-      onAccept();
+      dismiss(onAccept);
     } else {
       // In settings mode, we just close the modal (no actual settings to save)
-      onClose();
+      dismiss();
     }
   };
 
   if (mode === 'consent') {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn select-none font-mono">
-        <div className="relative w-full max-w-2xl max-h-[85vh] flex flex-col p-6 sm:p-8 rounded-3xl bg-slate-950 border border-lime-400/20 shadow-2xl text-slate-100">
+      <div ref={overlayRef} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn select-none font-mono">
+        <div ref={panelRef} className="relative w-full max-w-2xl max-h-[85vh] flex flex-col p-6 sm:p-8 rounded-3xl bg-slate-950 border border-lime-400/20 shadow-2xl text-slate-100">
 
           {/* Close button */}
           <button
-            onClick={onClose}
+            onClick={() => dismiss()}
             className="absolute top-4 right-4 text-slate-400 hover:text-lime-300 transition text-lg w-8 h-8 flex items-center justify-center rounded-full hover:bg-lime-500/10 cursor-pointer"
           >
             ✕
@@ -88,7 +93,7 @@ export function ConsentModal({
           {/* Action buttons */}
           <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-end">
             <button
-              onClick={onClose}
+              onClick={() => dismiss()}
               className="flex-1 sm:flex-none px-5 py-3 rounded-xl bg-slate-800/50 hover:bg-slate-700/50 text-slate-100 text-sm font-medium transition border border-lime-400/15 hover:border-lime-300/20"
             >
               Cancel
@@ -107,12 +112,12 @@ export function ConsentModal({
   } else {
     // settings mode
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn select-none font-mono">
-        <div className="relative w-full max-w-2xl max-h-[85vh] flex flex-col p-6 sm:p-8 rounded-3xl bg-slate-950 border border-lime-400/20 shadow-2xl text-slate-100">
+      <div ref={overlayRef} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn select-none font-mono">
+      <div ref={panelRef} className="relative w-full max-w-2xl max-h-[85vh] flex flex-col p-6 sm:p-8 rounded-3xl bg-slate-950 border border-lime-400/20 shadow-2xl text-slate-100">
 
           {/* Close button */}
           <button
-            onClick={onClose}
+            onClick={() => dismiss()}
             className="absolute top-4 right-4 text-slate-400 hover:text-lime-300 transition text-lg w-8 h-8 flex items-center justify-center rounded-full hover:bg-lime-500/10 cursor-pointer"
           >
             ✕
@@ -147,7 +152,7 @@ export function ConsentModal({
           {/* Action buttons */}
           <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-end">
             <button
-              onClick={onClose}
+              onClick={() => dismiss()}
               className="flex-1 sm:flex-none px-5 py-3 rounded-xl bg-slate-800/50 hover:bg-slate-700/50 text-slate-100 text-sm font-medium transition border border-lime-400/15 hover:border-lime-300/20"
             >
               Cancel

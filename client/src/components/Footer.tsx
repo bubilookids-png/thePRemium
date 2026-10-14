@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useRef } from 'react';
+import { useScrollReveal } from '../utils/motion';
 
 interface FooterProps {
   onOpenLegal?: () => void;
@@ -6,12 +7,15 @@ interface FooterProps {
 }
 
 export function Footer({ onOpenLegal, onOpenCookie }: FooterProps) {
+  const footerRef = useRef<HTMLElement>(null);
+  useScrollReveal(footerRef, '[data-footer-reveal]');
+
   return (
-    <footer className="w-full bg-slate-950/95 border-t border-lime-400/15 text-slate-100 py-10 px-6 mt-auto font-mono select-none">
+    <footer ref={footerRef} className="w-full bg-slate-950/95 border-t border-lime-400/15 text-slate-100 py-10 px-6 mt-auto font-mono select-none">
       <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 mb-8 text-left text-xs">
 
         {/* 1-ustun: Product */}
-        <div>
+        <div data-footer-reveal>
           <h4 className="font-bold uppercase tracking-wider text-lime-300 mb-3">
             Product
           </h4>
@@ -30,7 +34,7 @@ export function Footer({ onOpenLegal, onOpenCookie }: FooterProps) {
 
 
         {/* 3-ustun: More & Legal & Cookie */}
-        <div>
+        <div data-footer-reveal>
           <h4 className="font-bold uppercase tracking-wider text-lime-300 mb-3">
             More
           </h4>
@@ -68,7 +72,7 @@ export function Footer({ onOpenLegal, onOpenCookie }: FooterProps) {
 
       </div>
       {/* Asl pastki qism (Hech narsa o'chmadi, hammasi saqlandi) */}
-      <div className="max-w-5xl mx-auto pt-6 border-t border-lime-400/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
+      <div data-footer-reveal className="max-w-5xl mx-auto pt-6 border-t border-lime-400/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
         <div className="flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full bg-lime-400"></span>
           <span className="text-slate-100 font-bold">UNIVEBOOSTER</span>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useAnimatedDismiss, useMotionEntrance } from '../utils/motion';
 import { Card } from './Card';
 import { apiFetch } from '../services/apiClient';
 import { translateText } from '../services/translatorApi';
@@ -130,6 +131,7 @@ function IconRotate({ className = "w-4 h-4" }: { className?: string }) {
 }
 
 export function RetentionReading({ currentUser, onExit }: RetentionReadingProps) {
+  const readingRef = useRef<HTMLDivElement>(null);
   const [phase, setPhase] = useState<Phase>('selection');
   const [level, setLevel] = useState<Level | null>(null);
   const [currentText, setCurrentText] = useState<TextData | null>(null);
@@ -167,6 +169,13 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
 
   // Exit Confirmation Modal State
   const [showExitModal, setShowExitModal] = useState(false);
+  const exitOverlayRef = useRef<HTMLDivElement>(null);
+  const exitPanelRef = useRef<HTMLDivElement>(null);
+  useMotionEntrance(readingRef, phase, '[data-retention-phase]');
+  useMotionEntrance(readingRef, evalTab, '[data-eval-panel]');
+  useMotionEntrance(readingRef, `${showTooltip?.word ?? ''}:${translation ?? ''}:${translating}`, '[data-word-tooltip]');
+  useMotionEntrance(exitPanelRef, showExitModal);
+  const dismissExit = useAnimatedDismiss(exitOverlayRef, exitPanelRef, () => setShowExitModal(false));
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const activeWordRef = useRef<string | null>(null);
@@ -489,7 +498,7 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
   const readerFontClass = fontSizeOffset === -1 ? 'text-base leading-relaxed' : fontSizeOffset === 1 ? 'text-xl leading-[2.3]' : 'text-lg leading-[2]';
 
   return (
-    <div className="w-full max-w-4xl mx-auto px-4 py-6 font-sans text-slate-200 select-none">
+    <div ref={readingRef} className="w-full max-w-4xl mx-auto px-4 py-6 font-sans text-slate-200 select-none">
       <style>{`
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(6px); }
@@ -558,7 +567,7 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
 
       {/* --- Phase 1: LEVEL SELECTION --- */}
       {phase === 'selection' && (
-        <section className="animate-retention-fade max-w-3xl mx-auto space-y-8">
+        <section data-retention-phase className="max-w-3xl mx-auto space-y-8">
           <div className="text-center space-y-2 pt-4">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-lime-400/10 border border-lime-400/20 text-lime-400 text-xs font-semibold uppercase tracking-wider mb-2">
               <IconSparkles className="w-3.5 h-3.5" /> Active Retention Method
@@ -646,7 +655,7 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
 
       {/* --- Phase 2: SETUP / BRIEFING --- */}
       {phase === 'setup' && currentText && (
-        <section className="animate-retention-fade max-w-xl mx-auto space-y-6 pt-4">
+        <section data-retention-phase className="max-w-xl mx-auto space-y-6 pt-4">
           <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 shadow-lg backdrop-blur-sm space-y-6">
             <div className="flex items-center justify-between pb-4 border-b border-slate-800">
               <div className="flex items-center gap-2">
@@ -747,7 +756,7 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
 
       {/* --- Phase 3: READING --- */}
       {phase === 'reading' && currentText && (
-        <section className="animate-retention-fade max-w-2xl mx-auto space-y-4">
+        <section data-retention-phase className="max-w-2xl mx-auto space-y-4">
           {/* Reader HUD */}
           <div className="sticky top-3 z-30 bg-slate-900/90 backdrop-blur-md border border-slate-800 rounded-xl p-3 shadow-md">
             <div className="flex items-center justify-between">
@@ -833,7 +842,7 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
 
       {/* --- Phase 4: RECALL --- */}
       {phase === 'recall' && (
-        <section className="animate-retention-fade max-w-2xl mx-auto space-y-4">
+        <section data-retention-phase className="max-w-2xl mx-auto space-y-4">
           {/* Header */}
           <div className="flex items-center justify-between bg-slate-900/90 border border-slate-800 p-3 rounded-xl backdrop-blur-md">
             <div className="flex items-center gap-2">
@@ -950,7 +959,7 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
         };
 
         return (
-          <section className="animate-retention-fade max-w-3xl mx-auto space-y-6 font-mono select-none">
+          <section data-retention-phase className="max-w-3xl mx-auto space-y-6 font-mono select-none">
             {/* Terminal Main Enclosure */}
             <div className="bg-slate-950/90 border border-lime-400/20 rounded-3xl p-6 sm:p-8 backdrop-blur-2xl shadow-[0_0_50px_rgba(0,0,0,0.8)] relative overflow-hidden">
               {/* Sci-Fi Decorative Grid Header */}
@@ -1152,7 +1161,7 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
 
               {/* Tab 1: Forensic Recall Inspector */}
               {evalTab === 'forensic' && (
-                <div className="mt-5 space-y-4 animate-retention-fade">
+                <div data-eval-panel className="mt-5 space-y-4">
                   <div className="flex items-center justify-between text-xs text-slate-400">
                     <span>Reconstruction Forensic Transcript:</span>
                     <span className="text-lime-300 flex items-center gap-1.5">
@@ -1182,7 +1191,7 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
 
               {/* Tab 2: Concept Matrix with Instant Save to Turso */}
               {evalTab === 'matrix' && (
-                <div className="mt-5 space-y-6 animate-retention-fade">
+                <div data-eval-panel className="mt-5 space-y-6">
                   {/* Missed Concepts with Turso Quick Save */}
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
@@ -1264,7 +1273,7 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
 
               {/* Tab 3: Dual Trace Comparator */}
               {evalTab === 'comparator' && (
-                <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4 animate-retention-fade text-xs">
+                <div data-eval-panel className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                   {/* Original */}
                   <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 flex flex-col justify-between">
                     <div>
@@ -1319,7 +1328,8 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
       {/* --- Phase 6: REVIEW & TRANSLATE --- */}
       {phase === 'review' && currentText && (
         <section
-          className="animate-retention-fade max-w-2xl mx-auto space-y-4 relative"
+          data-retention-phase
+          className="max-w-2xl mx-auto space-y-4 relative"
           onClick={() => showTooltip && setShowTooltip(null)}
         >
           {/* Review Action Bar */}
@@ -1380,7 +1390,8 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
           {/* Clean Floating Translation Popover */}
           {showTooltip && (
             <div
-              className="absolute z-50 bg-slate-950/95 border border-slate-800 rounded-xl p-3.5 shadow-2xl backdrop-blur-md flex flex-col gap-2.5 w-60 animate-retention-fade"
+              data-word-tooltip
+              className="absolute z-50 bg-slate-950/95 border border-slate-800 rounded-xl p-3.5 shadow-2xl backdrop-blur-md flex flex-col gap-2.5 w-60"
               style={{ top: showTooltip.y, left: showTooltip.x }}
               onClick={(e) => e.stopPropagation()}
             >
@@ -1441,8 +1452,8 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
 
       {/* --- Safe Exit Confirmation Modal --- */}
       {showExitModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-retention-fade space-y-4">
+        <div ref={exitOverlayRef} className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div ref={exitPanelRef} className="bg-slate-900 border border-slate-800 rounded-2xl p-6 max-w-sm w-full shadow-2xl space-y-4">
             <div className="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20 flex items-center justify-center">
               <IconLogOut className="w-5 h-5" />
             </div>
@@ -1456,13 +1467,13 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
 
             <div className="flex items-center gap-2 pt-2">
               <button
-                onClick={() => setShowExitModal(false)}
+                onClick={() => dismissExit()}
                 className="flex-1 py-2 px-3 rounded-lg border border-slate-700 bg-slate-800 text-slate-200 text-xs font-semibold hover:bg-slate-700 transition"
               >
                 Stay
               </button>
               <button
-                onClick={executeExit}
+                onClick={() => dismissExit(executeExit)}
                 className="flex-1 py-2 px-3 rounded-lg bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold transition shadow-sm"
               >
                 Exit Session

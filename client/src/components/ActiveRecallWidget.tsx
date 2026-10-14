@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useMotionEntrance } from '../utils/motion';
 
 type WordPair = {
   en: string;
@@ -26,13 +27,12 @@ export const ActiveRecallWidget: React.FC<ActiveRecallWidgetProps> = ({
   const [isMinimized, setIsMinimized] = useState(false);
   const [isRestarting, setIsRestarting] = useState(false);
   const [cardScale, setCardScale] = useState(1);
-  const [pulseIntensity, setPulseIntensity] = useState(0);
   const [sessionComplete, setSessionComplete] = useState(false);
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
 
   const flipRef = useRef<number>(0);
   const cardRef = useRef<HTMLDivElement>(null);
-  const pulseIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  useMotionEntrance(cardRef, `${selectedWords[currentIndex]?.en ?? 'empty'}:${showTranslation}`);
 
   // Load history from localStorage
   useEffect(() => {
@@ -69,17 +69,6 @@ export const ActiveRecallWidget: React.FC<ActiveRecallWidgetProps> = ({
       return () => clearTimeout(timeout);
     }
   }, [isFlipping]);
-
-  // Pulse effect for active card
-  useEffect(() => {
-    pulseIntervalRef.current = setInterval(() => {
-      setPulseIntensity(prev => (prev + 0.15) % (Math.PI * 2));
-    }, 50);
-
-    return () => {
-      if (pulseIntervalRef.current) clearInterval(pulseIntervalRef.current);
-    };
-  }, []);
 
   // Clean up speech
   useEffect(() => {

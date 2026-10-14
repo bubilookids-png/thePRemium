@@ -1,6 +1,7 @@
 // src/components/Card.tsx
 import React, { useRef, useState } from 'react';
 import BorderGlow from './BorderGlow';
+import { useMotionEntrance } from '../utils/motion';
 
 export function Card(props: {
   title?: string;
@@ -11,8 +12,7 @@ export function Card(props: {
   onClick?: () => void;
 }) {
   const cardRef = useRef<HTMLDivElement>(null);
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-  const [tilt, setTilt] = useState({ rx: 0, ry: 0 });
+  useMotionEntrance(cardRef, true, '.section-head, .section-body');
   const [isHovered, setIsHovered] = useState(false);
 
   function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
@@ -24,21 +24,21 @@ export function Card(props: {
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    setMousePos({ x, y });
-
     const centerX = rect.width / 2;
     const centerY = rect.height / 2;
-    
-    // Sezgirlik -4 dan -2 ga tushirildi (juda yumshoq egiladi)
+
     const rx = ((y - centerY) / centerY) * -2;
     const ry = ((x - centerX) / centerX) * 2;
-
-    setTilt({ rx, ry });
+    cardRef.current.style.setProperty('--motion-pointer-x', `${x}px`);
+    cardRef.current.style.setProperty('--motion-pointer-y', `${y}px`);
+    cardRef.current.style.setProperty('--motion-tilt-x', `${rx}deg`);
+    cardRef.current.style.setProperty('--motion-tilt-y', `${ry}deg`);
   }
 
   function handleMouseLeave() {
     setIsHovered(false);
-    setTilt({ rx: 0, ry: 0 });
+    cardRef.current?.style.setProperty('--motion-tilt-x', '0deg');
+    cardRef.current?.style.setProperty('--motion-tilt-y', '0deg');
   }
 
   return (
@@ -49,9 +49,7 @@ export function Card(props: {
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={handleMouseLeave}
         style={{
-          transform: isHovered
-            ? `rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg) translateZ(0px)`
-            : 'rotateX(0deg) rotateY(0deg) translateZ(0px)',
+          transform: 'rotateX(var(--motion-tilt-x, 0deg)) rotateY(var(--motion-tilt-y, 0deg)) translateZ(0px)',
           transition: isHovered ? 'transform 0.15s ease-out' : 'transform 0.4s ease-out',
         }}
         className="relative w-full"
@@ -73,7 +71,7 @@ export function Card(props: {
               className="hidden sm:block pointer-events-none absolute -inset-px transition-opacity duration-300 z-0"
               style={{
                 opacity: isHovered ? 1 : 0,
-                background: `radial-gradient(320px circle at ${mousePos.x}px ${mousePos.y}px, rgba(132, 204, 22, 0.15), rgba(30, 58, 138, 0.25), transparent 75%)`,
+                background: 'radial-gradient(320px circle at var(--motion-pointer-x, 50%) var(--motion-pointer-y, 50%), rgba(132, 204, 22, 0.15), rgba(30, 58, 138, 0.25), transparent 75%)',
               }}
             />
 

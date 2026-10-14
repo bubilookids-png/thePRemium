@@ -3,6 +3,9 @@ import { liquidMetalFragmentShader, ShaderMount } from "@paper-design/shaders";
 import { Sparkles } from "lucide-react";
 import type React from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { animate } from "animejs";
+import type { JSAnimation } from "animejs";
+import { motion } from "../../utils/motion";
 
 interface LiquidMetalButtonProps {
   label?: string;
@@ -28,7 +31,13 @@ export function LiquidMetalButton({
   // biome-ignore lint/suspicious/noExplicitAny: External library without types
   const shaderMount = useRef<any>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const motionRef = useRef<HTMLDivElement>(null);
+  const pressAnimationRef = useRef<JSAnimation | null>(null);
   const rippleId = useRef(0);
+
+  useEffect(() => () => {
+    pressAnimationRef.current?.revert();
+  }, []);
 
   const dimensions = useMemo(() => {
     if (viewMode === "icon") {
@@ -138,6 +147,15 @@ export function LiquidMetalButton({
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (disabled) return;
 
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && motionRef.current) {
+      pressAnimationRef.current?.revert();
+      pressAnimationRef.current = animate(motionRef.current, {
+        scale: [1, 0.975, 1],
+        duration: motion.duration.short,
+        ease: motion.easing.standard
+      });
+    }
+
     if (shaderMount.current?.setSpeed) {
       shaderMount.current.setSpeed(2.4);
       setTimeout(() => {
@@ -165,7 +183,7 @@ export function LiquidMetalButton({
   };
 
   return (
-    <div className={`relative inline-block ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}>
+    <div ref={motionRef} className={`relative inline-block ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}>
       <div
         style={{
           perspective: "1000px",

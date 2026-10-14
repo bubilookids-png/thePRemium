@@ -1,10 +1,11 @@
 // src/components/CyberMatrixOrb.tsx
 import React, { useRef, useState } from 'react';
+import { useMotionEntrance } from '../utils/motion';
 
 export function CyberMatrixOrb() {
   const boxRef = useRef<HTMLDivElement>(null);
-  const [coords, setCoords] = useState({ rx: 0, ry: 0 });
   const [hovered, setHovered] = useState(false);
+  useMotionEntrance(boxRef, true);
 
   function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
     if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) return;
@@ -12,10 +13,8 @@ export function CyberMatrixOrb() {
     const rect = boxRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left - rect.width / 2;
     const y = e.clientY - rect.top - rect.height / 2;
-    setCoords({
-      rx: -(y / rect.height) * 10,
-      ry: (x / rect.width) * 10,
-    });
+    boxRef.current.style.setProperty('--orb-tilt-x', `${-(y / rect.height) * 8}deg`);
+    boxRef.current.style.setProperty('--orb-tilt-y', `${(x / rect.width) * 8}deg`);
   }
 
   return (
@@ -24,9 +23,13 @@ export function CyberMatrixOrb() {
         ref={boxRef}
         onMouseMove={handleMouseMove}
         onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => { setHovered(false); setCoords({ rx: 0, ry: 0 }); }}
+        onMouseLeave={() => {
+          setHovered(false);
+          boxRef.current?.style.setProperty('--orb-tilt-x', '0deg');
+          boxRef.current?.style.setProperty('--orb-tilt-y', '0deg');
+        }}
         style={{
-          transform: hovered ? `rotateX(${coords.rx}deg) rotateY(${coords.ry}deg) scale(1.01)` : 'none',
+          transform: 'rotateX(var(--orb-tilt-x, 0deg)) rotateY(var(--orb-tilt-y, 0deg))',
           transition: hovered ? 'transform 0.08s ease-out' : 'transform 0.4s ease-out',
         }}
         className="relative rounded-2xl sm:rounded-3xl p-[1.5px] overflow-hidden shadow-2xl"
@@ -49,7 +52,7 @@ export function CyberMatrixOrb() {
                 <span className="text-[11px] sm:text-xs font-black font-mono tracking-wider text-lime-300">
                   NEURAL MATRIX
                 </span>
-                <span className="w-1.5 h-1.5 rounded-full bg-lime-400 animate-pulse" />
+                <span className="w-1.5 h-1.5 rounded-full bg-lime-400" />
               </div>
               <p className="text-[10px] font-mono text-slate-400">
                 Lexical graph active
@@ -59,9 +62,9 @@ export function CyberMatrixOrb() {
 
           {/* Dinamik to'lqin chiziqlari (Ekvalayzer) */}
           <div className="flex items-end gap-1.5 h-6 px-1">
-            <span className="w-1 bg-lime-400 rounded-full animate-[bounce_0.8s_infinite_100ms] h-3.5" />
-            <span className="w-1 bg-cyan-400 rounded-full animate-[bounce_0.8s_infinite_300ms] h-5" />
-            <span className="w-1 bg-lime-300 rounded-full animate-[bounce_0.8s_infinite_200ms] h-4" />
+            <span className="w-1 bg-lime-400 rounded-full h-3.5" />
+            <span className="w-1 bg-cyan-400 rounded-full h-5" />
+            <span className="w-1 bg-lime-300 rounded-full h-4" />
           </div>
         </div>
       </div>

@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { LiquidMetalButton } from './ui/liquid-metal-button';
 import type { SupportedLanguageCode } from '../types/vocab';
+import { useMotionEntrance } from '../utils/motion';
 
 interface WordFormProps {
   word: string;
@@ -39,6 +40,8 @@ export function WordForm({
 }: WordFormProps) {
   const [isOpen, setIsOpen] = useState(false);
   const buttonBoxRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  useMotionEntrance(dropdownRef, isOpen, '.cyber-portal-option');
   const [menuCoords, setMenuCoords] = useState<{ top: number; left: number; width: number } | null>(null);
 
   const selectedLang =
@@ -183,6 +186,7 @@ export function WordForm({
         menuCoords &&
         createPortal(
           <div
+            ref={dropdownRef}
             className="cyber-portal-dropdown fixed z-[99999] rounded-2xl p-[1px] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.9)] animate-in fade-in zoom-in-95 duration-150"
             style={{
               top: `${menuCoords.top}px`,
@@ -206,11 +210,12 @@ export function WordForm({
                   <button
                     key={lang.code}
                     type="button"
+                    data-motion-option
                     onClick={() => {
                       onLanguageChange(lang.code, lang.label);
                       setIsOpen(false);
                     }}
-                    className={`group flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all duration-150 ${
+                    className={`cyber-portal-option group flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-colors duration-150 ${
                       isSelected
                         ? 'bg-lime-500/20 text-lime-200 border border-lime-400/40 shadow-sm shadow-lime-500/20'
                         : 'text-slate-300 hover:text-lime-300 hover:bg-lime-500/10'

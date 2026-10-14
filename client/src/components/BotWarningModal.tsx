@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { useAnimatedDismiss, useMotionEntrance } from '../utils/motion';
 
 interface BotWarningModalProps {
   botKind?: string;
@@ -8,6 +9,10 @@ interface BotWarningModalProps {
 
 export function BotWarningModal({ botKind, onClose, onRetry }: BotWarningModalProps) {
   const retryButtonRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
+  useMotionEntrance(panelRef, true);
+  const dismiss = useAnimatedDismiss(overlayRef, panelRef, onClose);
 
   useEffect(() => {
     // Accessible autofocus on the primary recovery action
@@ -15,21 +20,22 @@ export function BotWarningModal({ botKind, onClose, onRetry }: BotWarningModalPr
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        onClose();
+        dismiss();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onClose]);
+  }, [dismiss]);
 
   return (
     <div
       role="dialog"
       aria-modal="true"
       aria-labelledby="bot-warning-title"
+      ref={overlayRef}
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn select-none font-mono"
     >
-      <div className="relative w-full max-w-md p-6 sm:p-8 rounded-3xl bg-slate-950 border border-amber-400/30 shadow-[0_0_50px_rgba(245,158,11,0.2)] text-slate-100 backdrop-blur-2xl animate-retention-fade text-center">
+      <div ref={panelRef} className="relative w-full max-w-md p-6 sm:p-8 rounded-3xl bg-slate-950 border border-amber-400/30 shadow-[0_0_50px_rgba(245,158,11,0.2)] text-slate-100 backdrop-blur-2xl text-center">
         {/* Glow ambient background accents */}
         <div className="absolute -top-12 -right-12 w-32 h-32 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-12 -left-12 w-32 h-32 bg-red-500/10 rounded-full blur-3xl pointer-events-none" />
@@ -37,7 +43,7 @@ export function BotWarningModal({ botKind, onClose, onRetry }: BotWarningModalPr
         {/* Close icon */}
         <button
           type="button"
-          onClick={onClose}
+          onClick={() => dismiss()}
           className="absolute top-4 right-4 text-slate-400 hover:text-amber-300 transition text-lg w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-900 cursor-pointer"
           aria-label="Yopish"
         >
@@ -90,7 +96,7 @@ export function BotWarningModal({ botKind, onClose, onRetry }: BotWarningModalPr
           <button
             type="button"
             ref={retryButtonRef}
-            onClick={onRetry}
+            onClick={() => dismiss(onRetry)}
             className="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-400 to-lime-400 hover:shadow-[0_0_20px_rgba(245,158,11,0.4)] text-slate-950 font-bold text-xs transition cursor-pointer active:scale-95"
           >
             Qayta urinish

@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useMotionEntrance } from '../utils/motion';
 
 type ServerState = 'sleeping' | 'waking' | 'live' | 'error';
 
@@ -9,8 +10,9 @@ const API_BASE =
 export function ServerStatus() {
   const [status, setStatus] = useState<ServerState>('sleeping');
   const [message, setMessage] = useState('Server is sleeping');
-  const [isHovered, setIsHovered] = useState(false);
+  const statusRef = useRef<HTMLButtonElement>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  useMotionEntrance(statusRef, status);
 
   useEffect(() => {
     return () => {
@@ -240,7 +242,7 @@ export function ServerStatus() {
           border: 1px solid rgba(132, 204, 22, 0.3);
           background: rgba(15, 23, 42, 0.6);
           cursor: pointer;
-          transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+          transition: color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
           font-size: 11px;
           font-weight: 600;
           font-family: monospace;
@@ -264,17 +266,14 @@ export function ServerStatus() {
 
         .server-status-waking {
           color: rgba(59, 130, 246, 0.9);
-          animation: serverGlow 2s ease-in-out infinite;
         }
 
         .server-status-live {
           color: rgba(34, 197, 94, 0.9);
-          animation: liveGlow 2.5s ease-in-out infinite;
         }
 
         .server-status-error {
           color: rgba(244, 63, 94, 0.8);
-          animation: errorShake 0.4s ease-in-out;
         }
 
         .server-status-error:hover:not(:disabled) {
@@ -304,15 +303,9 @@ export function ServerStatus() {
 
         .server-spark {
           display: inline-block;
-          animation: serverSparkle 1.5s ease-in-out infinite;
-        }
-
-        .server-status-sleeping .server-spark {
-          animation: serverSparkle 2s ease-in-out infinite;
         }
 
         .server-status-live .server-spark {
-          animation: serverSparkle 1.2s ease-in-out infinite;
           color: rgba(34, 197, 94, 1);
           text-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
         }
@@ -321,7 +314,6 @@ export function ServerStatus() {
           display: flex;
           flex-direction: column;
           gap: 2px;
-          animation: slideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
         .server-status-label {
@@ -338,7 +330,6 @@ export function ServerStatus() {
           gap: 6px;
           font-size: 11px;
           font-weight: 600;
-          animation: textFade 0.5s ease-in;
         }
 
         .server-status-dot {
@@ -347,7 +338,6 @@ export function ServerStatus() {
           height: 4px;
           border-radius: 50%;
           background: currentColor;
-          animation: dotPulse 1.5s ease-in-out infinite;
         }
 
         .server-status-sleeping .server-status-dot {
@@ -355,18 +345,15 @@ export function ServerStatus() {
         }
 
         .server-status-waking .server-status-dot {
-          animation: dotBounce 0.8s ease-in-out infinite;
           background: rgba(59, 130, 246, 0.9);
         }
 
         .server-status-live .server-status-dot {
-          animation: dotPulse 1s ease-in-out infinite;
           background: rgba(34, 197, 94, 1);
           box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
         }
 
         .server-status-error .server-status-dot {
-          animation: dotPulse 0.6s ease-in-out infinite;
           background: rgba(244, 63, 94, 0.9);
         }
 
@@ -375,14 +362,6 @@ export function ServerStatus() {
           font-size: 11px;
           transition: all 0.3s ease;
           opacity: 0.7;
-        }
-
-        .server-status-sleeping .server-status-arrow {
-          animation: arrowPulse 1.5s ease-in-out infinite;
-        }
-
-        .server-status-error .server-status-arrow {
-          animation: arrowSpin 1.5s linear infinite;
         }
 
         .server-status:hover:not(:disabled) .server-status-arrow {
@@ -429,12 +408,11 @@ export function ServerStatus() {
       `}</style>
 
       <button
+        ref={statusRef}
         type="button"
         className={`server-status server-status-${status}`}
         onClick={wakeServer}
         disabled={status === 'waking' || status === 'live'}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
         aria-label={`AI server status: ${status}`}
         title={
           status === 'sleeping'

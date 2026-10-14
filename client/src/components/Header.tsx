@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { ServerStatus } from './ServerStatus';
+import { useMotionEntrance } from '../utils/motion';
 
 export interface TelegramUser {
   id: number;
@@ -18,16 +19,15 @@ interface HeaderProps {
 
 export function Header({ currentUser, onLogout, onToggleSidebar }: HeaderProps) {
   const headerRef = useRef<HTMLDivElement>(null);
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  useMotionEntrance(headerRef, true, '[data-header-entry]');
   const [isHovered, setIsHovered] = useState(false);
-  const [isMenuHovered, setIsMenuHovered] = useState(false);
-  const [isLogoutHovered, setIsLogoutHovered] = useState(false);
 
   function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
     if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) return;
     if (!headerRef.current) return;
     const rect = headerRef.current.getBoundingClientRect();
-    setMousePos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+    headerRef.current.style.setProperty('--header-pointer-x', `${e.clientX - rect.left}px`);
+    headerRef.current.style.setProperty('--header-pointer-y', `${e.clientY - rect.top}px`);
   }
 
   return (
@@ -136,16 +136,8 @@ export function Header({ currentUser, onLogout, onToggleSidebar }: HeaderProps) 
           animation: glowPulse 2s ease-in-out infinite;
         }
 
-        .animate-menu-hover {
-          animation: menuIconHover 0.4s ease-in-out;
-        }
-
         .animate-avatar-pulse {
           animation: avatarPulse 2.5s ease-in-out infinite;
-        }
-
-        .animate-logout-shake {
-          animation: logoutShake 0.5s ease-in-out;
         }
 
         .header-border-glow {
@@ -157,34 +149,30 @@ export function Header({ currentUser, onLogout, onToggleSidebar }: HeaderProps) 
         }
       `}</style>
 
-      <header className="sticky top-2 sm:top-3 z-30 w-full px-3 sm:px-6 flex justify-center select-none animate-header-slide">
+      <header className="sticky top-2 sm:top-3 z-30 w-full px-3 sm:px-6 flex justify-center select-none">
         <div
           ref={headerRef}
           onMouseMove={handleMouseMove}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
-          className="relative flex items-center justify-between w-full max-w-4xl px-3 sm:px-4 py-1.5 rounded-full bg-slate-950/85 backdrop-blur-xl border border-lime-400/20 shadow-[0_4px_20px_rgba(0,0,0,0.5)] transition-all duration-500 header-border-glow"
+          className="relative flex items-center justify-between w-full max-w-4xl px-3 sm:px-4 py-1.5 rounded-full bg-slate-950/85 backdrop-blur-xl border border-lime-400/20 shadow-[0_4px_20px_rgba(0,0,0,0.5)] transition-all duration-500"
         >
           {/* Radial gradient glow effect on hover */}
           <div
             className="hidden sm:block pointer-events-none absolute -inset-px rounded-full transition-opacity duration-500"
             style={{
               opacity: isHovered ? 1 : 0,
-              background: `radial-gradient(130px circle at ${mousePos.x}px ${mousePos.y}px, rgba(132, 204, 22, 0.15), rgba(30, 58, 138, 0.25), transparent 80%)`,
+              background: 'radial-gradient(130px circle at var(--header-pointer-x, 50%) var(--header-pointer-y, 50%), rgba(132, 204, 22, 0.15), rgba(30, 58, 138, 0.25), transparent 80%)',
             }}
           />
 
           {/* Left: Menu + Logo */}
-          <div className="relative z-10 flex items-center gap-2">
+          <div data-header-entry className="relative z-10 flex items-center gap-2">
             {onToggleSidebar && (
               <button
                 type="button"
                 onClick={onToggleSidebar}
-                onMouseEnter={() => setIsMenuHovered(true)}
-                onMouseLeave={() => setIsMenuHovered(false)}
-                className={`lg:hidden p-1.5 rounded-lg text-lime-300 hover:text-lime-100 hover:bg-lime-500/15 transition-all duration-300 cursor-pointer active:scale-90 ${
-                  isMenuHovered ? 'animate-menu-hover' : ''
-                }`}
+                className="lg:hidden p-1.5 rounded-lg text-lime-300 hover:text-lime-100 hover:bg-lime-500/15 transition-all duration-300 cursor-pointer active:scale-90"
                 title="Menu"
               >
                 <svg
@@ -202,7 +190,7 @@ export function Header({ currentUser, onLogout, onToggleSidebar }: HeaderProps) 
             )}
 
             <div className="flex items-center gap-1.5 group cursor-pointer">
-              <div className="flex items-center justify-center w-6 h-6 rounded-full bg-gradient-to-br from-blue-600 to-lime-400 border border-lime-400/40 transition-all duration-300 group-hover:border-lime-400/70 group-hover:shadow-[0_0_12px_rgba(132,204,22,0.3)] animate-logo-float">
+                  <div className="flex items-center justify-center w-6 h-6 rounded-full bg-gradient-to-br from-blue-600 to-lime-400 border border-lime-400/40 transition-all duration-300 group-hover:border-lime-400/70 group-hover:shadow-[0_0_12px_rgba(132,204,22,0.3)]">
                 <span className="text-[11px] font-black text-white group-hover:animate-spin">U</span>
               </div>
               <span className="text-xs font-bold tracking-wider text-lime-300 font-mono uppercase transition-all duration-300 group-hover:text-lime-100 group-hover:drop-shadow-[0_0_8px_rgba(132,204,22,0.4)]">
@@ -212,7 +200,7 @@ export function Header({ currentUser, onLogout, onToggleSidebar }: HeaderProps) 
           </div>
 
           {/* Right: ServerStatus + User */}
-          <div className="relative z-10 flex items-center gap-1.5 sm:gap-2">
+          <div data-header-entry className="relative z-10 flex items-center gap-1.5 sm:gap-2">
             <div className="scale-[0.75] origin-right transition-all duration-300 hover:scale-[0.85]">
               <ServerStatus />
             </div>
@@ -223,10 +211,10 @@ export function Header({ currentUser, onLogout, onToggleSidebar }: HeaderProps) 
                   <img
                     src={currentUser.photo_url}
                     alt={currentUser.first_name}
-                    className="w-6 h-6 rounded-full object-cover border border-lime-400/30 transition-all duration-300 hover:border-lime-400/70 hover:shadow-[0_0_12px_rgba(132,204,22,0.3)] animate-avatar-pulse"
+                    className="w-6 h-6 rounded-full object-cover border border-lime-400/30 transition-all duration-300 hover:border-lime-400/70 hover:shadow-[0_0_12px_rgba(132,204,22,0.3)]"
                   />
                 ) : (
-                  <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-600 to-lime-400 border border-lime-400/30 flex items-center justify-center text-[10px] font-bold text-white uppercase transition-all duration-300 hover:border-lime-400/70 hover:shadow-[0_0_12px_rgba(132,204,22,0.3)] animate-avatar-pulse">
+                  <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-600 to-lime-400 border border-lime-400/30 flex items-center justify-center text-[10px] font-bold text-white uppercase transition-all duration-300 hover:border-lime-400/70 hover:shadow-[0_0_12px_rgba(132,204,22,0.3)]">
                     {currentUser.first_name ? currentUser.first_name.charAt(0) : 'U'}
                   </div>
                 )}
@@ -239,11 +227,7 @@ export function Header({ currentUser, onLogout, onToggleSidebar }: HeaderProps) 
                   <button
                     type="button"
                     onClick={onLogout}
-                    onMouseEnter={() => setIsLogoutHovered(true)}
-                    onMouseLeave={() => setIsLogoutHovered(false)}
-                    className={`p-1 rounded-full text-lime-300/40 hover:text-rose-400 hover:bg-rose-500/15 transition-all duration-300 cursor-pointer active:scale-75 ${
-                      isLogoutHovered ? 'animate-logout-shake' : ''
-                    }`}
+                    className="p-1 rounded-full text-lime-300/40 hover:text-rose-400 hover:bg-rose-500/15 transition-all duration-300 cursor-pointer active:scale-95"
                     title="Chiqish"
                   >
                     <svg

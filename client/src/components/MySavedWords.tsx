@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { apiFetch } from '../services/apiClient';
+import { useMotionEntrance } from '../utils/motion';
 
 export interface SavedWord {
   id: number;
@@ -23,6 +24,9 @@ export function MySavedWords({
   onAnalyzeWord,
   onOpenLogin
 }: MySavedWordsProps) {
+  const pageRef = useRef<HTMLDivElement>(null);
+  const cardsRef = useRef<HTMLDivElement>(null);
+  const statusRef = useRef<HTMLDivElement>(null);
   const [words, setWords] = useState<SavedWord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -140,6 +144,10 @@ export function MySavedWords({
     });
   }, [words, searchQuery, sourceFilter]);
 
+  useMotionEntrance(pageRef, Boolean(currentUser?.id));
+  useMotionEntrance(cardsRef, filteredWords.length, '.saved-word-item');
+  useMotionEntrance(statusRef, loading ? 'loading' : error ? 'error' : filteredWords.length ? 'results' : 'empty');
+
   const sourceBadge = (source: string) => {
     if (source === 'analyzer') {
       return (
@@ -165,7 +173,7 @@ export function MySavedWords({
   // If user is not logged in
   if (!currentUser?.id) {
     return (
-      <div className="w-full max-w-4xl mx-auto px-4 py-8 font-mono select-none">
+      <div ref={pageRef} className="w-full max-w-4xl mx-auto px-4 py-8 font-mono select-none">
         <div className="bg-slate-950/85 border border-lime-400/20 rounded-3xl p-8 sm:p-12 text-center backdrop-blur-xl shadow-2xl relative overflow-hidden">
           <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-tr from-lime-400/20 to-cyan-400/20 border border-lime-400/30 flex items-center justify-center text-3xl shadow-[0_0_25px_rgba(163,230,53,0.2)]">
             🔒
@@ -200,7 +208,7 @@ export function MySavedWords({
   }
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 py-6 font-mono select-none text-slate-100">
+    <div ref={pageRef} className="w-full max-w-5xl mx-auto px-4 sm:px-6 py-6 font-mono select-none text-slate-100">
       {/* Top Banner & Navigation */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-lime-400/15">
         <div className="flex items-center gap-3">
@@ -313,20 +321,20 @@ export function MySavedWords({
 
       {/* Loading & Error States */}
       {loading && (
-        <div className="p-12 text-center text-slate-400 font-mono text-xs animate-pulse">
+        <div ref={statusRef} className="p-12 text-center text-slate-400 font-mono text-xs">
           ⚡ Connecting to Turso Cloud and querying user vocabulary...
         </div>
       )}
 
       {error && (
-        <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs text-center mb-6">
+        <div ref={statusRef} className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs text-center mb-6">
           ⚠️ {error}
         </div>
       )}
 
       {/* Empty State */}
       {!loading && !error && filteredWords.length === 0 && (
-        <div className="bg-slate-950/60 border border-slate-800 rounded-3xl p-10 text-center text-slate-400">
+        <div ref={statusRef} className="bg-slate-950/60 border border-slate-800 rounded-3xl p-10 text-center text-slate-400">
           <div className="text-3xl mb-3">📖</div>
           <h3 className="text-base font-bold text-slate-200 mb-1">
             {searchQuery ? 'No matching saved words' : 'Your saved vocabulary is empty'}
@@ -349,11 +357,11 @@ export function MySavedWords({
 
       {/* Saved Words Grid */}
       {!loading && filteredWords.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+        <div ref={cardsRef} className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
           {filteredWords.map((item) => (
             <div
               key={item.id}
-              className="group relative bg-slate-950/80 hover:bg-slate-900/90 border border-lime-400/15 hover:border-lime-400/40 rounded-2xl p-4 transition-all duration-200 hover:-translate-y-0.5 shadow-md hover:shadow-[0_0_20px_rgba(163,230,53,0.1)] flex flex-col justify-between"
+              className="saved-word-item group relative bg-slate-950/80 hover:bg-slate-900/90 border border-lime-400/15 hover:border-lime-400/40 rounded-2xl p-4 transition-[background-color,border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 shadow-md hover:shadow-[0_0_20px_rgba(163,230,53,0.1)] flex flex-col justify-between"
             >
               <div>
                 <div className="flex items-start justify-between gap-2 mb-2">

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
+import { useAnimatedDismiss, useMotionEntrance } from '../utils/motion';
 
 interface LegalModalProps {
   onClose: () => void;
@@ -7,14 +8,20 @@ interface LegalModalProps {
 
 export function LegalModal({ onClose, initialTab }: LegalModalProps) {
   const [activeTab, setActiveTab] = useState<'privacy' | 'terms'>(initialTab ?? 'privacy');
+  const panelRef = useRef<HTMLDivElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const dismiss = useAnimatedDismiss(overlayRef, panelRef, onClose);
+  useMotionEntrance(panelRef, true);
+  useMotionEntrance(contentRef, activeTab);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn select-none font-mono">
-      <div className="relative w-full max-w-2xl max-h-[85vh] flex flex-col p-6 sm:p-8 rounded-3xl bg-slate-950 border border-lime-400/20 shadow-2xl text-slate-100">
+    <div ref={overlayRef} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn select-none font-mono">
+      <div ref={panelRef} className="relative w-full max-w-2xl max-h-[85vh] flex flex-col p-6 sm:p-8 rounded-3xl bg-slate-950 border border-lime-400/20 shadow-2xl text-slate-100">
 
         {/* Yopish tugmasi */}
         <button
-          onClick={onClose}
+          onClick={() => dismiss()}
           className="absolute top-4 right-4 text-slate-400 hover:text-lime-300 transition text-lg w-8 h-8 flex items-center justify-center rounded-full hover:bg-lime-500/10 cursor-pointer"
         >
           ✕
@@ -48,7 +55,7 @@ export function LegalModal({ onClose, initialTab }: LegalModalProps) {
         </div>
 
         {/* Matn qismi */}
-        <div className="flex-1 overflow-y-auto pr-2 space-y-4 text-xs sm:text-sm text-slate-300 leading-relaxed">
+        <div ref={contentRef} className="flex-1 overflow-y-auto pr-2 space-y-4 text-xs sm:text-sm text-slate-300 leading-relaxed">
           {activeTab === 'privacy' ? (
             <>
               <h4 className="text-sm font-bold text-lime-300">1. Maxfiylik Siyosati (Privacy Policy)</h4>
@@ -141,7 +148,7 @@ export function LegalModal({ onClose, initialTab }: LegalModalProps) {
         {/* Pastki tugma */}
         <div className="pt-4 mt-4 border-t border-lime-400/15 flex justify-end">
           <button
-            onClick={onClose}
+            onClick={() => dismiss()}
             className="px-5 py-2 rounded-xl bg-gradient-to-r from-lime-400 to-cyan-400 hover:shadow-[0_0_25px_rgba(132,204,22,0.5)] text-slate-950 font-bold text-xs transition cursor-pointer"
           >
             Tushunarli

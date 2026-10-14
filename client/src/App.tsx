@@ -2,7 +2,7 @@
 import GradientWaves from './components/GradientWaves';
 import WarpText from './components/WarpText';
 import { ActiveRecallWidget } from './components/ActiveRecallWidget';
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { Sidebar } from './components/sidebar';
@@ -24,6 +24,7 @@ import { MySavedWords } from './components/MySavedWords';
 import { BotWarningModal } from './components/BotWarningModal';
 import { hasValidCookieConsent, acceptCookieConsent } from './utils/consent';
 import { detectBot } from './services/botDetection';
+import { useAnimatedDismiss, useMotionEntrance } from './utils/motion';
 
 
 import type {
@@ -89,11 +90,18 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<AnalyzeResponse | null>(null);
   const [view, setView] = useState<View>('analysis');
+  const appContentRef = useRef<HTMLDivElement>(null);
+  const vipOverlayRef = useRef<HTMLDivElement>(null);
+  const vipPanelRef = useRef<HTMLDivElement>(null);
+
   const [waitingAuth, setWaitingAuth] = useState(false);
   const [isCheckingBot, setIsCheckingBot] = useState(false);
   const [botWarning, setBotWarning] = useState<{ isBot: boolean; botKind?: string } | null>(null);
   const [showLimitModal, setShowLimitModal] = useState(false);
   const [showGetMoreModal, setShowGetMoreModal] = useState(false);
+  useMotionEntrance(appContentRef, `${showLanding}:${view}`, '[data-app-stage]');
+  useMotionEntrance(vipPanelRef, showGetMoreModal);
+  const dismissVip = useAnimatedDismiss(vipOverlayRef, vipPanelRef, () => setShowGetMoreModal(false));
 
   // 1. O'ZINGIZNING TELEGRAM ID RAQAMINGIZNI SHU YERGA YOZING!
   // Misol uchun: 123456789. Buni @userinfobot orqali bilishingiz mumkin.
@@ -508,6 +516,7 @@ export default function App() {
       )}
 
       <div
+        ref={appContentRef}
         className={`app-content relative z-10 flex flex-col min-h-screen transition-all duration-300 ease-in-out ${
           showLanding ? '' : isSidebarOpen ? 'lg:pl-64' : 'lg:pl-12'
         }`}
@@ -553,7 +562,7 @@ export default function App() {
         ) : (
           <main className="page flex-1 w-full max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
             {view !== 'reading' && view !== 'saved-words' && (
-              <section className="hero grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center mb-8 sm:mb-10">
+              <section data-app-stage className="hero grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center mb-8 sm:mb-10">
               <div className="lg:col-span-7 flex flex-col items-start">
                 <button
                   type="button"
@@ -775,7 +784,7 @@ export default function App() {
                 />
               )}
               {view !== 'reading' && view !== 'saved-words' && (
-                <div id="analyze-word-section" className="w-full">
+                <div id="analyze-word-section" data-app-stage className="w-full">
                 <Card
                   title="Analyze a word"
                   subtitle="Enter a word or short phrase and let AI build your study card"
@@ -860,12 +869,12 @@ export default function App() {
                 )
               ) : null}
               {view === 'reading' && (
-                <section id="reading-section" className="w-full">
+                  <section id="reading-section" data-app-stage className="w-full">
                   <RetentionReading currentUser={currentUser} />
                 </section>
               )}
               {view === 'saved-words' && (
-                <section id="saved-words-section" className="w-full">
+                  <section id="saved-words-section" data-app-stage className="w-full">
                   <MySavedWords
                     currentUser={currentUser}
                     onBack={() => setView('analysis')}
@@ -944,10 +953,10 @@ export default function App() {
       )}
 
       {showGetMoreModal && isAdmin && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn">
-          <div className="relative w-full max-w-sm p-6 sm:p-7 rounded-3xl bg-slate-950 border border-lime-400/30 shadow-[0_0_40px_rgba(132,204,22,0.15)] text-center">
+        <div ref={vipOverlayRef} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn">
+          <div ref={vipPanelRef} className="relative w-full max-w-sm p-6 sm:p-7 rounded-3xl bg-slate-950 border border-lime-400/30 shadow-[0_0_40px_rgba(132,204,22,0.15)] text-center">
             <button
-              onClick={() => setShowGetMoreModal(false)}
+              onClick={() => dismissVip()}
               className="absolute top-4 right-4 text-slate-400 hover:text-lime-300 transition text-lg w-8 h-8 flex items-center justify-center rounded-full hover:bg-lime-500/10 cursor-pointer"
             >
               ✕

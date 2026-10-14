@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
+import { useAnimatedDismiss, useMotionEntrance } from '../utils/motion';
 
 export const COOKIE_CONSENT_KEY = 'univebooster_cookie_consent_v1';
 
@@ -19,6 +20,10 @@ interface CookieModalProps {
 }
 
 export function CookieModal({ onClose, onOpenLegal }: CookieModalProps) {
+  const panelRef = useRef<HTMLDivElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
+  useMotionEntrance(panelRef, true);
+  const dismiss = useAnimatedDismiss(overlayRef, panelRef, onClose);
   const [analyticsEnabled, setAnalyticsEnabled] = useState(true);
   const [functionalEnabled, setFunctionalEnabled] = useState(true);
 
@@ -35,12 +40,12 @@ export function CookieModal({ onClose, onOpenLegal }: CookieModalProps) {
     } catch (err) {
       console.error('Failed to store cookie consent', err);
     }
-    onClose();
+    dismiss();
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md animate-fadeIn select-none font-mono">
-      <div className="relative w-full max-w-xl flex flex-col p-6 sm:p-8 rounded-3xl bg-slate-950/95 border border-lime-400/25 shadow-[0_0_50px_rgba(0,0,0,0.9)] text-slate-100 backdrop-blur-2xl animate-retention-fade">
+    <div ref={overlayRef} className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md animate-fadeIn select-none font-mono">
+      <div ref={panelRef} className="relative w-full max-w-xl flex flex-col p-6 sm:p-8 rounded-3xl bg-slate-950/95 border border-lime-400/25 shadow-[0_0_50px_rgba(0,0,0,0.9)] text-slate-100 backdrop-blur-2xl">
         {/* Glow ambient background accent */}
         <div className="absolute -top-16 -right-16 w-40 h-40 bg-lime-400/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-16 -left-16 w-40 h-40 bg-cyan-400/10 rounded-full blur-3xl pointer-events-none" />
@@ -65,7 +70,7 @@ export function CookieModal({ onClose, onOpenLegal }: CookieModalProps) {
           </div>
 
           <button
-            onClick={onClose}
+            onClick={() => dismiss()}
             className="text-slate-500 hover:text-slate-300 transition text-base w-7 h-7 flex items-center justify-center rounded-full hover:bg-slate-900 cursor-pointer"
             title="Yopish"
           >

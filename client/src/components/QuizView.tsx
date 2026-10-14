@@ -1,8 +1,9 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useRef } from 'react';
 import type { VocabQuiz, QuizQuestion } from '../types/vocab';
 import { Card } from './Card';
 import { Alert } from './Alert';
 import { QuestionRenderer, type UserAnswer } from './QuestionRenderer';
+import { useMotionEntrance } from '../utils/motion';
 
 type Result = {
   score: number;
@@ -42,6 +43,10 @@ export function QuizView(props: {
   const [answers, setAnswers] = useState<Record<string, UserAnswer>>({});
   const [submitted, setSubmitted] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
+  const quizRef = useRef<HTMLDivElement>(null);
+  const feedbackRef = useRef<HTMLDivElement>(null);
+  useMotionEntrance(quizRef, `${props.quiz.title || 'Mini Quiz'}:${props.quiz.questions.length}`);
+  useMotionEntrance(feedbackRef, submitted);
 
   const total = props.quiz.questions.length;
 
@@ -76,7 +81,7 @@ export function QuizView(props: {
   const msg = result ? feedbackMessage(result.score, result.total) : null;
 
   return (
-    <div className="grid gap-4 fade-in">
+    <div ref={quizRef} className="grid gap-4 fade-in">
       <Card
         title={props.quiz.title || 'Mini Quiz'}
         rightSlot={
@@ -112,7 +117,7 @@ export function QuizView(props: {
         </div>
 
         {submitted && result && msg ? (
-          <div className="mt-4">
+          <div ref={feedbackRef} className="mt-4">
             <Alert variant={msg.variant} title={msg.title}>
               {msg.body}
             </Alert>

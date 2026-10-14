@@ -12,6 +12,7 @@
   "dependencies": {
     "@fingerprintjs/botd": "^2.0.0",
     "@paper-design/shaders": "^0.0.80",
+    "animejs": "4.5.0",
     "lucide-react": "^1.45.0",
     "ogl": "^1.0.11",
     "react": "^18.3.1",

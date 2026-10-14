@@ -1,5 +1,6 @@
 // src/components/LandingPage.tsx
-import React from 'react';
+import React, { useRef } from 'react';
+import { useMotionEntrance, useScrollReveal } from '../utils/motion';
 
 interface LandingPageProps {
   onStart: () => void;
@@ -14,8 +15,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   isLoggedIn,
   waitingAuth = false
 }) => {
+  const landingRef = useRef<HTMLDivElement>(null);
+  useMotionEntrance(landingRef, true, '[data-motion-enter]');
+  useScrollReveal(landingRef, '[data-motion-reveal]');
+
   return (
-    <div className="relative w-full flex flex-col items-center overflow-hidden font-mono select-none">
+    <div ref={landingRef} className="relative w-full flex flex-col items-center overflow-hidden font-mono select-none">
       
       {/* 1. HERO SECTION */}
       <section className="relative w-full min-h-[75vh] flex flex-col items-center justify-center px-4 pt-10 pb-14 text-center">
@@ -24,7 +29,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[300px] bg-gradient-to-tr from-lime-500/50 via-blue-500/20 to-transparent blur-3xl pointer-events-none rounded-full" />
 
         {/* Minimal Badge */}
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-lime-400/30 bg-slate-950/60 backdrop-blur-lg mb-8">
+        <div data-motion-enter className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-lime-400/30 bg-slate-950/60 backdrop-blur-lg mb-8">
           <span className="w-2 h-2 rounded-full bg-lime-400 animate-pulse"></span>
           <span className="text-xs font-mono tracking-wide text-lime-300">
             Next-Gen Learning Architecture
@@ -32,19 +37,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </div>
 
         {/* Main Heading */}
-        <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight leading-[1.08] max-w-4xl mx-auto mb-6">
+        <h1 data-motion-enter className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight leading-[1.08] max-w-4xl mx-auto mb-6">
           <span className="text-slate-100">AI-Powered English.</span><br />
           <span className="bg-gradient-to-b from-lime-300 via-lime-400 to-cyan-400 bg-clip-text text-transparent">
             All-in-One Trainer.
           </span>
         </h1>
 
-        <p className="text-xs sm:text-sm text-slate-300 max-w-xl mx-auto mb-8 leading-relaxed">
+        <p data-motion-enter className="text-xs sm:text-sm text-slate-300 max-w-xl mx-auto mb-8 leading-relaxed">
           IELTS va akademik darajadagi so’zlarni sun’iy intellekt yordamida chuqur tahlil qiling, Active Recall va mini-testlar orqali xotirada saqlang.
         </p>
 
         {/* Main Buttons */}
-        <div className="flex flex-col sm:flex-row items-center gap-4 w-full justify-center max-w-sm">
+        <div data-motion-enter className="flex flex-col sm:flex-row items-center gap-4 w-full justify-center max-w-sm">
           <button
             type="button"
             onClick={onStart}
@@ -84,7 +89,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
           {/* Reason 1 */}
-          <div className="p-6 rounded-3xl bg-slate-900/60 backdrop-blur-lg border border-lime-400/20 hover:border-lime-400/40 hover:shadow-[0_0_20px_rgba(132,204,22,0.3)] transition flex flex-col justify-between">
+          <div data-motion-reveal className="motion-surface p-6 rounded-3xl bg-slate-900/60 backdrop-blur-lg border border-lime-400/20 hover:border-lime-400/40 hover:shadow-[0_0_20px_rgba(132,204,22,0.3)] transition flex flex-col justify-between">
             <div>
               <div className="w-10 h-10 rounded-xl bg-blue-900/70 border border-lime-400/30 flex items-center justify-center text-lime-400 mb-4 text-lg font-bold">
                 ⚡
@@ -97,7 +102,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
 
           {/* Reason 2 */}
-          <div className="p-6 rounded-3xl bg-slate-900/60 backdrop-blur-lg border border-lime-400/20 hover:border-lime-400/40 hover:shadow-[0_0_20px_rgba(132,204,22,0.3)] transition flex flex-col justify-between">
+          <div data-motion-reveal className="motion-surface p-6 rounded-3xl bg-slate-900/60 backdrop-blur-lg border border-lime-400/20 hover:border-lime-400/40 hover:shadow-[0_0_20px_rgba(132,204,22,0.3)] transition flex flex-col justify-between">
             <div>
               <div className="w-10 h-10 rounded-xl bg-blue-900/70 border border-lime-400/30 flex items-center justify-center text-lime-400 mb-4 text-lg font-bold">
                 🎯
@@ -110,7 +115,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
 
           {/* Reason 3 */}
-          <div className="p-6 rounded-3xl bg-slate-900/60 backdrop-blur-lg border border-lime-400/20 hover:border-lime-400/40 hover:shadow-[0_0_20px_rgba(132,204,22,0.3)] transition flex flex-col justify-between">
+          <div data-motion-reveal className="motion-surface p-6 rounded-3xl bg-slate-900/60 backdrop-blur-lg border border-lime-400/20 hover:border-lime-400/40 hover:shadow-[0_0_20px_rgba(132,204,22,0.3)] transition flex flex-col justify-between">
             <div>
               <div className="w-10 h-10 rounded-xl bg-blue-900/70 border border-lime-400/30 flex items-center justify-center text-lime-400 mb-4 text-lg font-bold">
                 ☁️
