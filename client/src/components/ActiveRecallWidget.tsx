@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useMotionEntrance } from '../utils/motion';
+import BorderGlow from './BorderGlow';
+import { useTheme } from '../context/ThemeContext';
 
 type WordPair = {
   en: string;
@@ -15,6 +17,9 @@ export const ActiveRecallWidget: React.FC<ActiveRecallWidgetProps> = ({
   onRestart,
   onTryFirstWord
 }) => {
+  const { theme } = useTheme();
+  const isViolet = theme === 'cyber-violet';
+
   // Core state
   const [history, setHistory] = useState<WordPair[]>([]);
   const [selectedWords, setSelectedWords] = useState<WordPair[]>([]);
@@ -244,7 +249,24 @@ export const ActiveRecallWidget: React.FC<ActiveRecallWidgetProps> = ({
             animation: float 3s ease-in-out infinite;
           }
         `}</style>
-        <div className="relative w-full p-6 sm:p-7 rounded-3xl bg-slate-950/80 border border-lime-400/20 shadow-[0_0_20px_rgba(132,204,22,0.1)] backdrop-blur-md overflow-hidden">
+        <BorderGlow
+          backgroundColor="#0f172a"
+          borderRadius={24}
+          glowRadius={30}
+          glowIntensity={0.8}
+          colors={
+            isViolet
+              ? ['#c084fc', '#ec4899', '#7e22ce']
+              : ['#84cc16', '#1e3a8a', '#06b6d4']
+          }
+          glowColor={isViolet ? '280 85 70' : '132 204 22'}
+          edgeSensitivity={30}
+          coneSpread={25}
+          fillOpacity={0.65}
+        >
+          <div className={`relative w-full p-6 sm:p-7 rounded-3xl bg-slate-950/80 border ${
+            isViolet ? 'border-fuchsia-400/25' : 'border-lime-400/20'
+          } shadow-[0_0_20px_rgba(0,0,0,0.5)] backdrop-blur-md overflow-hidden`}>
           <div className="absolute top-0 right-0 w-24 h-24 bg-lime-500/5 blur-3xl pointer-events-none" />
           <div className="absolute bottom-0 left-0 w-32 h-32 bg-cyan-500/5 blur-3xl pointer-events-none" />
 
@@ -278,6 +300,7 @@ export const ActiveRecallWidget: React.FC<ActiveRecallWidgetProps> = ({
             </button>
           </div>
         </div>
+      </BorderGlow>
       </div>
     );
   }
@@ -331,12 +354,29 @@ export const ActiveRecallWidget: React.FC<ActiveRecallWidgetProps> = ({
         }
       `}</style>
 
-      <div className="relative w-full p-6 rounded-3xl bg-slate-950/80 border border-lime-400/20 shadow-[0_0_30px_rgba(132,204,22,0.1)] backdrop-blur-md">
+      <BorderGlow
+        backgroundColor="#0f172a"
+        borderRadius={24}
+        glowRadius={30}
+        glowIntensity={0.8}
+        colors={
+          isViolet
+            ? ['#c084fc', '#ec4899', '#7e22ce']
+            : ['#84cc16', '#1e3a8a', '#06b6d4']
+        }
+        glowColor={isViolet ? '280 85 70' : '132 204 22'}
+        edgeSensitivity={30}
+        coneSpread={25}
+        fillOpacity={0.65}
+      >
+        <div className={`relative w-full p-6 rounded-3xl bg-slate-950/80 backdrop-blur-md border ${
+          isViolet ? 'border-fuchsia-400/25' : 'border-lime-400/20'
+        }`}>
         {/* Header */}
         <div className="flex items-center justify-between mb-6 pb-3 border-b border-lime-400/10">
           <div className="flex items-center gap-2">
-            <div className="w-2.5 h-2.5 rounded-full bg-lime-400 animate-pulse" />
-            <h3 className="text-sm font-mono font-bold text-lime-300 uppercase tracking-widest">Active Recall: Warmup</h3>
+            <div className={`w-2.5 h-2.5 rounded-full animate-pulse ${isViolet ? 'bg-fuchsia-400' : 'bg-lime-400'}`} />
+            <h3 className={`text-sm font-mono font-bold uppercase tracking-widest ${isViolet ? 'text-fuchsia-300' : 'text-lime-300'}`}>Active Recall: Warmup</h3>
           </div>
           <div className="flex items-center gap-1">
             <button
@@ -367,9 +407,9 @@ export const ActiveRecallWidget: React.FC<ActiveRecallWidgetProps> = ({
                     key={index}
                     className={`h-2 flex-1 rounded-full transition-all duration-500 ${
                       index < currentIndex
-                        ? 'bg-lime-400 shadow-[0_0_8px_rgba(132,204,22,0.5)]'
+                        ? (isViolet ? 'bg-fuchsia-400 shadow-[0_0_8px_rgba(236,72,153,0.5)]' : 'bg-lime-400 shadow-[0_0_8px_rgba(132,204,22,0.5)]')
                         : index === currentIndex
-                          ? 'bg-lime-500/40 animate-pulse'
+                          ? (isViolet ? 'bg-fuchsia-500/40 animate-pulse' : 'bg-lime-500/40 animate-pulse')
                           : 'bg-slate-900'
                     }`}
                     onMouseEnter={() => setHoverIndex(index)}
@@ -547,7 +587,8 @@ export const ActiveRecallWidget: React.FC<ActiveRecallWidgetProps> = ({
             </div>
           </div>
         )}
-      </div>
+        </div>
+      </BorderGlow>
     </div>
   );
 };

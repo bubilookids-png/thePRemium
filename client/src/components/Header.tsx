@@ -1,6 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { ServerStatus } from './ServerStatus';
+import { NeonLogo } from './NeonLogo';
 import { useMotionEntrance } from '../utils/motion';
+import { useLanguage } from '../context/LanguageContext';
 
 export interface TelegramUser {
   id: number;
@@ -15,12 +17,14 @@ interface HeaderProps {
   currentUser?: TelegramUser | null;
   onLogout?: () => void;
   onToggleSidebar?: () => void;
+  onLogoClick?: () => void;
 }
 
-export function Header({ currentUser, onLogout, onToggleSidebar }: HeaderProps) {
+export function Header({ currentUser, onLogout, onToggleSidebar, onLogoClick }: HeaderProps) {
   const headerRef = useRef<HTMLDivElement>(null);
   useMotionEntrance(headerRef, true, '[data-header-entry]');
   const [isHovered, setIsHovered] = useState(false);
+  const { t } = useLanguage();
 
   function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
     if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) return;
@@ -62,68 +66,6 @@ export function Header({ currentUser, onLogout, onToggleSidebar }: HeaderProps) 
           }
         }
 
-        @keyframes menuIconRotate {
-          from {
-            transform: rotate(0deg);
-          }
-          to {
-            transform: rotate(90deg);
-          }
-        }
-
-        @keyframes menuIconHover {
-          0%, 100% {
-            transform: translateX(0);
-          }
-          25% {
-            transform: translateX(2px);
-          }
-          75% {
-            transform: translateX(-2px);
-          }
-        }
-
-        @keyframes avatarPulse {
-          0%, 100% {
-            box-shadow: 0 0 0px rgba(132, 204, 22, 0);
-          }
-          50% {
-            box-shadow: 0 0 12px rgba(132, 204, 22, 0.4);
-          }
-        }
-
-        @keyframes logoutShake {
-          0%, 100% {
-            transform: rotate(0deg);
-          }
-          25% {
-            transform: rotate(-8deg);
-          }
-          75% {
-            transform: rotate(8deg);
-          }
-        }
-
-        @keyframes borderGlow {
-          0%, 100% {
-            border-color: rgba(132, 204, 22, 0.2);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-          }
-          50% {
-            border-color: rgba(132, 204, 22, 0.4);
-            box-shadow: 0 8px 30px rgba(132, 204, 22, 0.15), 0 4px 20px rgba(0, 0, 0, 0.5);
-          }
-        }
-
-        @keyframes pulseUser {
-          0%, 100% {
-            opacity: 1;
-          }
-          50% {
-            opacity: 0.8;
-          }
-        }
-
         .animate-header-slide {
           animation: headerSlide 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
@@ -134,18 +76,6 @@ export function Header({ currentUser, onLogout, onToggleSidebar }: HeaderProps) 
 
         .animate-glow-pulse {
           animation: glowPulse 2s ease-in-out infinite;
-        }
-
-        .animate-avatar-pulse {
-          animation: avatarPulse 2.5s ease-in-out infinite;
-        }
-
-        .header-border-glow {
-          animation: borderGlow 2.5s ease-in-out infinite;
-        }
-
-        .animate-pulse-user {
-          animation: pulseUser 1.5s ease-in-out infinite;
         }
       `}</style>
 
@@ -166,14 +96,14 @@ export function Header({ currentUser, onLogout, onToggleSidebar }: HeaderProps) 
             }}
           />
 
-          {/* Left: Menu + Logo */}
+          {/* Left: Menu + Transparent Neon Logo */}
           <div data-header-entry className="relative z-10 flex items-center gap-2">
             {onToggleSidebar && (
               <button
                 type="button"
                 onClick={onToggleSidebar}
-                className="lg:hidden p-1.5 rounded-lg text-lime-300 hover:text-lime-100 hover:bg-lime-500/15 transition-all duration-300 cursor-pointer active:scale-90"
-                title="Menu"
+                className="p-1.5 rounded-lg text-lime-300 hover:text-lime-100 hover:bg-lime-500/15 transition-all duration-300 cursor-pointer active:scale-90"
+                title="Sidebar"
               >
                 <svg
                   className="w-5 h-5 transition-all duration-300"
@@ -189,10 +119,13 @@ export function Header({ currentUser, onLogout, onToggleSidebar }: HeaderProps) 
               </button>
             )}
 
-            <div className="flex items-center gap-1.5 group cursor-pointer">
-                  <div className="flex items-center justify-center w-6 h-6 rounded-full bg-gradient-to-br from-blue-600 to-lime-400 border border-lime-400/40 transition-all duration-300 group-hover:border-lime-400/70 group-hover:shadow-[0_0_12px_rgba(132,204,22,0.3)]">
-                <span className="text-[11px] font-black text-white group-hover:animate-spin">U</span>
-              </div>
+            <div
+              onClick={onLogoClick}
+              className="flex items-center gap-2 group cursor-pointer"
+            >
+              {/* Transparent Neon Logo instead of the spinning 'U' letter */}
+              <NeonLogo size={24} />
+
               <span className="text-xs font-bold tracking-wider text-lime-300 font-mono uppercase transition-all duration-300 group-hover:text-lime-100 group-hover:drop-shadow-[0_0_8px_rgba(132,204,22,0.4)]">
                 UniveBooster
               </span>
@@ -228,7 +161,7 @@ export function Header({ currentUser, onLogout, onToggleSidebar }: HeaderProps) 
                     type="button"
                     onClick={onLogout}
                     className="p-1 rounded-full text-lime-300/40 hover:text-rose-400 hover:bg-rose-500/15 transition-all duration-300 cursor-pointer active:scale-95"
-                    title="Chiqish"
+                    title={t.logout}
                   >
                     <svg
                       className="w-3.5 h-3.5 transition-all duration-300"

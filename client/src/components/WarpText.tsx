@@ -85,6 +85,9 @@ uniform float uPointerStrength;
 uniform float uRefraction;
 uniform float uRipple;
 uniform float uMotion;
+uniform vec3 uColorLight;
+uniform vec3 uColorWarm;
+uniform vec3 uColorGlow;
 
 in vec2 vUv;
 out vec4 fragColor;
@@ -331,15 +334,10 @@ void main() {
       1.0
     );
 
-  // Lime & Cyan gradient effect
-  vec3 limeLight = vec3(0.518, 0.8, 0.0886); // #84cc16
-  vec3 limeWarm  = vec3(0.576, 0.902, 0.196); // Warm lime
-  vec3 blueGlow    = vec3(0.118, 0.227, 0.541); // #1e3a8a / soft blue
-
   vec3 gradientColor =
     mix(
-      limeLight,
-      limeWarm,
+      uColorLight,
+      uColorWarm,
       smoothstep(
         0.0,
         0.65,
@@ -350,12 +348,12 @@ void main() {
   gradientColor =
     mix(
       gradientColor,
-      blueGlow,
+      uColorGlow,
       smoothstep(
         0.65,
         1.0,
         gradient
-      ) * 0.25 // Juda nozik blue akslanishi
+      ) * 0.28
     );
 
   vec3 refracted =
@@ -390,11 +388,7 @@ void main() {
     glowPulse;
 
   color +=
-    vec3(
-      0.024,
-      0.306,
-      0.231
-    ) *
+    uColorGlow *
     lens *
     base.a *
     0.08;
@@ -661,6 +655,35 @@ const buildTextCanvas = ({
   return canvas;
 };
 
+const getColorTriplets = (color?: string) => {
+  const isViolet =
+    (color && (
+      color.includes('f472b6') ||
+      color.includes('c084fc') ||
+      color.includes('ec4899') ||
+      color.includes('violet') ||
+      color.includes('pink')
+    )) ||
+    (typeof document !== 'undefined' && (
+      document.documentElement.getAttribute('data-theme') === 'violet' ||
+      document.body.getAttribute('data-theme') === 'violet'
+    ));
+
+  if (isViolet) {
+    return {
+      light: new Float32Array([0.753, 0.518, 0.988]), // #c084fc neon violet
+      warm: new Float32Array([0.957, 0.447, 0.714]),  // #f472b6 electric rose
+      glow: new Float32Array([0.49, 0.133, 0.8])      // #7e22ce deep purple
+    };
+  }
+
+  return {
+    light: new Float32Array([0.518, 0.8, 0.0886]),   // #84cc16 lime
+    warm: new Float32Array([0.576, 0.902, 0.196]),   // warm lime
+    glow: new Float32Array([0.118, 0.227, 0.541])    // soft blue
+  };
+};
+
 const syncUniforms = (
   program: Program,
   props: WarpProps
@@ -687,6 +710,29 @@ const syncUniforms = (
 
   uniforms.uRipple.value =
     props.ripple ? 1 : 0;
+
+  const triplets = getColorTriplets(props.color);
+  if (uniforms.uColorLight) {
+    if (uniforms.uColorLight.value instanceof Float32Array) {
+      uniforms.uColorLight.value.set(triplets.light);
+    } else {
+      uniforms.uColorLight.value = triplets.light;
+    }
+  }
+  if (uniforms.uColorWarm) {
+    if (uniforms.uColorWarm.value instanceof Float32Array) {
+      uniforms.uColorWarm.value.set(triplets.warm);
+    } else {
+      uniforms.uColorWarm.value = triplets.warm;
+    }
+  }
+  if (uniforms.uColorGlow) {
+    if (uniforms.uColorGlow.value instanceof Float32Array) {
+      uniforms.uColorGlow.value.set(triplets.glow);
+    } else {
+      uniforms.uColorGlow.value = triplets.glow;
+    }
+  }
 };
 
 const WarpText = ({
@@ -776,6 +822,24 @@ const WarpText = ({
     refraction,
     ripple
   ]);
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+
+    const handleThemeChange = () => {
+      if (contextRef.current) {
+        syncUniforms(contextRef.current.program, propsRef.current);
+      }
+    };
+
+    const observer = new MutationObserver(handleThemeChange);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    if (document.body) {
+      observer.observe(document.body, { attributes: true, attributeFilter: ['data-theme'] });
+    }
+
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -950,6 +1014,18 @@ const WarpText = ({
               reduceMotion
                 ? 0
                 : 1
+          },
+
+          uColorLight: {
+            value: getColorTriplets(propsRef.current.color).light
+          },
+
+          uColorWarm: {
+            value: getColorTriplets(propsRef.current.color).warm
+          },
+
+          uColorGlow: {
+            value: getColorTriplets(propsRef.current.color).glow
           }
         }
       });

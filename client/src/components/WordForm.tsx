@@ -4,6 +4,8 @@ import { createPortal } from 'react-dom';
 import { LiquidMetalButton } from './ui/liquid-metal-button';
 import type { SupportedLanguageCode } from '../types/vocab';
 import { useMotionEntrance } from '../utils/motion';
+import { useLanguage } from '../context/LanguageContext';
+import { useTheme } from '../context/ThemeContext';
 
 interface WordFormProps {
   word: string;
@@ -38,6 +40,9 @@ export function WordForm({
   onSubmit,
   disabled = false,
 }: WordFormProps) {
+  const { t } = useLanguage();
+  const { theme } = useTheme();
+  const isViolet = theme === 'cyber-violet';
   const [isOpen, setIsOpen] = useState(false);
   const buttonBoxRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -112,14 +117,14 @@ export function WordForm({
         {/* 1. Input */}
         <div className="flex-1 relative">
           <label className="block text-[11px] font-mono font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">
-            English word / term
+            {t.wordInputLabel}
           </label>
           <input
             type="text"
             value={word}
             onChange={(e) => onWordChange(e.target.value)}
             disabled={disabled}
-            placeholder='Try "resilient" or "take off"'
+            placeholder={t.wordInputPlaceholder}
             className="w-full px-4 py-2.5 rounded-2xl bg-slate-900/70 backdrop-blur-md border border-lime-400/25 focus:border-lime-400/50 text-slate-100 placeholder-slate-400 text-sm focus:outline-none transition-all duration-300 shadow-inner focus:shadow-[0_0_15px_rgba(132,204,22,0.2)]"
           />
         </div>
@@ -127,7 +132,7 @@ export function WordForm({
         {/* 2. Dropdown Trigger Tugmasi */}
         <div ref={buttonBoxRef} className="relative sm:w-44">
           <label className="block text-[11px] font-mono font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">
-            Translate into
+            {t.translateIntoLabel}
           </label>
 
           <div className="relative rounded-2xl p-[1px] overflow-hidden">
@@ -136,7 +141,9 @@ export function WordForm({
                 className="absolute inset-[-100%] animate-[spin_3s_linear_infinite]"
                 style={{
                   background:
-                    'conic-gradient(from 0deg, transparent 0 300deg, #84cc16 340deg, #06b6d4 360deg)',
+                    isViolet
+                      ? 'conic-gradient(from 0deg, transparent 0 300deg, #c084fc 340deg, #ec4899 360deg)'
+                      : 'conic-gradient(from 0deg, transparent 0 300deg, #84cc16 340deg, #06b6d4 360deg)',
                 }}
               />
             )}
@@ -174,7 +181,7 @@ export function WordForm({
         {/* 3. Liquid Metal Tugmasi */}
         <div className="sm:self-end flex items-center justify-center">
           <LiquidMetalButton
-            label={disabled ? 'Analyzing...' : 'Analyze word →'}
+            label={disabled ? t.analyzingButton : t.analyzeButton}
             type="submit"
             disabled={disabled || !word.trim()}
           />
@@ -199,7 +206,9 @@ export function WordForm({
               className="absolute inset-[-100%] animate-[spin_4s_linear_infinite]"
               style={{
                 background:
-                  'conic-gradient(from 0deg, transparent 0 320deg, #84cc16 350deg, #06b6d4 360deg)',
+                  isViolet
+                    ? 'conic-gradient(from 0deg, transparent 0 320deg, #c084fc 350deg, #ec4899 360deg)'
+                    : 'conic-gradient(from 0deg, transparent 0 320deg, #84cc16 350deg, #06b6d4 360deg)',
               }}
             />
 

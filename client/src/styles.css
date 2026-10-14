@@ -3055,3 +3055,147 @@ input[type="radio"] {
   text-transform: uppercase;
   letter-spacing: 0.1em;
 }
+
+
+/* ============================================================
+   CYBER VIOLET & FUCHSIA THEME (DATA-THEME="VIOLET")
+   ============================================================ */
+
+body[data-theme="violet"],
+html[data-theme="violet"] {
+  --bg: #07020e;
+}
+
+body[data-theme="violet"] .app-shell {
+  background: #07020e !important;
+}
+
+/* Comprehensive Theme Overrides for Cyber Violet Theme */
+[data-theme="violet"] .text-lime-100 { color: #fdf2f8 !important; }
+[data-theme="violet"] .text-lime-200 { color: #fbcfe8 !important; }
+[data-theme="violet"] .text-lime-300 { color: #f472b6 !important; }
+[data-theme="violet"] .text-lime-300\/70 { color: rgba(244, 114, 182, 0.7) !important; }
+[data-theme="violet"] .text-lime-400 { color: #e879f9 !important; }
+[data-theme="violet"] .text-lime-500 { color: #c084fc !important; }
+
+[data-theme="violet"] .hover\:text-lime-100:hover,
+[data-theme="violet"] .hover\:text-lime-200:hover,
+[data-theme="violet"] .hover\:text-lime-300:hover,
+[data-theme="violet"] .hover\:text-lime-400:hover {
+  color: #f472b6 !important;
+}
+
+[data-theme="violet"] .group:hover .group-hover\:text-lime-100,
+[data-theme="violet"] .group:hover .group-hover\:text-lime-200,
+[data-theme="violet"] .group:hover .group-hover\:text-lime-300,
+[data-theme="violet"] .group:hover .group-hover\:text-lime-400 {
+  color: #f472b6 !important;
+}
+
+[data-theme="violet"] .border-lime-400\/10 { border-color: rgba(236, 72, 153, 0.12) !important; }
+[data-theme="violet"] .border-lime-400\/15 { border-color: rgba(236, 72, 153, 0.18) !important; }
+[data-theme="violet"] .border-lime-400\/20 { border-color: rgba(236, 72, 153, 0.22) !important; }
+[data-theme="violet"] .border-lime-400\/25 { border-color: rgba(236, 72, 153, 0.28) !important; }
+[data-theme="violet"] .border-lime-400\/30 { border-color: rgba(236, 72, 153, 0.32) !important; }
+[data-theme="violet"] .border-lime-400\/40 { border-color: rgba(236, 72, 153, 0.45) !important; }
+[data-theme="violet"] .border-lime-400\/50 { border-color: rgba(236, 72, 153, 0.55) !important; }
+[data-theme="violet"] .border-lime-400\/60 { border-color: rgba(236, 72, 153, 0.65) !important; }
+[data-theme="violet"] .border-lime-400\/80,
+[data-theme="violet"] .border-lime-300\/80 {
+  border-color: rgba(244, 114, 182, 0.85) !important;
+}
+
+[data-theme="violet"] .hover\:border-lime-300:hover,
+[data-theme="violet"] .hover\:border-lime-400:hover,
+[data-theme="violet"] .hover\:border-lime-400\/30:hover,
+[data-theme="violet"] .hover\:border-lime-400\/40:hover,
+[data-theme="violet"] .hover\:border-lime-400\/50:hover,
+[data-theme="violet"] .hover\:border-lime-300\/80:hover {
+  border-color: rgba(244, 114, 182, 0.6) !important;
+}
+
+[data-theme="violet"] .group:hover .group-hover\:border-lime-300,
+[data-theme="violet"] .group:hover .group-hover\:border-lime-400,
+[data-theme="violet"] .group:hover .group-hover\:border-lime-400\/40,
+[data-theme="violet"] .group:hover .group-hover\:border-lime-400\/50 {
+  border-color: rgba(244, 114, 182, 0.6) !important;
+}
+
+[data-theme="violet"] .bg-lime-300,
+[data-theme="violet"] .bg-lime-400 {
+  background-color: #ec4899 !important;
+  color: #ffffff !important;
+}
+
+[data-theme="violet"] .bg-lime-500\/10,
+[data-theme="violet"] .bg-lime-400\/10 {
+  background-color: rgba(236, 72, 153, 0.1) !important;
+}
+[data-theme="violet"] .bg-lime-500\/15 {
+  background-color: rgba(236, 72, 153, 0.16) !important;
+}
+[data-theme="violet"] .bg-lime-500\/20,
+[data-theme="violet"] .bg-lime-400\/20 {
+  background-color: rgba(236, 72, 153, 0.22) !important;
+}
+[data-theme="violet"] .bg-lime-500\/30,
+[data-theme="violet"] .bg-lime-500\/40 {
+  background-color: rgba(236, 72, 153, 0.35) !important;
+}
+
+[data-theme="violet"] .hover\:bg-lime-300:hover,
+[data-theme="violet"] .hover\:bg-lime-400:hover {
+  background-color: #f472b6 !important;
+  color: #ffffff !important;
+}
+[data-theme="violet"] .hover\:bg-lime-500\/10:hover {
+  background-color: rgba(236, 72, 153, 0.12) !important;
+}
+[data-theme="violet"] .hover\:bg-lime-500\/15:hover {
+  background-color: rgba(236, 72, 153, 0.18) !important;
+}
+[data-theme="violet"] .hover\:bg-lime-500\/20:hover {
+  background-color: rgba(236, 72, 153, 0.25) !important;
+}
+
+[data-theme="violet"] .group:hover .group-hover\:bg-lime-500\/15 {
+  background-color: rgba(236, 72, 153, 0.18) !important;
+}
+[data-theme="violet"] .group:hover .group-hover\:bg-lime-500\/20 {
+  background-color: rgba(236, 72, 153, 0.25) !important;
+}
+
+[data-theme="violet"] .hud-fill {
+  background: linear-gradient(to right, #9333ea, #ec4899, #f43f5e) !important;
+}
+
+[data-theme="violet"] .hud-card {
+  border-color: rgba(192, 132, 252, 0.25) !important;
+  box-shadow: 0 0 40px rgba(88, 28, 135, 0.3) !important;
+}
+
+[data-theme="violet"] .ripple {
+  background: rgba(236, 72, 153, 0.55) !important;
+}
+
+[data-theme="violet"] .icon-glow {
+  background: radial-gradient(circle, rgba(236, 72, 153, 0.3) 0%, transparent 70%) !important;
+}
+
+[data-theme="violet"] .from-lime-400,
+[data-theme="violet"] .from-lime-500 {
+  --tw-gradient-from: #c084fc var(--tw-gradient-from-position) !important;
+}
+[data-theme="violet"] .to-lime-400,
+[data-theme="violet"] .to-lime-500 {
+  --tw-gradient-to: #ec4899 var(--tw-gradient-to-position) !important;
+}
+[data-theme="violet"] .from-lime-400\/30 {
+  --tw-gradient-from: rgba(192, 132, 252, 0.3) var(--tw-gradient-from-position) !important;
+}
+[data-theme="violet"] .to-lime-400\/30 {
+  --tw-gradient-to: rgba(236, 72, 153, 0.3) var(--tw-gradient-from-position) !important;
+}
+[data-theme="violet"] .to-lime-400\/50 {
+  --tw-gradient-to: rgba(236, 72, 153, 0.5) var(--tw-gradient-from-position) !important;
+}

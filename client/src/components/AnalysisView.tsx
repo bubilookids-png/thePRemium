@@ -4,6 +4,7 @@ import { Card } from './Card';
 import { SourceBadge } from './SourceBadge';
 import { apiFetch } from '../services/apiClient';
 import { useMotionEntrance } from '../utils/motion';
+import { useLanguage } from '../context/LanguageContext';
 
 function Pill({
   children,
@@ -40,6 +41,7 @@ export function AnalysisView({
 }: AnalysisViewProps) {
   const resultsRef = useRef<HTMLDivElement>(null);
   const saveButtonRef = useRef<HTMLButtonElement>(null);
+  const { t, language } = useLanguage();
   useMotionEntrance(resultsRef, a.word, '.result-reveal');
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
@@ -56,7 +58,11 @@ export function AnalysisView({
     if (isSaving || isSaved) return;
 
     if (!currentUser?.id) {
-      alert("So'zni Turso bulut bazasiga saqlash uchun avval Telegram orqali kiring!");
+      alert(
+        language === 'uz'
+          ? "So'zni Turso bulut bazasiga saqlash uchun avval Telegram orqali kiring!"
+          : "Please log in via Telegram first to save words to the cloud!"
+      );
       return;
     }
 
@@ -76,7 +82,11 @@ export function AnalysisView({
       setTimeout(() => setSaveFeedback(null), 3000);
     } catch (err) {
       console.error('Failed to save word:', err);
-      alert('So\'zni saqlashda xatolik yuz berdi. Qayta urinib ko\'ring.');
+      alert(
+        language === 'uz'
+          ? "So'zni saqlashda xatolik yuz berdi. Qayta urinib ko'ring."
+          : 'Failed to save the word. Please try again.'
+      );
     } finally {
       setIsSaving(false);
     }
@@ -95,8 +105,8 @@ export function AnalysisView({
       {/* 01 — Word overview */}
       <div className="result-reveal result-1">
         <Card
-          title="Word overview"
-          subtitle="The essentials at a glance"
+          title={t.wordOverview}
+          subtitle={t.essentialsAtGlance}
           rightSlot={
             <div className="flex items-center flex-wrap gap-2">
               <SourceBadge type={getSource(sources?.definition)} />
@@ -111,22 +121,22 @@ export function AnalysisView({
                     ? 'bg-lime-500/20 text-lime-300 border border-lime-400/40 shadow-[0_0_12px_rgba(163,230,53,0.3)]'
                     : 'hover:border-lime-400/40 hover:text-lime-300'
                 }`}
-                title="Save word to Turso database"
+                title={t.saveWord}
               >
                 {isSaving ? (
                   <>
                     <span className="inline-block animate-spin text-xs">⟳</span>
-                    <span>Saving...</span>
+                    <span>{t.savingWord}</span>
                   </>
                 ) : isSaved ? (
                   <>
                     <span className="text-lime-400">✓</span>
-                    <span>Saved</span>
+                    <span>{t.savedWord}</span>
                   </>
                 ) : (
                   <>
                     <span className="text-lime-400 font-bold">+</span>
-                    <span>Save Word</span>
+                    <span>{t.saveWord}</span>
                   </>
                 )}
               </button>
@@ -135,14 +145,14 @@ export function AnalysisView({
                 onClick={onStartQuiz}
                 className="action-btn"
               >
-                ✦ Start mini quiz
+                {t.startMiniQuiz}
               </button>
             </div>
           }
         >
           <div className="meta-row">
             <Pill>CEFR: {a.cefrLevel}</Pill>
-            <Pill>Part of speech: {a.partOfSpeech}</Pill>
+            <Pill>{language === 'uz' ? `So'z turkumi: ${a.partOfSpeech}` : `Part of speech: ${a.partOfSpeech}`}</Pill>
 
             {a.pronunciation?.ipa ? (
               <Pill accent>
@@ -154,7 +164,7 @@ export function AnalysisView({
           <div className="overview-grid">
             <div className="info-box">
               <div className="info-label">
-                Definition · English
+                {t.definitionEnglish}
               </div>
 
               <div className="info-value">
@@ -164,7 +174,7 @@ export function AnalysisView({
 
             <div className="info-box translation-box">
               <div className="info-label flex items-center justify-between">
-                <span>Translation · {a.targetLanguage.label}</span>
+                <span>{t.translationLabel} · {a.targetLanguage.label}</span>
                 <SourceBadge type={getSource(sources?.translation)} />
               </div>
 
@@ -179,8 +189,8 @@ export function AnalysisView({
       {/* 02 — Synonyms / Antonyms */}
       <div className="cards-2 result-reveal result-2">
         <Card
-          title="Synonyms"
-          subtitle="Similar meaning"
+          title={t.synonyms}
+          subtitle={t.synonymsSub}
           rightSlot={<SourceBadge type={getSource(sources?.synonyms)} />}
         >
           {a.synonyms?.length ? (
@@ -193,14 +203,14 @@ export function AnalysisView({
             </div>
           ) : (
             <div className="text-sm text-slate-400">
-              No common synonyms provided.
+              {t.noSynonyms}
             </div>
           )}
         </Card>
 
         <Card
-          title="Antonyms"
-          subtitle="Opposite meaning"
+          title={t.antonyms}
+          subtitle={t.antonymsSub}
           rightSlot={<SourceBadge type={getSource(sources?.antonyms)} />}
         >
           {a.antonyms?.length ? (
@@ -213,7 +223,7 @@ export function AnalysisView({
             </div>
           ) : (
             <div className="text-sm text-slate-400">
-              No common antonyms provided.
+              {t.noAntonyms}
             </div>
           )}
         </Card>
@@ -222,8 +232,8 @@ export function AnalysisView({
       {/* 03 — Collocations */}
       <div className="mt-4 result-reveal result-3">
         <Card
-          title="Common collocations"
-          subtitle="Natural word combinations"
+          title={t.collocations}
+          subtitle={t.collocationsSub}
           rightSlot={<SourceBadge type={getSource(sources?.collocations)} />}
         >
           {a.collocations?.length ? (
@@ -239,7 +249,7 @@ export function AnalysisView({
             </div>
           ) : (
             <div className="text-sm text-slate-400">
-              No collocations provided.
+              {t.noCollocations}
             </div>
           )}
         </Card>
@@ -248,8 +258,8 @@ export function AnalysisView({
       {/* 04 — Examples */}
       <div className="mt-4 result-reveal result-4">
         <Card
-          title="Natural examples"
-          subtitle="See the word in real context"
+          title={t.examples}
+          subtitle={t.examplesSub}
           rightSlot={<SourceBadge type={getSource(sources?.examples)} />}
         >
           {a.examples?.length ? (
@@ -271,7 +281,7 @@ export function AnalysisView({
             </ol>
           ) : (
             <div className="text-sm text-slate-400">
-              No examples provided.
+              {t.noExamples}
             </div>
           )}
         </Card>
@@ -280,8 +290,8 @@ export function AnalysisView({
       {/* 05 — Usage */}
       <div className="cards-2 result-reveal result-5">
         <Card
-          title="How it’s used"
-          subtitle="Usage guidance"
+          title={t.howUsed}
+          subtitle={t.usageSub}
           rightSlot={<SourceBadge type={getSource(sources?.definition)} />}
         >
           <p className="text-sm leading-7 text-slate-200">
@@ -290,8 +300,8 @@ export function AnalysisView({
         </Card>
 
         <Card
-          title="Usage notes"
-          subtitle="Common mistakes to avoid"
+          title={t.usageNotes}
+          subtitle={t.mistakesSub}
           rightSlot={<SourceBadge type={getSource(sources?.definition)} />}
         >
           {a.commonMistakes?.length ? (
@@ -307,7 +317,7 @@ export function AnalysisView({
             </div>
           ) : (
             <div className="text-sm text-slate-400">
-              No common mistakes listed.
+              {t.noMistakes}
             </div>
           )}
         </Card>

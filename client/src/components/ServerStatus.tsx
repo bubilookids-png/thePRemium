@@ -1,110 +1,14 @@
-import React, { useEffect, useRef, useState } from 'react';
+// client/src/components/ServerStatus.tsx
+import React, { useRef } from 'react';
 import { useMotionEntrance } from '../utils/motion';
-
-type ServerState = 'sleeping' | 'waking' | 'live' | 'error';
-
-const API_BASE =
-  import.meta.env.VITE_API_BASE?.toString().trim() ||
-  'http://localhost:8787';
+import { useServerStatus } from '../context/ServerContext';
+import { useLanguage } from '../context/LanguageContext';
 
 export function ServerStatus() {
-  const [status, setStatus] = useState<ServerState>('sleeping');
-  const [message, setMessage] = useState('Server is sleeping');
+  const { status, wakeServer } = useServerStatus();
+  const { language } = useLanguage();
   const statusRef = useRef<HTMLButtonElement>(null);
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   useMotionEntrance(statusRef, status);
-
-  useEffect(() => {
-    return () => {
-      if (pollRef.current) {
-        clearInterval(pollRef.current);
-      }
-    };
-  }, []);
-
-  async function checkServer() {
-    const controller = new AbortController();
-
-    const timeout = setTimeout(() => {
-      controller.abort();
-    }, 10000);
-
-    try {
-      const response = await fetch(`${API_BASE}/api/health`, {
-        method: 'GET',
-        cache: 'no-store',
-        signal: controller.signal,
-      });
-
-      if (!response.ok) {
-        throw new Error('Server unavailable');
-      }
-
-      const data = await response.json();
-
-      if (data?.ok === true) {
-        return true;
-      }
-
-      return false;
-    } catch {
-      return false;
-    } finally {
-      clearTimeout(timeout);
-    }
-  }
-
-  async function wakeServer() {
-    if (status === 'waking' || status === 'live') {
-      return;
-    }
-
-    setStatus('waking');
-    setMessage('Waking AI server...');
-
-    const started = await checkServer();
-
-    if (started) {
-      setStatus('live');
-      setMessage('Ready to analyze words');
-      return;
-    }
-
-    let attempts = 0;
-
-    pollRef.current = setInterval(async () => {
-      attempts += 1;
-
-      const alive = await checkServer();
-
-      if (alive) {
-        if (pollRef.current) {
-          clearInterval(pollRef.current);
-        }
-
-        pollRef.current = null;
-        setStatus('live');
-        setMessage('Ready to analyze words');
-        return;
-      }
-
-      if (attempts >= 30) {
-        if (pollRef.current) {
-          clearInterval(pollRef.current);
-        }
-
-        pollRef.current = null;
-        setStatus('error');
-        setMessage('Could not wake the server');
-      } else {
-        setMessage(
-          attempts % 2 === 0
-            ? 'Connecting to AI...'
-            : 'Waking AI server...'
-        );
-      }
-    }, 3000);
-  }
 
   return (
     <>
@@ -124,111 +28,6 @@ export function ServerStatus() {
           }
           100% {
             transform: rotate(360deg);
-          }
-        }
-
-        @keyframes serverSparkle {
-          0%, 100% {
-            opacity: 1;
-            transform: scale(1);
-          }
-          50% {
-            opacity: 0.6;
-            transform: scale(1.2);
-          }
-        }
-
-        @keyframes serverGlow {
-          0%, 100% {
-            box-shadow: 0 0 8px rgba(132, 204, 22, 0.3), inset 0 0 8px rgba(132, 204, 22, 0.1);
-            border-color: rgba(132, 204, 22, 0.3);
-          }
-          50% {
-            box-shadow: 0 0 16px rgba(132, 204, 22, 0.5), inset 0 0 12px rgba(132, 204, 22, 0.2);
-            border-color: rgba(132, 204, 22, 0.5);
-          }
-        }
-
-        @keyframes dotPulse {
-          0%, 100% {
-            opacity: 1;
-            transform: scale(1);
-          }
-          50% {
-            opacity: 0.5;
-            transform: scale(1.3);
-          }
-        }
-
-        @keyframes dotBounce {
-          0%, 100% {
-            transform: translateY(0);
-          }
-          50% {
-            transform: translateY(-3px);
-          }
-        }
-
-        @keyframes arrowPulse {
-          0%, 100% {
-            opacity: 0.6;
-            transform: translateX(0);
-          }
-          50% {
-            opacity: 1;
-            transform: translateX(3px);
-          }
-        }
-
-        @keyframes arrowSpin {
-          0% {
-            transform: rotate(0deg);
-          }
-          100% {
-            transform: rotate(360deg);
-          }
-        }
-
-        @keyframes slideIn {
-          from {
-            opacity: 0;
-            transform: translateX(-10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-
-        @keyframes liveGlow {
-          0%, 100% {
-            box-shadow: 0 0 12px rgba(34, 197, 94, 0.4), inset 0 0 12px rgba(34, 197, 94, 0.15);
-            border-color: rgba(34, 197, 94, 0.5);
-          }
-          50% {
-            box-shadow: 0 0 24px rgba(34, 197, 94, 0.6), inset 0 0 16px rgba(34, 197, 94, 0.25);
-            border-color: rgba(34, 197, 94, 0.7);
-          }
-        }
-
-        @keyframes errorShake {
-          0%, 100% {
-            transform: translateX(0);
-          }
-          25% {
-            transform: translateX(-3px);
-          }
-          75% {
-            transform: translateX(3px);
-          }
-        }
-
-        @keyframes textFade {
-          from {
-            opacity: 0;
-          }
-          to {
-            opacity: 1;
           }
         }
 
@@ -416,11 +215,19 @@ export function ServerStatus() {
         aria-label={`AI server status: ${status}`}
         title={
           status === 'sleeping'
-            ? 'Click to wake AI server'
+            ? language === 'uz'
+              ? 'Render AI serverni uyg\'otish uchun bosing'
+              : 'Click to wake AI server'
             : status === 'waking'
-            ? 'Waking up AI server...'
+            ? language === 'uz'
+              ? 'AI server uyg\'onmoqda...'
+              : 'Waking up AI server...'
             : status === 'live'
-            ? 'AI server is live and ready'
+            ? language === 'uz'
+              ? 'AI server faol va tayyor'
+              : 'AI server is live and ready'
+            : language === 'uz'
+            ? 'Xatolik yuz berdi - qayta urinish uchun bosing'
             : 'Server error - click to retry'
         }
       >
@@ -442,12 +249,12 @@ export function ServerStatus() {
           <span className="server-status-message">
             <span className="server-status-dot" />
             {status === 'sleeping'
-              ? 'Wake AI'
+              ? (language === 'uz' ? 'Wake AI' : 'Wake AI')
               : status === 'waking'
-              ? 'Waking...'
+              ? (language === 'uz' ? 'Waking...' : 'Waking...')
               : status === 'live'
-              ? 'Live'
-              : 'Error'}
+              ? (language === 'uz' ? 'Live' : 'Live')
+              : (language === 'uz' ? 'Error' : 'Error')}
           </span>
         </span>
 

@@ -4,7 +4,6 @@ import WarpText from './components/WarpText';
 import { ActiveRecallWidget } from './components/ActiveRecallWidget';
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { Header } from './components/Header';
-import { Footer } from './components/Footer';
 import { Sidebar } from './components/sidebar';
 import { Card } from './components/Card';
 import { WordForm } from './components/WordForm';
@@ -21,11 +20,14 @@ import { LegalModal } from './components/LegalModal';
 import { ConsentModal } from './components/ConsentModal';
 import { CookieModal, hasGivenCookieConsent } from './components/CookieModal';
 import { MySavedWords } from './components/MySavedWords';
+import { SettingsView } from './components/SettingsView';
 import { BotWarningModal } from './components/BotWarningModal';
 import { hasValidCookieConsent, acceptCookieConsent } from './utils/consent';
 import { detectBot } from './services/botDetection';
 import { useAnimatedDismiss, useMotionEntrance } from './utils/motion';
-
+import { ServerProvider } from './context/ServerContext';
+import { ThemeProvider, useTheme } from './context/ThemeContext';
+import { LanguageProvider, useLanguage } from './context/LanguageContext';
 
 import type {
   AnalyzeResponse,
@@ -39,7 +41,7 @@ import {
   normalizeTerm
 } from './utils/string';
 
-type View = 'analysis' | 'quiz' | 'reading' | 'saved-words';
+type View = 'analysis' | 'quiz' | 'reading' | 'saved-words' | 'settings';
 
 interface TelegramUser {
   id: number;
@@ -51,7 +53,54 @@ interface TelegramUser {
   is_premium?: boolean;
 }
 
-export default function App() {
+const HUD_STYLES = `
+  @keyframes hudEnter {
+    from { opacity: 0; transform: translateY(12px) scale(0.98); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  @keyframes hudFillGrow {
+    from { transform: scaleX(0); }
+    to   { transform: scaleX(1); }
+  }
+  @keyframes hudShimmer {
+    0%   { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+  @keyframes hudCountUp {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes hudBreath {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(132, 204, 22, 0.0); }
+    50%      { box-shadow: 0 0 24px 0 rgba(132, 204, 22, 0.12); }
+  }
+  .hud-card {
+    animation: hudEnter 600ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .hud-card:hover {
+    animation: hudBreath 2.8s ease-in-out infinite;
+  }
+  .hud-fill {
+    transform-origin: left center;
+    animation: hudFillGrow 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .hud-shimmer {
+    animation: hudShimmer 2.8s ease-in-out infinite;
+  }
+  .hud-count {
+    animation: hudCountUp 500ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hud-card, .hud-fill, .hud-shimmer, .hud-count, .hud-card:hover {
+      animation: none !important;
+    }
+  }
+`;
+
+function AppInner() {
+  const { theme, bgAnimation } = useTheme();
+  const { language, t } = useLanguage();
+
   const [currentUser, setCurrentUser] = useState<TelegramUser | null>(() => {
     try {
       const saved = localStorage.getItem('vacabbro_user');
@@ -103,15 +152,8 @@ export default function App() {
   useMotionEntrance(vipPanelRef, showGetMoreModal);
   const dismissVip = useAnimatedDismiss(vipOverlayRef, vipPanelRef, () => setShowGetMoreModal(false));
 
-  // 1. O'ZINGIZNING TELEGRAM ID RAQAMINGIZNI SHU YERGA YOZING!
-  // Misol uchun: 123456789. Buni @userinfobot orqali bilishingiz mumkin.
-  const MY_TELEGRAM_ID = 7462228079; // SHU SONNI O'ZGARTIRING
-
-  // 2. Admin huquqi: yo premium bo'lsin, yoki O'ZINGIZ bo'ling
+  const MY_TELEGRAM_ID = 7462228079;
   const isAdmin = currentUser?.is_premium === true || currentUser?.id === MY_TELEGRAM_ID;
-  const canAccessAdminPanel = isAdmin;
-
-  // 3. VIP Cheklovlar va Limitlar: sizga doim 400 ta!
   const isPremium = Boolean(currentUser?.is_premium) || currentUser?.id === MY_TELEGRAM_ID;
   const maxAllowedLimit = isPremium ? 400 : 100;
   const periodDays = isPremium ? 1 : 2;
@@ -144,6 +186,8 @@ export default function App() {
 
   const totalSearches = sessionCount;
   const progressPercent = Math.min(100, Math.round((totalSearches / Math.max(1, dailyTarget)) * 100));
+  const quotaRemaining = Math.max(0, maxAllowedLimit - totalSearches);
+  const quotaPercent = Math.min(100, Math.round((totalSearches / maxAllowedLimit) * 100));
 
   const normalized = useMemo(
     () => normalizeTerm(word),
@@ -166,6 +210,11 @@ export default function App() {
   const triggerSavedWords = () => {
     setShowLanding(false);
     setView('saved-words');
+  };
+
+  const triggerSettings = () => {
+    setShowLanding(false);
+    setView('settings');
   };
 
   const focusSearchInput = () => {
@@ -214,6 +263,12 @@ export default function App() {
         return;
       }
 
+      if (e.shiftKey && (keyLower === 'p' || keyLower === ',')) {
+        e.preventDefault();
+        triggerSettings();
+        return;
+      }
+
       if (e.key === '/' && !isInput) {
         e.preventDefault();
         focusSearchInput();
@@ -248,28 +303,16 @@ export default function App() {
       if (!token) throw new Error('Sessiya tokeni olinmadi');
 
       const botUsername = 'Givacabbro_bot';
-      // Telegram requires the start parameter to be passed as part of the deep link
-      // Format: https://t.me/botname?start=PAYLOAD
-      // The payload is automatically extracted by Telegram and passed to the bot
       const deepLink = `https://t.me/${botUsername}?start=${token}`;
-      console.log(`🔗 Opening Telegram bot with link: ${deepLink}`);
-
-      // Store token in sessionStorage as backup in case deep link fails
       sessionStorage.setItem('telegram_auth_token', token);
-
       window.open(deepLink, '_blank');
 
       interval = setInterval(async () => {
         try {
-          console.log(`🔄 Polling session... (token: ${token.slice(0, 20)}...)`);
           const checkRes = await fetch(`${backendUrl}/api/auth/check-session/${token}`);
           const checkData = await checkRes.json();
 
-          console.log("📡 Auth check response:", checkData);
-
-          // Check if authenticated
           if (checkData?.authenticated === true && checkData?.user) {
-            console.log("✅ Authentication successful!");
             if (interval) clearInterval(interval);
             if (timeout) clearTimeout(timeout);
             setWaitingAuth(false);
@@ -284,15 +327,12 @@ export default function App() {
               search_count: savedUser.search_count || 0,
               is_premium: savedUser.is_premium || false
             };
-            console.log("💾 Saving user to localStorage:", userData);
             localStorage.setItem('vacabbro_user', JSON.stringify(userData));
             setCurrentUser(userData);
             setShowLanding(false);
-          } else {
-            console.log("⏳ Still waiting for Telegram auth...");
           }
         } catch (e) {
-          console.error("❌ Auth polling error:", e);
+          console.error("Auth polling error:", e);
         }
       }, 2000);
 
@@ -398,19 +438,16 @@ export default function App() {
     } catch {}
   }
 
-  // Pronunciation handling
   const handlePronounce = () => {
     if (!normalized || !('speechSynthesis' in window)) return;
 
-    // Cancel any ongoing speech
     if (speechUtterance) {
       window.speechSynthesis.cancel();
     }
 
-    // Create new utterance
     const utterance = new SpeechSynthesisUtterance(normalized);
     utterance.lang = 'en-US';
-    utterance.rate = 0.9; // For clarity
+    utterance.rate = 0.9;
 
     utterance.onend = () => {
       setIsPlaying(false);
@@ -427,7 +464,6 @@ export default function App() {
     window.speechSynthesis.speak(utterance);
   };
 
-  // BotD verification prior to initiating Telegram login
   const runBotCheckAndLogin = async () => {
     setIsCheckingBot(true);
     try {
@@ -445,11 +481,9 @@ export default function App() {
     }
   };
 
-  // Consent handling
   const handleConsentAccept = () => {
-    acceptCookieConsent(false); // We don't use analytics
+    acceptCookieConsent(false);
     setShowConsentModal(false);
-    // User agreed to consent -> perform BotD check -> Telegram auth
     runBotCheckAndLogin();
   };
 
@@ -465,7 +499,6 @@ export default function App() {
     setShowLegalModal(true);
   };
 
-  // New sign-up flow with consent and BotD check
   const handleSignUpWithConsent = () => {
     if (hasValidCookieConsent()) {
       runBotCheckAndLogin();
@@ -476,29 +509,46 @@ export default function App() {
 
   return (
     <div className="app-shell min-h-screen flex flex-col w-full overflow-x-hidden">
+      <style>{HUD_STYLES}</style>
+
+      {/* Dynamic Background: WebGL wave simulation or static ambient backdrop */}
       <div className="app-background">
-        <GradientWaves
-          horizonColor="#051e3e"
-          waveColor="#0d3b66"
-          crestColor="#84cc16"
-          speed={0.2}
-          amplitude={2.1}
-          waveScale={0.55}
-          waveRatio={0.9}
-          swell={26}
-          turbulence={15}
-          tilt={1.11}
-          zoom={1.0}
-          height={5.5}
-          fogDepth={18}
-          detail="medium"
-          brightness={0.75}
-          opacity={0.82}
-          mouseInteraction={true}
-          parallaxStrength={0.32}
-          grain={true}
-          grainIntensity={0.02}
-        />
+        {bgAnimation ? (
+          <GradientWaves
+            horizonColor={theme === 'cyber-violet' ? '#150326' : '#051e3e'}
+            waveColor={theme === 'cyber-violet' ? '#2e0854' : '#0d3b66'}
+            crestColor={theme === 'cyber-violet' ? '#ec4899' : '#84cc16'}
+            speed={0.2}
+            amplitude={2.1}
+            waveScale={0.55}
+            waveRatio={0.9}
+            swell={26}
+            turbulence={15}
+            tilt={1.11}
+            zoom={1.0}
+            height={5.5}
+            fogDepth={18}
+            detail="medium"
+            brightness={0.75}
+            opacity={0.82}
+            mouseInteraction={true}
+            parallaxStrength={0.32}
+            grain={true}
+            grainIntensity={0.02}
+          />
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 opacity-95">
+            <div
+              className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[700px] h-[350px] rounded-full blur-[140px] pointer-events-none"
+              style={{
+                background:
+                  theme === 'cyber-violet'
+                    ? 'radial-gradient(circle, rgba(168,85,247,0.18) 0%, rgba(236,72,153,0.12) 60%, transparent 80%)'
+                    : 'radial-gradient(circle, rgba(132,204,22,0.14) 0%, rgba(6,182,212,0.1) 60%, transparent 80%)',
+              }}
+            />
+          </div>
+        )}
       </div>
 
       {!showLanding && (
@@ -510,6 +560,7 @@ export default function App() {
           onOpenTranslate={triggerTranslate}
           onOpenReading={triggerReading}
           onOpenSavedWords={triggerSavedWords}
+          onOpenSettings={triggerSettings}
           onOpenGetMore={() => setShowGetMoreModal(true)}
           isAdmin={isAdmin}
         />
@@ -524,7 +575,11 @@ export default function App() {
         <Header
           currentUser={currentUser}
           onLogout={handleLogout}
-          onToggleSidebar={showLanding ? undefined : () => setIsSidebarOpen(true)}
+          onToggleSidebar={showLanding ? undefined : () => setIsSidebarOpen((prev) => !prev)}
+          onLogoClick={() => {
+            setShowLanding(false);
+            setView('analysis');
+          }}
         />
 
         {!currentUser && (
@@ -536,17 +591,17 @@ export default function App() {
                   setIsSidebarOpen(false);
                   setShowLanding(true);
                 }}
-                className="px-3 py-1 rounded-full bg-slate-900/70 hover:bg-blue-900/70 border border-lime-400/20 text-[11px] font-mono text-lime-300 transition cursor-pointer"
+                className="group px-3 py-1.5 rounded-full bg-slate-900/70 hover:bg-slate-800/80 border border-lime-400/20 hover:border-lime-400/40 text-[11px] font-medium text-lime-300 transition-all duration-200 cursor-pointer active:scale-95"
               >
-                ← Bosh sahifa
+                <span className="inline-block transition-transform duration-200 group-hover:-translate-x-0.5">←</span> {t.home}
               </button>
             ) : (
               <button
                 type="button"
                 onClick={() => setShowLanding(false)}
-                className="px-3 py-1 rounded-full bg-blue-900/70 hover:bg-blue-800/70 border border-lime-400/30 text-[11px] font-mono text-lime-300 transition cursor-pointer"
+                className="group px-3 py-1.5 rounded-full bg-slate-900/70 hover:bg-slate-800/80 border border-lime-400/30 hover:border-lime-400/50 text-[11px] font-medium text-lime-300 transition-all duration-200 cursor-pointer active:scale-95"
               >
-                Trainerga o'tish →
+                {t.goToTrainer} <span className="inline-block transition-transform duration-200 group-hover:translate-x-0.5">→</span>
               </button>
             )}
           </div>
@@ -555,304 +610,255 @@ export default function App() {
         {showLanding ? (
           <LandingPage
             onStart={handleTryFirstWord}
-            onLogin={handleSignUpWithConsent} // Changed to use consent-aware sign-up
+            onLogin={handleSignUpWithConsent}
             isLoggedIn={Boolean(currentUser)}
             waitingAuth={waitingAuth || isCheckingBot}
           />
         ) : (
           <main className="page flex-1 w-full max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
-            {view !== 'reading' && view !== 'saved-words' && (
+            {/* Hero & Study Progress section (shown only on vocabulary analysis view) */}
+            {view !== 'reading' && view !== 'saved-words' && view !== 'settings' && (
               <section data-app-stage className="hero grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center mb-8 sm:mb-10">
-              <div className="lg:col-span-7 flex flex-col items-start">
-                <button
-                  type="button"
-                  className="group flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/60 hover:bg-blue-900/60 border border-lime-400/15 text-xs font-mono text-lime-300 transition-all duration-200 mb-4 cursor-pointer"
-                  onClick={handleTryFirstWord}
-                >
-                  <span className="text-lime-300">✦</span>
-                  <span>Try your first word</span>
-                  <span className="group-hover:translate-x-0.5 transition-transform text-lime-300/70">→</span>
-                </button>
+                <div className="lg:col-span-7 flex flex-col items-start">
+                  <button
+                    type="button"
+                    className="group flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/60 hover:bg-slate-800/70 border border-lime-400/15 hover:border-lime-400/35 text-xs font-medium text-lime-300 transition-all duration-200 mb-4 cursor-pointer active:scale-95"
+                    onClick={handleTryFirstWord}
+                  >
+                    <span className="text-lime-300 transition-transform duration-300 group-hover:rotate-12">✦</span>
+                    <span>{t.tryFirstWord}</span>
+                    <span className="group-hover:translate-x-0.5 transition-transform duration-200 text-lime-300/70">→</span>
+                  </button>
 
-                <h1 className="w-full">
-                  <WarpText
-                    text={
-                      currentUser?.first_name
-                        ? `Ready to train,\n${currentUser.first_name}.`
-                        : 'Vocabulary Lab\nActive.'
-                    }
-                    color="#84cc16"
-                    warpStrength={0.08}
-                    warpScale={1.7}
-                    speed={0.55}
-                    pointerInfluence={0.42}
-                    pointerStrength={0.38}
-                    refraction={0.018}
-                    ripple
-                    fontSize="clamp(2.3rem, 7vw, 5rem)"
-                    fontWeight={800}
-                    style={{ minHeight: '140px', height: 'auto', width: '100%' }}
-                  />
-                </h1>
+                  <h1 className="w-full">
+                    <WarpText
+                      text={
+                        currentUser?.first_name
+                          ? `${t.readyToTrain}${currentUser.first_name}.`
+                          : t.vocabLabActive
+                      }
+                      color={theme === 'cyber-violet' ? '#f472b6' : '#84cc16'}
+                      warpStrength={0.08}
+                      warpScale={1.7}
+                      speed={0.55}
+                      pointerInfluence={0.42}
+                      pointerStrength={0.38}
+                      refraction={0.018}
+                      ripple
+                      fontSize="clamp(2.3rem, 7vw, 5rem)"
+                      fontWeight={800}
+                      style={{ minHeight: '140px', height: 'auto', width: '100%' }}
+                    />
+                  </h1>
 
-                <div className="mt-4 w-full">
-                  <CyberMatrixOrb />
-                </div>
-              </div>
-
-              {/* NEXT-GEN SCI-FI LABORATORY COGNITIVE TELEMETRY HUD */}
-              <div className="lg:col-span-5 w-full rounded-3xl bg-slate-950/90 backdrop-blur-2xl border border-lime-400/20 p-5 sm:p-6 shadow-[0_0_40px_rgba(0,0,0,0.85)] relative overflow-hidden flex flex-col justify-between min-h-[330px] group transition-all duration-300 hover:border-lime-400/40 hover:shadow-[0_0_35px_rgba(163,230,53,0.15)] select-none font-mono">
-                {/* CSS Injected Keyframes */}
-                <style>{`
-                  @keyframes radarSweep {
-                    from { transform: rotate(0deg); }
-                    to { transform: rotate(360deg); }
-                  }
-                  @keyframes scanlineAnim {
-                    0% { top: -10%; opacity: 0; }
-                    50% { opacity: 0.7; }
-                    100% { top: 110%; opacity: 0; }
-                  }
-                  @keyframes barShine {
-                    0% { transform: translateX(-100%); }
-                    100% { transform: translateX(200%); }
-                  }
-                  .telemetry-radar-sweep {
-                    background: conic-gradient(from 0deg, rgba(163, 230, 53, 0.45) 0deg, transparent 65deg, transparent 360deg);
-                    animation: radarSweep 2.2s linear infinite;
-                  }
-                  .telemetry-scanline {
-                    animation: scanlineAnim 4s linear infinite;
-                  }
-                  .telemetry-bar-shine {
-                    animation: barShine 2.5s ease-in-out infinite;
-                  }
-                `}</style>
-
-                {/* Animated Ambient Holographic Scanline */}
-                <div className="telemetry-scanline absolute inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-lime-400/40 to-transparent pointer-events-none" />
-
-                {/* HUD Header Bar with Radar Pulse */}
-                <div className="relative z-10 flex items-center justify-between pb-3.5 border-b border-lime-400/15">
-                  <div className="flex items-center gap-2.5">
-                    {/* Sci-Fi Rotating Radar Display */}
-                    <div className="relative w-6 h-6 rounded-full border border-lime-400/40 flex items-center justify-center overflow-hidden bg-slate-900/80 shadow-[0_0_10px_rgba(163,230,53,0.2)]">
-                      <div className="absolute inset-1 border border-lime-400/20 rounded-full" />
-                      <div className="absolute w-1 h-1 rounded-full bg-lime-400 animate-ping" />
-                      <div className="telemetry-radar-sweep absolute inset-0 rounded-full" />
-                    </div>
-                    <div>
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-lime-300 flex items-center gap-1.5">
-                        SYS_TELEMETRY // LAB_HUD
-                      </span>
-                      <span className="text-[9px] text-cyan-400/80 tracking-widest block font-medium">
-                        COGNITIVE STREAM v4.8
-                      </span>
-                    </div>
+                  <div className="mt-4 w-full">
+                    <CyberMatrixOrb />
                   </div>
+                </div>
 
-                  {/* Live Stream Data Ticker */}
-                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-900/80 border border-lime-400/20">
-                    <span className="w-1.5 h-1.5 rounded-full bg-lime-400 animate-pulse shadow-[0_0_8px_rgba(163,230,53,0.8)]" />
-                    <span className="text-[10px] font-bold text-lime-400 tracking-wider">
-                      LIVE 98.4 MHz
+                {/* Study progress panel: all values are real app state */}
+                <div className="hud-card lg:col-span-5 w-full rounded-3xl bg-slate-950/90 backdrop-blur-2xl border border-lime-400/20 p-5 sm:p-6 shadow-[0_0_40px_rgba(0,0,0,0.85)] relative overflow-hidden flex flex-col justify-between min-h-[330px] transition-colors duration-300 hover:border-lime-400/35">
+                  {/* Header */}
+                  <div className="relative z-10 flex items-center justify-between pb-3.5 border-b border-lime-400/15">
+                    <div>
+                      <h2 className="text-sm font-semibold text-slate-100">{t.yourProgress}</h2>
+                      <p className="text-[11px] text-slate-400 mt-0.5">
+                        {periodDays === 1 ? t.reset24 : t.reset48}
+                      </p>
+                    </div>
+                    <span className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold border ${
+                      isPremium
+                        ? 'bg-amber-400/10 text-amber-300 border-amber-400/30'
+                        : 'bg-cyan-500/10 text-cyan-300 border-cyan-400/30'
+                    }`}>
+                      {isPremium ? t.vipPlan : t.freePlan}
                     </span>
                   </div>
-                </div>
 
-                {/* HUD Telemetry Core Grid */}
-                <div className="relative z-10 py-3.5 space-y-4">
-                  {/* Upper Section: Quota Digital Counter & Tier Badge */}
-                  <div className="p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800/80 flex items-center justify-between gap-3">
-                    <div className="flex flex-col">
-                      <span className="text-[10px] text-slate-400 uppercase tracking-wider">
-                        WORDS ANALYZED ({periodDays === 1 ? '24H CYCLE' : '48H CYCLE'})
-                      </span>
-                      <div className="flex items-baseline gap-1.5 mt-0.5">
-                        <span className="text-3xl font-black text-white tracking-tight drop-shadow-[0_0_12px_rgba(255,255,255,0.2)]">
-                          {totalSearches}
+                  {/* Words analyzed + quota */}
+                  <div className="relative z-10 py-4 space-y-4">
+                    <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80">
+                      <div className="flex items-end justify-between mb-3">
+                        <div>
+                          <span className="text-[11px] text-slate-400">{t.wordsAnalyzed}</span>
+                          <div className="flex items-baseline gap-1.5 mt-1">
+                            <span key={totalSearches} className="hud-count text-3xl font-bold text-white tabular-nums">
+                              {totalSearches}
+                            </span>
+                            <span className="text-xs text-slate-500">{t.ofWords} {maxAllowedLimit}</span>
+                          </div>
+                        </div>
+                        <span className="text-[11px] text-slate-400 tabular-nums">
+                          {quotaRemaining} {t.leftWords}
                         </span>
-                        <span className="text-xs text-slate-500 font-bold">
-                          / {maxAllowedLimit}
-                        </span>
+                      </div>
+                      <div className="w-full h-1.5 rounded-full bg-slate-800 overflow-hidden">
+                        <div
+                          className="hud-fill h-full rounded-full bg-gradient-to-r from-lime-400 to-cyan-400"
+                          style={{ width: `${quotaPercent}%` }}
+                        />
                       </div>
                     </div>
 
-                    <div className="flex flex-col items-end gap-1">
-                      <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border ${
-                        isPremium
-                          ? 'bg-amber-400/15 text-amber-300 border-amber-400/40 shadow-[0_0_15px_rgba(251,191,36,0.25)]'
-                          : 'bg-cyan-500/15 text-cyan-300 border-cyan-400/40 shadow-[0_0_15px_rgba(34,211,238,0.2)]'
-                      }`}>
-                        {isPremium ? '★ VIP ACCESS' : 'FREE TIER'}
-                      </span>
-                      <span className="text-[9px] text-slate-500">
-                        {Math.max(0, maxAllowedLimit - totalSearches)} quota left
-                      </span>
+                    {/* Daily goal */}
+                    <div className="p-4 rounded-2xl bg-slate-900/60 border border-lime-400/15 space-y-3">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-slate-200 font-medium">{t.dailyGoal}</span>
+                        <span className="text-lime-300 font-semibold tabular-nums">
+                          {isGoalSet ? `${progressPercent}%` : t.notSet}
+                        </span>
+                      </div>
+
+                      {!isGoalSet ? (
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="number"
+                              min="1"
+                              max={maxAllowedLimit}
+                              value={tempGoalInput}
+                              onChange={(e) => setTempGoalInput(e.target.value)}
+                              placeholder={`Up to ${maxAllowedLimit}`}
+                              className="flex-1 px-3 py-1.5 bg-slate-950 border border-slate-700 rounded-xl text-slate-100 text-xs placeholder:text-slate-500 focus:outline-none focus:border-lime-400/60 focus:ring-2 focus:ring-lime-400/15 transition-all duration-200"
+                            />
+                            <button
+                              type="button"
+                              onClick={handleConfirmGoal}
+                              className="px-3.5 py-1.5 rounded-xl bg-lime-400 hover:bg-lime-300 text-slate-950 text-xs font-semibold transition-all duration-200 cursor-pointer active:scale-95"
+                            >
+                              {t.setGoal}
+                            </button>
+                          </div>
+
+                          <div className="flex items-center gap-1.5 pt-0.5">
+                            <span className="text-[10px] text-slate-500">{t.quickPick}</span>
+                            {[20, 50, 100].map((preset) => (
+                              <button
+                                key={preset}
+                                type="button"
+                                onClick={() => setTempGoalInput(String(Math.min(preset, maxAllowedLimit)))}
+                                className="px-2 py-0.5 rounded-md text-[10px] bg-slate-950 border border-slate-700 hover:border-lime-400/40 text-slate-300 hover:text-lime-300 transition-all duration-200 cursor-pointer active:scale-95"
+                              >
+                                {preset}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          <div className="w-full h-2 rounded-full bg-slate-950 border border-lime-400/15 overflow-hidden relative">
+                            <div
+                              className="hud-fill h-full rounded-full bg-gradient-to-r from-blue-600 via-lime-400 to-cyan-300 relative transition-[width] duration-700 ease-out"
+                              style={{ width: `${progressPercent}%` }}
+                            >
+                              <div className="hud-shimmer absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between text-[11px] text-slate-400">
+                            <span>{t.goalWords}: {dailyTarget} words</span>
+                            <span className="text-lime-300 font-medium tabular-nums">
+                              {Math.max(0, dailyTarget - totalSearches)} {t.wordsToGo}
+                            </span>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 
-                  {/* Center Section: Animated Practice Goal Hologram */}
-                  <div className="p-3.5 rounded-2xl bg-slate-900/60 border border-lime-400/15 space-y-2.5">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-slate-300 font-bold flex items-center gap-1.5">
-                        <span className="text-lime-400">✦</span> DAILY DRILL GOAL
-                      </span>
-                      <span className="text-lime-300 font-extrabold tracking-wider">
-                        {isGoalSet ? `${progressPercent}% COMPLETED` : 'TARGET UNSET'}
-                      </span>
-                    </div>
-
-                    {!isGoalSet ? (
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="number"
-                            min="1"
-                            max={maxAllowedLimit}
-                            value={tempGoalInput}
-                            onChange={(e) => setTempGoalInput(e.target.value)}
-                            placeholder={`Max: ${maxAllowedLimit}`}
-                            className="flex-1 px-3 py-1.5 bg-slate-950 border border-lime-400/30 rounded-xl text-slate-100 text-xs focus:outline-none focus:border-lime-400/70 focus:shadow-[0_0_10px_rgba(163,230,53,0.3)]"
-                          />
-                          <button
-                            type="button"
-                            onClick={handleConfirmGoal}
-                            className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-lime-400 to-cyan-400 text-slate-950 text-xs font-black uppercase tracking-wider hover:shadow-[0_0_15px_rgba(163,230,53,0.4)] transition cursor-pointer"
-                          >
-                            Lock Target
-                          </button>
-                        </div>
-
-                        {/* Quick preset selector buttons */}
-                        <div className="flex items-center gap-1.5 pt-0.5">
-                          <span className="text-[9px] text-slate-500">Presets:</span>
-                          {[20, 50, 100].map((preset) => (
-                            <button
-                              key={preset}
-                              type="button"
-                              onClick={() => setTempGoalInput(String(Math.min(preset, maxAllowedLimit)))}
-                              className="px-2 py-0.5 rounded text-[10px] bg-slate-950 border border-slate-700 hover:border-lime-400/40 text-slate-300 hover:text-lime-300 transition cursor-pointer"
-                            >
-                              +{preset}w
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        {/* Holographic Glowing Progress Stream Bar */}
-                        <div className="w-full h-3 rounded-full bg-slate-950 border border-lime-400/20 overflow-hidden relative p-0.5">
-                          <div
-                            className="h-full bg-gradient-to-r from-blue-600 via-lime-400 to-cyan-300 rounded-full transition-all duration-700 relative shadow-[0_0_15px_rgba(163,230,53,0.6)]"
-                            style={{ width: `${progressPercent}%` }}
-                          >
-                            <div className="telemetry-bar-shine absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent" />
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-between text-[10px] text-slate-400">
-                          <span>Target: {dailyTarget} words</span>
-                          <span className="text-lime-400 font-bold">{Math.max(0, dailyTarget - totalSearches)} remaining</span>
-                        </div>
-                      </div>
+                  {/* Footer status */}
+                  <div className="relative z-10 pt-3 border-t border-lime-400/15 flex items-center justify-between text-[11px] text-slate-400">
+                    <span>
+                      {isGoalSet && totalSearches >= dailyTarget
+                        ? t.goalReached
+                        : t.keepGoing}
+                    </span>
+                    {quotaRemaining === 0 && (
+                      <span className="text-amber-300 font-medium">{t.limitReached}</span>
                     )}
                   </div>
                 </div>
-
-                {/* HUD Footer Diagnostics Stream */}
-                <div className="relative z-10 pt-3 border-t border-lime-400/15 flex items-center justify-between text-[10px] text-slate-400">
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-lime-400 shadow-[0_0_8px_rgba(163,230,53,0.8)]" />
-                    <span>TURSO CLOUD: CONNECTED</span>
-                  </div>
-                  <span className="px-2 py-0.5 rounded bg-lime-400/10 border border-lime-400/20 text-lime-300 font-bold">
-                    SYSTEM OPTIMAL
-                  </span>
-                </div>
-              </div>
-            </section>
+              </section>
             )}
 
             <div className="flex flex-col gap-6 w-full">
               {/* Active Recall Warmup Widget */}
-              {currentUser && !showLanding && view !== 'reading' && view !== 'saved-words' && (
+              {currentUser && !showLanding && view !== 'reading' && view !== 'saved-words' && view !== 'settings' && (
                 <ActiveRecallWidget
                   onTryFirstWord={handleTryFirstWord}
-                  onRestart={() => {
-                    // Optional: handle widget restart if needed
-                  }}
+                  onRestart={() => {}}
                 />
               )}
-              {view !== 'reading' && view !== 'saved-words' && (
-                <div id="analyze-word-section" data-app-stage className="w-full">
-                <Card
-                  title="Analyze a word"
-                  subtitle="Enter a word or short phrase and let AI build your study card"
-                  className="form-card"
-                >
-                  <WordForm
-                    word={word}
-                    onWordChange={setWord}
-                    languageCode={langCode}
-                    onLanguageChange={(code, label) => {
-                      setLangCode(code);
-                      setLangLabel(label);
-                    }}
-                    onSubmit={onAnalyze}
-                    disabled={loading}
-                  />
-                  <div className="entered-line mt-3 flex items-baseline gap-2 text-xs font-mono text-slate-400">
-                    You entered:{' '}
-                    <strong className="text-slate-100">
-                      {normalized || '—'}
-                    </strong>
-                    {/* Pronunciation Button */}
-                    <button
-                      onClick={handlePronounce}
-                      disabled={!normalized || loading || !('speechSynthesis' in window)}
-                      className={`flex items-center justify-center w-8 h-8 rounded-full transition-all duration-200 ${
-                        isPlaying
-                          ? 'bg-lime-500/20 text-lime-400 animate-pulse'
-                          : 'bg-slate-900/60 text-slate-400 hover:bg-slate-900/70'
-                      }`}
-                      aria-label={isPlaying ? 'Stop pronunciation' : 'Pronounce word'}
-                      title={isPlaying ? 'Stop pronunciation' : 'Pronounce word'}
-                    >
-                      {isPlaying ? (
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.5a9 9 0 11-4.5 18.5" />
-                        </svg>
-                      ) : (
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m7.072 0a5 5 0 01-7.072 0M4.464 4.464A5 5 0 003.393 11.527l-.392.392a1 1 0 001.414 1.414l.392.392a1 1 0 001.414-1.414l.392-.392A5 5 0 0111.527 3.393l.392-.392a1 1 0 00-1.414-1.414l-.392-.392z" />
-                        </svg>
-                      )}
-                    </button>
-                  </div>
 
-                  {error ? (
-                    <div className="mt-4">
-                      <Alert
-                        variant="error"
-                        title="Couldn’t analyze the word"
+              {/* Word Analyzer Form */}
+              {view !== 'reading' && view !== 'saved-words' && view !== 'settings' && (
+                <div id="analyze-word-section" data-app-stage className="w-full">
+                  <Card
+                    title={t.analyzeTitle}
+                    subtitle={t.analyzeSubtitle}
+                    className="form-card"
+                  >
+                    <WordForm
+                      word={word}
+                      onWordChange={setWord}
+                      languageCode={langCode}
+                      onLanguageChange={(code, label) => {
+                        setLangCode(code);
+                        setLangLabel(label);
+                      }}
+                      onSubmit={onAnalyze}
+                      disabled={loading}
+                    />
+                    <div className="entered-line mt-3 flex items-center gap-2 text-xs text-slate-400">
+                      <span>{t.youEntered}</span>
+                      <strong className="text-slate-100 font-semibold">
+                        {normalized || '—'}
+                      </strong>
+                      {/* Pronunciation Button */}
+                      <button
+                        onClick={handlePronounce}
+                        disabled={!normalized || loading || !('speechSynthesis' in window)}
+                        className={`flex items-center justify-center w-8 h-8 rounded-full transition-all duration-200 cursor-pointer active:scale-90 disabled:opacity-40 disabled:cursor-not-allowed ${
+                          isPlaying
+                            ? 'bg-lime-500/20 text-lime-300 ring-2 ring-lime-400/30'
+                            : 'bg-slate-900/60 text-slate-400 hover:text-lime-300 hover:bg-slate-800/80'
+                        }`}
+                        aria-label={t.pronounceWord}
+                        title={t.pronounceWord}
                       >
-                        {error}
-                      </Alert>
+                        {isPlaying ? (
+                          <svg className="w-4 h-4 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.5a9 9 0 11-4.5 18.5" />
+                          </svg>
+                        ) : (
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m7.072 0a5 5 0 01-7.072 0M4.464 4.464A5 5 0 003.393 11.527l-.392.392a1 1 0 001.414 1.414l.392.392a1 1 0 001.414-1.414l.392-.392A5 5 0 0111.527 3.393l.392-.392a1 1 0 00-1.414-1.414l-.392-.392z" />
+                          </svg>
+                        )}
+                      </button>
                     </div>
-                  ) : null}
-                </Card>
-              </div>
+
+                    {error ? (
+                      <div className="mt-4">
+                        <Alert
+                          variant="error"
+                          title="Couldn’t analyze the word"
+                        >
+                          {error}
+                        </Alert>
+                      </div>
+                    ) : null}
+                  </Card>
+                </div>
               )}
 
-              {loading && view !== 'reading' && view !== 'saved-words' ? (
+              {loading && view !== 'reading' && view !== 'saved-words' && view !== 'settings' ? (
                 <div className="fade-in w-full">
                   <AiLoader word={normalized || word} />
                 </div>
               ) : null}
 
-
-              {!loading && data && view !== 'reading' && view !== 'saved-words' ? (
+              {!loading && data && view !== 'reading' && view !== 'saved-words' && view !== 'settings' ? (
                 view === 'analysis' ? (
                   <AnalysisView
                     analysis={data.analysis}
@@ -868,13 +874,17 @@ export default function App() {
                   />
                 )
               ) : null}
+
+              {/* Retention Reading View */}
               {view === 'reading' && (
-                  <section id="reading-section" data-app-stage className="w-full">
+                <section id="reading-section" data-app-stage className="w-full">
                   <RetentionReading currentUser={currentUser} />
                 </section>
               )}
+
+              {/* My Saved Words View */}
               {view === 'saved-words' && (
-                  <section id="saved-words-section" data-app-stage className="w-full">
+                <section id="saved-words-section" data-app-stage className="w-full">
                   <MySavedWords
                     currentUser={currentUser}
                     onBack={() => setView('analysis')}
@@ -889,15 +899,22 @@ export default function App() {
                   />
                 </section>
               )}
+
+              {/* Settings View (Footer is inside SettingsView at the end!) */}
+              {view === 'settings' && (
+                <section id="settings-section" data-app-stage className="w-full">
+                  <SettingsView
+                    currentUser={currentUser}
+                    onOpenLegal={handleOpenPrivacy}
+                    onOpenCookie={() => setShowCookieSettingsModal(true)}
+                    sessionCount={sessionCount}
+                    maxAllowedLimit={maxAllowedLimit}
+                    isPremium={isPremium}
+                  />
+                </section>
+              )}
             </div>
           </main>
-        )}
-
-        {showLanding ? null : (
-          <Footer
-            onOpenLegal={() => setShowLegalModal(true)}
-            onOpenCookie={() => setShowCookieSettingsModal(true)}
-          />
         )}
       </div>
 
@@ -936,7 +953,7 @@ export default function App() {
         />
       )}
 
-      {/* First-Time Localized Uzbek Cookie Policy Modal (Only on very first visit via localStorage) */}
+      {/* First-Time Localized Cookie Policy Modal */}
       {showFirstTimeCookieModal && (
         <CookieModal
           onClose={() => setShowFirstTimeCookieModal(false)}
@@ -953,38 +970,39 @@ export default function App() {
       )}
 
       {showGetMoreModal && isAdmin && (
-        <div ref={vipOverlayRef} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn">
-          <div ref={vipPanelRef} className="relative w-full max-w-sm p-6 sm:p-7 rounded-3xl bg-slate-950 border border-lime-400/30 shadow-[0_0_40px_rgba(132,204,22,0.15)] text-center">
+        <div ref={vipOverlayRef} className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
+          <div ref={vipPanelRef} className="relative w-full max-w-sm p-6 sm:p-7 rounded-3xl bg-slate-950 border border-lime-400/25 shadow-2xl text-center">
             <button
               onClick={() => dismissVip()}
-              className="absolute top-4 right-4 text-slate-400 hover:text-lime-300 transition text-lg w-8 h-8 flex items-center justify-center rounded-full hover:bg-lime-500/10 cursor-pointer"
+              className="absolute top-4 right-4 text-slate-400 hover:text-lime-300 transition-all duration-200 text-lg w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-800/80 cursor-pointer active:scale-90"
+              aria-label="Close"
             >
               ✕
             </button>
 
-            <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-gradient-to-tr from-amber-500 to-lime-500 border border-lime-400/30 flex items-center justify-center text-2xl shadow-lg">
+            <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-gradient-to-tr from-amber-500 to-lime-500 flex items-center justify-center text-2xl shadow-lg">
               ⭐
             </div>
 
-            <h3 className="text-xl font-bold text-lime-300 mb-1">
+            <h3 className="text-xl font-bold text-slate-100 mb-1">
               UniveBooster VIP
             </h3>
-            <p className="text-xs text-amber-300/80 font-mono mb-4">
+            <p className="text-xs text-amber-300/80 mb-4">
               Maxsus Admin Tarifi
             </p>
 
-            <div className="p-4 rounded-2xl bg-slate-900/60 border border-lime-400/15 text-left mb-6 space-y-2 text-xs font-mono text-slate-300">
+            <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 text-left mb-6 space-y-2 text-xs text-slate-300">
               <div className="flex items-center justify-between">
                 <span>Kunlik limit:</span>
-                <span className="text-lime-300 font-bold">400 ta so'z</span>
+                <span className="text-lime-300 font-semibold">400 ta so'z</span>
               </div>
               <div className="flex items-center justify-between">
                 <span>Davomiylik:</span>
-                <span className="text-slate-100 font-bold">1 kunlik sikl</span>
+                <span className="text-slate-100 font-semibold">1 kunlik sikl</span>
               </div>
               <div className="flex items-center justify-between">
                 <span>AI Generator:</span>
-                <span className="text-lime-300 font-bold">Cheklovsiz VIP</span>
+                <span className="text-lime-300 font-semibold">Cheklovsiz VIP</span>
               </div>
             </div>
 
@@ -999,13 +1017,25 @@ export default function App() {
                 alert('🎉 Premium muvaffaqiyatli faollashtirildi!');
                 window.location.reload();
               }}
-              className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-lime-400 to-cyan-400 hover:shadow-[0_0_25px_rgba(132,204,22,0.4)] text-slate-950 font-extrabold text-sm shadow-lg transition flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full py-3.5 px-6 rounded-xl bg-lime-400 hover:bg-lime-300 text-slate-950 font-semibold text-sm shadow-lg transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer active:scale-95"
             >
-              🚀 Xarid qilish va Yoqish
+              Activate VIP
             </button>
           </div>
         </div>
       )}
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <LanguageProvider>
+        <ServerProvider>
+          <AppInner />
+        </ServerProvider>
+      </LanguageProvider>
+    </ThemeProvider>
   );
 }
