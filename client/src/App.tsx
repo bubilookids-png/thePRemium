@@ -784,6 +784,7 @@ function AppInner() {
               {/* Active Recall Warmup Widget */}
               {currentUser && !showLanding && view !== 'reading' && view !== 'saved-words' && view !== 'settings' && (
                 <ActiveRecallWidget
+                  currentUser={currentUser}
                   onTryFirstWord={handleTryFirstWord}
                   onRestart={() => {}}
                 />

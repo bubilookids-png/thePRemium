@@ -1,5 +1,14 @@
-// client/src/components/sidebar.tsx
 import React, { useState, useRef } from 'react';
+import {
+  Search,
+  Zap,
+  Languages,
+  BookOpen,
+  Bookmark,
+  Settings,
+  Crown,
+  Globe
+} from 'lucide-react';
 import { useMotionEntrance } from '../utils/motion';
 import { NeonLogo } from './NeonLogo';
 import { useLanguage } from '../context/LanguageContext';
@@ -343,7 +352,7 @@ export function Sidebar({
               <div className="flex items-center gap-3 relative z-10">
                 <div className="icon-wrapper">
                   <div className="icon-glow" />
-                  <span className="text-sm transition-all duration-300 group-hover:scale-125 inline-block">🔍</span>
+                  <Search className="w-4 h-4 text-slate-300 group-hover:text-lime-300 transition-all duration-300 group-hover:scale-110" strokeWidth={1.8} />
                 </div>
                 {isOpen && (
                   <span className="text-xs font-mono text-slate-200 font-medium whitespace-nowrap transition-all duration-300 group-hover:text-lime-300 animate-menu-item">
@@ -392,13 +401,7 @@ export function Sidebar({
               <div className="flex items-center gap-3 relative z-10">
                 <div className="icon-wrapper">
                   <div className="icon-glow" />
-                  <span
-                    className={`text-sm transition-all duration-300 group-hover:scale-125 inline-block ${
-                      hoveredButton === 'blitz' ? 'animate-icon-pulse' : ''
-                    }`}
-                  >
-                    ⚡
-                  </span>
+                  <Zap className="w-4 h-4 text-slate-300 group-hover:text-lime-300 transition-all duration-300 group-hover:scale-110" strokeWidth={1.8} />
                 </div>
                 {isOpen && (
                   <span className="text-xs font-mono text-slate-200 font-medium whitespace-nowrap transition-all duration-300 group-hover:text-lime-300 animate-menu-item">
@@ -447,13 +450,7 @@ export function Sidebar({
               <div className="flex items-center gap-3 relative z-10">
                 <div className="icon-wrapper">
                   <div className="icon-glow" />
-                  <span
-                    className={`text-sm transition-all duration-300 group-hover:scale-125 inline-block ${
-                      hoveredButton === 'translate' ? 'animate-rotateSvg' : ''
-                    }`}
-                  >
-                    ✦
-                  </span>
+                  <Languages className="w-4 h-4 text-slate-300 group-hover:text-lime-300 transition-all duration-300 group-hover:scale-110" strokeWidth={1.8} />
                 </div>
                 {isOpen && (
                   <span className="text-xs font-mono text-slate-200 font-medium whitespace-nowrap transition-all duration-300 group-hover:text-lime-300 animate-menu-item">
@@ -502,7 +499,7 @@ export function Sidebar({
               <div className="flex items-center gap-3 relative z-10">
                 <div className="icon-wrapper">
                   <div className="icon-glow" />
-                  <span className="text-sm transition-all duration-300 group-hover:scale-125 inline-block">📖</span>
+                  <BookOpen className="w-4 h-4 text-slate-300 group-hover:text-lime-300 transition-all duration-300 group-hover:scale-110" strokeWidth={1.8} />
                 </div>
                 {isOpen && (
                   <span className="text-xs font-mono text-slate-200 font-medium whitespace-nowrap transition-all duration-300 group-hover:text-lime-300 animate-menu-item">
@@ -551,7 +548,7 @@ export function Sidebar({
               <div className="flex items-center gap-3 relative z-10">
                 <div className="icon-wrapper">
                   <div className="icon-glow" />
-                  <span className="text-sm transition-all duration-300 group-hover:scale-125 inline-block">🔖</span>
+                  <Bookmark className="w-4 h-4 text-slate-300 group-hover:text-lime-300 transition-all duration-300 group-hover:scale-110" strokeWidth={1.8} />
                 </div>
                 {isOpen && (
                   <span className="text-xs font-mono text-slate-200 font-medium whitespace-nowrap transition-all duration-300 group-hover:text-lime-300 animate-menu-item">
@@ -600,11 +597,7 @@ export function Sidebar({
               <div className="flex items-center gap-3 relative z-10">
                 <div className="icon-wrapper">
                   <div className="icon-glow" />
-                  <span
-                    className={`text-sm transition-transform duration-500 group-hover:rotate-90 inline-block`}
-                  >
-                    ⚙️
-                  </span>
+                  <Settings className="w-4 h-4 text-slate-300 group-hover:text-lime-300 transition-transform duration-500 group-hover:rotate-90" strokeWidth={1.8} />
                 </div>
                 {isOpen && (
                   <span className="text-xs font-mono text-slate-200 font-medium whitespace-nowrap transition-all duration-300 group-hover:text-lime-300 animate-menu-item">
@@ -653,13 +646,7 @@ export function Sidebar({
                   <div className="flex items-center gap-3 relative z-10">
                     <div className="icon-wrapper">
                       <div className="icon-glow absolute inset-0 rounded-full" />
-                      <span
-                        className={`text-sm transition-all duration-300 group-hover:scale-125 inline-block ${
-                          hoveredButton === 'admin' ? 'animate-bounce' : ''
-                        }`}
-                      >
-                        ⭐
-                      </span>
+                      <Crown className="w-4 h-4 text-lime-300 group-hover:scale-110 transition-transform" strokeWidth={1.8} />
                     </div>
                     {isOpen && (
                       <span className="text-xs font-mono text-lime-300 font-bold whitespace-nowrap transition-all duration-300 group-hover:text-lime-200 animate-menu-item">
@@ -678,9 +665,9 @@ export function Sidebar({
           </div>
         </div>
 
-        {/* Bottom Section: Quick Language Switcher & System Status */}
+        {/* Bottom Section: Quick Language Switcher */}
         <div className="p-3 border-t border-lime-400/10 flex flex-col gap-2">
-          {/* Quick Language Switcher in Sidebar (Requested: user can change general language to Uzbek & English) */}
+          {/* Quick Language Switcher in Sidebar */}
           <button
             type="button"
             onClick={(e) => {
@@ -707,7 +694,7 @@ export function Sidebar({
               />
             ))}
             <div className="flex items-center gap-2 relative z-10">
-              <span className="text-xs">🌐</span>
+              <Globe className="w-4 h-4 text-slate-300 group-hover:text-lime-300 transition-colors" strokeWidth={1.8} />
               {isOpen && (
                 <span className="text-xs font-mono text-slate-300 font-medium animate-menu-item">
                   {language === 'uz' ? "O'zbekcha" : 'English'}
@@ -720,22 +707,6 @@ export function Sidebar({
               </span>
             )}
           </button>
-
-          {/* Footer Status */}
-          <div className="flex items-center justify-center gap-2 pt-1 transition-all duration-300">
-            <div className="relative flex items-center justify-center">
-              <span
-                className="w-2 h-2 rounded-full bg-lime-400 animate-status-pulse"
-                title="System Active"
-              />
-              <span className="absolute inset-0 rounded-full bg-lime-400 opacity-20 animate-ping" />
-            </div>
-            {isOpen && (
-              <span className="text-[9px] font-mono text-lime-300/70 transition-all duration-300 animate-menu-item">
-                {t.navOnline}
-              </span>
-            )}
-          </div>
         </div>
       </aside>
     </>

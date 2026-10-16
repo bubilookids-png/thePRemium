@@ -3199,3 +3199,168 @@ body[data-theme="violet"] .app-shell {
 [data-theme="violet"] .to-lime-400\/50 {
   --tw-gradient-to: rgba(236, 72, 153, 0.5) var(--tw-gradient-from-position) !important;
 }
+
+/* ============================================================
+   BRUSHED SILVER & ICE SAPPHIRE THEME (DATA-THEME="SILVER")
+   Sophisticated cool metallic neutrals with Ice Sapphire and Titanium Slate
+   ============================================================ */
+
+body[data-theme="silver"],
+html[data-theme="silver"] {
+  --bg: #0b0f14;
+  --bg-soft: #111720;
+  --surface: rgba(226, 232, 240, 0.04);
+  --surface-hover: rgba(226, 232, 240, 0.07);
+
+  --border: rgba(203, 213, 225, 0.12);
+  --border-soft: rgba(203, 213, 225, 0.08);
+  --border-strong: rgba(226, 232, 240, 0.25);
+
+  --text: #f8fafc;
+  --text-soft: #cbd5e1;
+  --muted: #94a3b8;
+  --muted-dark: #64748b;
+
+  --accent: #38bdf8;
+  --accent-2: #64748b;
+  --accent-soft: rgba(56, 189, 248, 0.12);
+  --accent-glow: rgba(56, 189, 248, 0.22);
+}
+
+body[data-theme="silver"] .app-shell {
+  background: #0b0f14 !important;
+}
+
+/* Text Overrides */
+[data-theme="silver"] .text-lime-100 { color: #f0f9ff !important; }
+[data-theme="silver"] .text-lime-200 { color: #e0f2fe !important; }
+[data-theme="silver"] .text-lime-300 { color: #7dd3fc !important; }
+[data-theme="silver"] .text-lime-300\/70 { color: rgba(125, 211, 252, 0.7) !important; }
+[data-theme="silver"] .text-lime-400 { color: #38bdf8 !important; }
+[data-theme="silver"] .text-lime-500 { color: #0ea5e9 !important; }
+
+[data-theme="silver"] .hover\:text-lime-100:hover,
+[data-theme="silver"] .hover\:text-lime-200:hover,
+[data-theme="silver"] .hover\:text-lime-300:hover,
+[data-theme="silver"] .hover\:text-lime-400:hover {
+  color: #7dd3fc !important;
+}
+
+[data-theme="silver"] .group:hover .group-hover\:text-lime-100,
+[data-theme="silver"] .group:hover .group-hover\:text-lime-200,
+[data-theme="silver"] .group:hover .group-hover\:text-lime-300,
+[data-theme="silver"] .group:hover .group-hover\:text-lime-400 {
+  color: #7dd3fc !important;
+}
+
+/* Border Overrides */
+[data-theme="silver"] .border-lime-400\/10 { border-color: rgba(56, 189, 248, 0.12) !important; }
+[data-theme="silver"] .border-lime-400\/15 { border-color: rgba(56, 189, 248, 0.16) !important; }
+[data-theme="silver"] .border-lime-400\/20 { border-color: rgba(56, 189, 248, 0.22) !important; }
+[data-theme="silver"] .border-lime-400\/25 { border-color: rgba(56, 189, 248, 0.28) !important; }
+[data-theme="silver"] .border-lime-400\/30 { border-color: rgba(56, 189, 248, 0.32) !important; }
+[data-theme="silver"] .border-lime-400\/40 { border-color: rgba(56, 189, 248, 0.45) !important; }
+[data-theme="silver"] .border-lime-400\/50 { border-color: rgba(56, 189, 248, 0.55) !important; }
+[data-theme="silver"] .border-lime-400\/60 { border-color: rgba(56, 189, 248, 0.65) !important; }
+[data-theme="silver"] .border-lime-400\/80,
+[data-theme="silver"] .border-lime-300\/80 {
+  border-color: rgba(56, 189, 248, 0.85) !important;
+}
+
+[data-theme="silver"] .hover\:border-lime-300:hover,
+[data-theme="silver"] .hover\:border-lime-400:hover,
+[data-theme="silver"] .hover\:border-lime-400\/30:hover,
+[data-theme="silver"] .hover\:border-lime-400\/40:hover,
+[data-theme="silver"] .hover\:border-lime-400\/50:hover,
+[data-theme="silver"] .hover\:border-lime-300\/80:hover {
+  border-color: rgba(56, 189, 248, 0.6) !important;
+}
+
+[data-theme="silver"] .group:hover .group-hover\:border-lime-300,
+[data-theme="silver"] .group:hover .group-hover\:border-lime-400,
+[data-theme="silver"] .group:hover .group-hover\:border-lime-400\/40,
+[data-theme="silver"] .group:hover .group-hover\:border-lime-400\/50 {
+  border-color: rgba(56, 189, 248, 0.6) !important;
+}
+
+/* Background Overrides */
+[data-theme="silver"] .bg-lime-300,
+[data-theme="silver"] .bg-lime-400 {
+  background-color: #38bdf8 !important;
+  color: #040914 !important;
+}
+
+[data-theme="silver"] .bg-lime-500\/10,
+[data-theme="silver"] .bg-lime-400\/10 {
+  background-color: rgba(56, 189, 248, 0.1) !important;
+}
+[data-theme="silver"] .bg-lime-500\/15 {
+  background-color: rgba(56, 189, 248, 0.16) !important;
+}
+[data-theme="silver"] .bg-lime-500\/20,
+[data-theme="silver"] .bg-lime-400\/20 {
+  background-color: rgba(56, 189, 248, 0.22) !important;
+}
+[data-theme="silver"] .bg-lime-500\/30,
+[data-theme="silver"] .bg-lime-500\/40 {
+  background-color: rgba(56, 189, 248, 0.32) !important;
+}
+
+[data-theme="silver"] .hover\:bg-lime-300:hover,
+[data-theme="silver"] .hover\:bg-lime-400:hover {
+  background-color: #7dd3fc !important;
+  color: #040914 !important;
+}
+[data-theme="silver"] .hover\:bg-lime-500\/10:hover {
+  background-color: rgba(56, 189, 248, 0.14) !important;
+}
+[data-theme="silver"] .hover\:bg-lime-500\/15:hover {
+  background-color: rgba(56, 189, 248, 0.20) !important;
+}
+[data-theme="silver"] .hover\:bg-lime-500\/20:hover {
+  background-color: rgba(56, 189, 248, 0.28) !important;
+}
+
+[data-theme="silver"] .group:hover .group-hover\:bg-lime-500\/15 {
+  background-color: rgba(56, 189, 248, 0.20) !important;
+}
+[data-theme="silver"] .group:hover .group-hover\:bg-lime-500\/20 {
+  background-color: rgba(56, 189, 248, 0.28) !important;
+}
+
+/* Metallic HUD & Surface Overrides */
+[data-theme="silver"] .hud-fill {
+  background: linear-gradient(to right, #64748b, #94a3b8, #38bdf8) !important;
+}
+
+[data-theme="silver"] .hud-card {
+  border-color: rgba(203, 213, 225, 0.2) !important;
+  box-shadow: 0 0 35px rgba(56, 189, 248, 0.15) !important;
+}
+
+[data-theme="silver"] .ripple {
+  background: rgba(56, 189, 248, 0.45) !important;
+}
+
+[data-theme="silver"] .icon-glow {
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.25) 0%, transparent 70%) !important;
+}
+
+[data-theme="silver"] .from-lime-400,
+[data-theme="silver"] .from-lime-500 {
+  --tw-gradient-from: #94a3b8 var(--tw-gradient-from-position) !important;
+}
+[data-theme="silver"] .to-lime-400,
+[data-theme="silver"] .to-lime-500 {
+  --tw-gradient-to: #38bdf8 var(--tw-gradient-to-position) !important;
+}
+[data-theme="silver"] .from-lime-400\/30 {
+  --tw-gradient-from: rgba(148, 163, 184, 0.3) var(--tw-gradient-from-position) !important;
+}
+[data-theme="silver"] .to-lime-400\/30 {
+  --tw-gradient-to: rgba(56, 189, 248, 0.3) var(--tw-gradient-from-position) !important;
+}
+[data-theme="silver"] .to-lime-400\/50 {
+  --tw-gradient-to: rgba(56, 189, 248, 0.5) var(--tw-gradient-from-position) !important;
+}
+

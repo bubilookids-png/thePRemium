@@ -47,19 +47,48 @@ export function WordForm({
   const buttonBoxRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   useMotionEntrance(dropdownRef, isOpen, '.cyber-portal-option');
-  const [menuCoords, setMenuCoords] = useState<{ top: number; left: number; width: number } | null>(null);
+  const [menuCoords, setMenuCoords] = useState<{ top: number; left: number; width: number; maxHeight: number } | null>(null);
+  const [focusedIndex, setFocusedIndex] = useState<number>(-1);
+  const triggerButtonRef = useRef<HTMLButtonElement>(null);
 
   const selectedLang =
     LANGUAGES.find((l) => l.code === languageCode) || LANGUAGES[0];
 
-  // Tugmaning ekrandagi aniq koordinatasini hisoblash
+  // Dynamic positioning calculating available space above vs below the trigger
   function updateCoords() {
     if (buttonBoxRef.current) {
       const rect = buttonBoxRef.current.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+      const viewportWidth = window.innerWidth;
+      const menuWidth = Math.max(rect.width, 190);
+      const estimatedMenuHeight = 240;
+
+      const spaceBelow = viewportHeight - rect.bottom - 12;
+      const spaceAbove = rect.top - 12;
+
+      // Position above trigger if space below is cramped and space above offers more room
+      const placeAbove = spaceBelow < estimatedMenuHeight && spaceAbove > spaceBelow;
+      const top = placeAbove
+        ? Math.max(8, rect.top - Math.min(estimatedMenuHeight, spaceAbove) - 6)
+        : rect.bottom + 6;
+
+      let left = rect.left;
+      if (left + menuWidth > viewportWidth - 12) {
+        left = Math.max(12, viewportWidth - menuWidth - 12);
+      }
+      if (left < 12) {
+        left = 12;
+      }
+
+      const maxHeight = placeAbove
+        ? Math.max(140, Math.min(260, spaceAbove - 16))
+        : Math.max(140, Math.min(260, spaceBelow - 16));
+
       setMenuCoords({
-        top: rect.bottom + 8, // Tugmadan 8px pastda
-        left: rect.left,
-        width: Math.max(rect.width, 180),
+        top,
+        left,
+        width: menuWidth,
+        maxHeight
       });
     }
   }
@@ -68,11 +97,13 @@ export function WordForm({
     if (disabled) return;
     if (!isOpen) {
       updateCoords();
+      const currentIdx = LANGUAGES.findIndex((l) => l.code === languageCode);
+      setFocusedIndex(currentIdx >= 0 ? currentIdx : 0);
     }
     setIsOpen((prev) => !prev);
   }
 
-  // Scroll yoki Resize bo'lganda koordinatani yangilash yoki menyuni yopish
+  // Update position on scroll/resize
   useEffect(() => {
     function handleScrollOrResize() {
       if (isOpen) {
@@ -87,7 +118,35 @@ export function WordForm({
     };
   }, [isOpen]);
 
-  // Tashqariga bosganda menyuni yopish
+  // Keyboard navigation for dropdown
+  useEffect(() => {
+    if (!isOpen) return;
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setIsOpen(false);
+        triggerButtonRef.current?.focus();
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setFocusedIndex((prev) => (prev + 1) % LANGUAGES.length);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setFocusedIndex((prev) => (prev <= 0 ? LANGUAGES.length - 1 : prev - 1));
+      } else if (e.key === 'Enter' || e.key === ' ') {
+        if (focusedIndex >= 0 && focusedIndex < LANGUAGES.length) {
+          e.preventDefault();
+          const target = LANGUAGES[focusedIndex];
+          onLanguageChange(target.code, target.label);
+          setIsOpen(false);
+          triggerButtonRef.current?.focus();
+        }
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, focusedIndex, onLanguageChange]);
+
+  // Click outside listener
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       const target = e.target as HTMLElement;
@@ -135,26 +194,18 @@ export function WordForm({
             {t.translateIntoLabel}
           </label>
 
-          <div className="relative rounded-2xl p-[1px] overflow-hidden">
-            {isOpen && (
-              <div
-                className="absolute inset-[-100%] animate-[spin_3s_linear_infinite]"
-                style={{
-                  background:
-                    isViolet
-                      ? 'conic-gradient(from 0deg, transparent 0 300deg, #c084fc 340deg, #ec4899 360deg)'
-                      : 'conic-gradient(from 0deg, transparent 0 300deg, #84cc16 340deg, #06b6d4 360deg)',
-                }}
-              />
-            )}
-
+          <div className="relative rounded-2xl">
             <button
+              ref={triggerButtonRef}
               type="button"
               disabled={disabled}
               onClick={handleToggle}
+              aria-haspopup="listbox"
+              aria-expanded={isOpen}
+              aria-label={t.translateIntoLabel}
               className={`relative w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-slate-900/70 backdrop-blur-md border transition-all duration-200 ${
                 isOpen
-                  ? 'border-transparent text-slate-100 shadow-[0_0_20px_rgba(132,204,22,0.4)]'
+                  ? 'border-lime-400/60 text-slate-100 shadow-[0_0_15px_rgba(132,204,22,0.3)]'
                   : 'border-lime-400/25 hover:border-lime-400/50 text-slate-200'
               } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
             >
@@ -188,45 +239,47 @@ export function WordForm({
         </div>
       </div>
 
-      {/* 4. REACT PORTAL: Butun sahifa ustida erkin suzuvchi menyu (Karta ichiga tiqilmaydi!) */}
+      {/* 4. REACT PORTAL: Viewport-constrained dropdown above/below trigger */}
       {isOpen &&
         menuCoords &&
         createPortal(
           <div
             ref={dropdownRef}
-            className="cyber-portal-dropdown fixed z-[99999] rounded-2xl p-[1px] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.9)] animate-in fade-in zoom-in-95 duration-150"
+            className="cyber-portal-dropdown fixed z-[99999] rounded-2xl bg-slate-950/95 backdrop-blur-2xl border border-lime-400/30 p-1.5 shadow-[0_20px_50px_rgba(0,0,0,0.85)] animate-in fade-in zoom-in-95 duration-150 overflow-hidden"
             style={{
               top: `${menuCoords.top}px`,
               left: `${menuCoords.left}px`,
               width: `${menuCoords.width}px`,
+              maxHeight: `${menuCoords.maxHeight}px`,
             }}
           >
-            {/* Menyu atrofidagi neon aylanuvchi lazer nuri */}
             <div
-              className="absolute inset-[-100%] animate-[spin_4s_linear_infinite]"
-              style={{
-                background:
-                  isViolet
-                    ? 'conic-gradient(from 0deg, transparent 0 320deg, #c084fc 350deg, #ec4899 360deg)'
-                    : 'conic-gradient(from 0deg, transparent 0 320deg, #84cc16 350deg, #06b6d4 360deg)',
-              }}
-            />
-
-            <div className="relative w-full rounded-2xl bg-slate-950/95 backdrop-blur-3xl border border-lime-400/20 p-1.5 flex flex-col gap-1 max-h-56 overflow-y-auto">
-              {LANGUAGES.map((lang) => {
+              className="relative w-full flex flex-col gap-1 overflow-y-auto"
+              style={{ maxHeight: `${menuCoords.maxHeight - 12}px` }}
+              role="listbox"
+              aria-label={t.translateIntoLabel}
+            >
+              {LANGUAGES.map((lang, index) => {
                 const isSelected = lang.code === selectedLang.code;
+                const isFocused = focusedIndex === index;
                 return (
                   <button
                     key={lang.code}
                     type="button"
+                    role="option"
+                    aria-selected={isSelected}
+                    tabIndex={isFocused ? 0 : -1}
                     data-motion-option
                     onClick={() => {
                       onLanguageChange(lang.code, lang.label);
                       setIsOpen(false);
+                      triggerButtonRef.current?.focus();
                     }}
                     className={`cyber-portal-option group flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-colors duration-150 ${
                       isSelected
                         ? 'bg-lime-500/20 text-lime-200 border border-lime-400/40 shadow-sm shadow-lime-500/20'
+                        : isFocused
+                        ? 'bg-slate-800/80 text-lime-300 border border-slate-700'
                         : 'text-slate-300 hover:text-lime-300 hover:bg-lime-500/10'
                     }`}
                   >

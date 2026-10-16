@@ -58,11 +58,12 @@ export function AnalysisView({
     if (isSaving || isSaved) return;
 
     if (!currentUser?.id) {
-      alert(
+      setSaveFeedback(
         language === 'uz'
-          ? "So'zni Turso bulut bazasiga saqlash uchun avval Telegram orqali kiring!"
-          : "Please log in via Telegram first to save words to the cloud!"
+          ? "So'zni saqlash uchun avval Telegram orqali kiring!"
+          : "Please log in via Telegram first to save words!"
       );
+      setTimeout(() => setSaveFeedback(null), 3500);
       return;
     }
 
@@ -74,19 +75,21 @@ export function AnalysisView({
           telegram_id: currentUser.id,
           english_word: a.word,
           translation: a.translation,
+          level: a.cefrLevel || 'B1',
           source_feature: 'analyzer'
         })
       });
       setIsSaved(true);
-      setSaveFeedback('Saved to Turso!');
+      setSaveFeedback(language === 'uz' ? "Turso bazasiga saqlandi!" : "Saved to your vocabulary!");
       setTimeout(() => setSaveFeedback(null), 3000);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to save word:', err);
-      alert(
+      setSaveFeedback(
         language === 'uz'
-          ? "So'zni saqlashda xatolik yuz berdi. Qayta urinib ko'ring."
+          ? "So'zni saqlashda xatolik yuz berdi."
           : 'Failed to save the word. Please try again.'
       );
+      setTimeout(() => setSaveFeedback(null), 3500);
     } finally {
       setIsSaving(false);
     }
@@ -140,6 +143,12 @@ export function AnalysisView({
                   </>
                 )}
               </button>
+
+              {saveFeedback && (
+                <span className="text-xs font-mono px-2.5 py-1 rounded-lg bg-slate-900/90 border border-lime-400/30 text-lime-300 shadow-sm animate-fadeIn">
+                  {saveFeedback}
+                </span>
+              )}
 
               <button
                 onClick={onStartQuiz}

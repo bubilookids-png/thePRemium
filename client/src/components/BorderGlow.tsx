@@ -305,152 +305,62 @@ export default function BorderGlow({
       null
     );
 
-  const getCenter =
-    useCallback(
-      (
-        element: HTMLElement
-      ): [number, number] => {
-        const {
-          width,
-          height
-        } =
-          element.getBoundingClientRect();
+  const rafRef = useRef<number | null>(null);
 
-        return [
-          width / 2,
-          height / 2
-        ];
-      },
-      []
-    );
+  const handlePointerMove = useCallback(
+    (event: ReactPointerEvent<HTMLDivElement>) => {
+      const clientX = event.clientX;
+      const clientY = event.clientY;
 
-  const getEdgeProximity =
-    useCallback(
-      (
-        element: HTMLElement,
-        x: number,
-        y: number
-      ): number => {
-        const [cx, cy] =
-          getCenter(element);
+      if (rafRef.current !== null) return;
 
-        const dx = x - cx;
-        const dy = y - cy;
-
-        const kx =
-          dx !== 0
-            ? cx / Math.abs(dx)
-            : Infinity;
-
-        const ky =
-          dy !== 0
-            ? cy / Math.abs(dy)
-            : Infinity;
-
-        return Math.min(
-          Math.max(
-            1 /
-              Math.min(
-                kx,
-                ky
-              ),
-            0
-          ),
-          1
-        );
-      },
-      [getCenter]
-    );
-
-  const getCursorAngle =
-    useCallback(
-      (
-        element: HTMLElement,
-        x: number,
-        y: number
-      ): number => {
-        const [cx, cy] =
-          getCenter(element);
-
-        const dx = x - cx;
-        const dy = y - cy;
-
-        if (
-          dx === 0 &&
-          dy === 0
-        ) {
-          return 0;
-        }
-
-        let angle =
-          Math.atan2(
-            dy,
-            dx
-          ) *
-            (180 / Math.PI) +
-          90;
-
-        if (angle < 0) {
-          angle += 360;
-        }
-
-        return angle;
-      },
-      [getCenter]
-    );
-
-  const handlePointerMove =
-    useCallback(
-      (
-        event: ReactPointerEvent<HTMLDivElement>
-      ) => {
-        const card =
-          cardRef.current;
-
+      rafRef.current = requestAnimationFrame(() => {
+        rafRef.current = null;
+        const card = cardRef.current;
         if (!card) return;
 
-        const rect =
-          card.getBoundingClientRect();
+        const rect = card.getBoundingClientRect();
+        const width = rect.width;
+        const height = rect.height;
+        const cx = width / 2;
+        const cy = height / 2;
 
-        const x =
-          event.clientX -
-          rect.left;
+        const dx = clientX - rect.left - cx;
+        const dy = clientY - rect.top - cy;
 
-        const y =
-          event.clientY -
-          rect.top;
+        const kx = dx !== 0 ? cx / Math.abs(dx) : Infinity;
+        const ky = dy !== 0 ? cy / Math.abs(dy) : Infinity;
+        const edge = Math.min(Math.max(1 / Math.min(kx, ky), 0), 1);
 
-        const edge =
-          getEdgeProximity(
-            card,
-            x,
-            y
-          );
-
-        const angle =
-          getCursorAngle(
-            card,
-            x,
-            y
-          );
+        let angle = 0;
+        if (dx !== 0 || dy !== 0) {
+          angle = Math.atan2(dy, dx) * (180 / Math.PI) + 90;
+          if (angle < 0) {
+            angle += 360;
+          }
+        }
 
         card.style.setProperty(
           '--edge-proximity',
-          `${(
-            edge * 100
-          ).toFixed(3)}`
+          `${(edge * 100).toFixed(2)}`
         );
 
         card.style.setProperty(
           '--cursor-angle',
-          `${angle.toFixed(3)}deg`
+          `${angle.toFixed(2)}deg`
         );
-      },
-      [
-        getEdgeProximity,
-        getCursorAngle
-      ]
-    );
+      });
+    },
+    []
+  );
+
+  useEffect(() => {
+    return () => {
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (

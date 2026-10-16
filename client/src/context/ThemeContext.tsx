@@ -1,7 +1,7 @@
 // client/src/context/ThemeContext.tsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-export type AppTheme = 'neon-lime' | 'cyber-violet';
+export type AppTheme = 'neon-lime' | 'cyber-violet' | 'brushed-silver';
 
 interface ThemeContextValue {
   theme: AppTheme;
@@ -18,7 +18,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<AppTheme>(() => {
     try {
       const saved = localStorage.getItem('vacabbro_theme');
-      if (saved === 'cyber-violet' || saved === 'neon-lime') {
+      if (saved === 'cyber-violet' || saved === 'neon-lime' || saved === 'brushed-silver') {
         return saved;
       }
     } catch {}
@@ -43,6 +43,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     if (theme === 'cyber-violet') {
       document.documentElement.setAttribute('data-theme', 'violet');
       document.body.setAttribute('data-theme', 'violet');
+    } else if (theme === 'brushed-silver') {
+      document.documentElement.setAttribute('data-theme', 'silver');
+      document.body.setAttribute('data-theme', 'silver');
     } else {
       document.documentElement.removeAttribute('data-theme');
       document.body.removeAttribute('data-theme');

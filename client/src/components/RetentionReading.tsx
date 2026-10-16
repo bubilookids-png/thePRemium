@@ -158,7 +158,9 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
   const [fontSizeOffset, setFontSizeOffset] = useState<number>(0); // -1, 0, +1
 
   const [loadingArticle, setLoadingArticle] = useState(false);
+  const [selectedCardLevel, setSelectedCardLevel] = useState<Level | null>(null);
   const [articleError, setArticleError] = useState<string | null>(null);
+  const articlesCacheRef = useRef<Record<string, TextData[]>>({});
 
   // Cognitive Analysis Terminal States
   const [evalTab, setEvalTab] = useState<'forensic' | 'matrix' | 'comparator'>('forensic');
@@ -245,24 +247,40 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
 
   // Phase Handlers
   const handleSelectLevel = async (selectedLevel: Level) => {
+    setSelectedCardLevel(selectedLevel);
     setLevel(selectedLevel);
     setLoadingArticle(true);
     setArticleError(null);
+
+    // Instant switch if in client-side memory cache
+    const cached = articlesCacheRef.current[selectedLevel];
+    if (cached && cached.length > 0) {
+      setAvailableArticles(cached);
+      const randomText = cached[Math.floor(Math.random() * cached.length)];
+      setCurrentText(randomText);
+      setPhase('setup');
+      setLoadingArticle(false);
+      setSelectedCardLevel(null);
+      return;
+    }
+
     try {
       const res = await apiFetch<{ articles: TextData[] }>(`/api/reading/articles?level=${selectedLevel}`);
       if (res.articles && res.articles.length > 0) {
+        articlesCacheRef.current[selectedLevel] = res.articles;
         setAvailableArticles(res.articles);
         const randomText = res.articles[Math.floor(Math.random() * res.articles.length)];
         setCurrentText(randomText);
         setPhase('setup');
         return;
       }
-      setArticleError(`No articles found for Level ${selectedLevel} in Turso database.`);
+      setArticleError(`No articles found for Level ${selectedLevel}.`);
     } catch (err: any) {
-      console.error('Failed to load articles from Turso:', err);
-      setArticleError('Failed to fetch articles from Turso Cloud. Please verify your connection.');
+      console.error('Failed to load articles:', err);
+      setArticleError('Failed to fetch articles. Please check your connection.');
     } finally {
       setLoadingArticle(false);
+      setSelectedCardLevel(null);
     }
   };
 
@@ -438,6 +456,7 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
           telegram_id: currentUser.id,
           english_word: showTooltip.word,
           translation,
+          level: level || 'B1',
           source_feature: 'retention_reading'
         })
       });
@@ -468,6 +487,7 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
           telegram_id: currentUser.id,
           english_word: concept,
           translation: uzTrans,
+          level: level || 'B1',
           source_feature: 'retention_reading'
         })
       });
@@ -609,37 +629,56 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
                 tag: 'Rigorous',
                 accentColor: 'border-lime-500/30 hover:border-lime-400'
               }
-            ].map((lvl) => (
-              <div
-                key={lvl.id}
-                onClick={() => handleSelectLevel(lvl.id)}
-                className={`group relative bg-slate-900/50 hover:bg-slate-900/90 border ${lvl.accentColor} rounded-xl p-5 cursor-pointer transition-all duration-200 hover:-translate-y-0.5 shadow-sm hover:shadow-[0_0_25px_rgba(163,230,53,0.12)] flex flex-col justify-between`}
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-slate-800 text-lime-400 border border-lime-400/20">
-                      Level {lvl.id}
-                    </span>
-                    <span className="text-[11px] font-mono text-slate-500">
-                      {lvl.tag}
+            ].map((lvl) => {
+              const isSelected = selectedCardLevel === lvl.id;
+              const isAnyLoading = loadingArticle && selectedCardLevel !== null;
+              return (
+                <div
+                  key={lvl.id}
+                  onClick={() => !loadingArticle && handleSelectLevel(lvl.id)}
+                  className={`group relative rounded-xl p-5 cursor-pointer transition-all duration-200 flex flex-col justify-between ${
+                    isSelected
+                      ? 'bg-slate-900 border border-lime-400 ring-2 ring-lime-400/30 shadow-[0_0_30px_rgba(163,230,53,0.2)] -translate-y-0.5'
+                      : isAnyLoading
+                      ? 'bg-slate-900/30 border border-slate-800 opacity-50 pointer-events-none'
+                      : `bg-slate-900/50 hover:bg-slate-900/90 border ${lvl.accentColor} hover:-translate-y-0.5 shadow-sm hover:shadow-[0_0_25px_rgba(163,230,53,0.12)]`
+                  }`}
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-slate-800 text-lime-400 border border-lime-400/20">
+                        Level {lvl.id}
+                      </span>
+                      <span className="text-[11px] font-mono text-slate-500">
+                        {lvl.tag}
+                      </span>
+                    </div>
+                    <h2 className="text-base font-bold text-slate-100 group-hover:text-lime-300 transition-colors">
+                      {lvl.title}
+                    </h2>
+                    <p className="mt-2 text-xs text-slate-400 leading-relaxed min-h-[48px]">
+                      {lvl.desc}
+                    </p>
+                  </div>
+
+                  <div className="mt-5 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs">
+                    <span className="text-slate-500 font-mono">{lvl.words}</span>
+                    <span className="flex items-center gap-1 font-semibold text-lime-400 group-hover:translate-x-1 transition-transform">
+                      {isSelected ? (
+                        <>
+                          <span className="inline-block animate-spin text-xs">⟳</span>
+                          <span>Preparing...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>Start</span> <IconArrowRight className="w-3.5 h-3.5" />
+                        </>
+                      )}
                     </span>
                   </div>
-                  <h2 className="text-base font-bold text-slate-100 group-hover:text-lime-300 transition-colors">
-                    {lvl.title}
-                  </h2>
-                  <p className="mt-2 text-xs text-slate-400 leading-relaxed min-h-[48px]">
-                    {lvl.desc}
-                  </p>
                 </div>
-
-                <div className="mt-5 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs">
-                  <span className="text-slate-500 font-mono">{lvl.words}</span>
-                  <span className="flex items-center gap-1 font-semibold text-lime-400 group-hover:translate-x-1 transition-transform">
-                    Start <IconArrowRight className="w-3.5 h-3.5" />
-                  </span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           <div className="p-4 rounded-xl bg-slate-900/40 border border-slate-800 text-xs text-slate-400 flex items-start gap-3">

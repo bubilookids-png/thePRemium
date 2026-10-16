@@ -77,8 +77,10 @@ export async function initDatabase() {
       CREATE TABLE IF NOT EXISTS user_saved_words (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         telegram_id INTEGER NOT NULL,
-        english_word TEXT NOT NULL,
+        word TEXT,
+        english_word TEXT,
         translation TEXT NOT NULL,
+        level TEXT DEFAULT 'B1',
         source_feature TEXT NOT NULL DEFAULT 'manual',
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       );
@@ -123,16 +125,30 @@ export async function initDatabase() {
    * Migrations for existing user_saved_words and words tables
    */
   try {
+    await db.execute(`ALTER TABLE user_saved_words ADD COLUMN word TEXT`);
+  } catch {}
+
+  try {
     await db.execute(`ALTER TABLE user_saved_words ADD COLUMN english_word TEXT`);
+  } catch {}
+
+  try {
+    await db.execute(`ALTER TABLE user_saved_words ADD COLUMN level TEXT DEFAULT 'B1'`);
   } catch {}
 
   try {
     await db.execute(`ALTER TABLE user_saved_words ADD COLUMN source_feature TEXT DEFAULT 'manual'`);
   } catch {}
 
-  // If old table had 'word' column, populate english_word where null
+  // Sync legacy and current column values
   try {
-    await db.execute(`UPDATE user_saved_words SET english_word = word WHERE english_word IS NULL AND word IS NOT NULL`);
+    await db.execute(`UPDATE user_saved_words SET english_word = word WHERE (english_word IS NULL OR english_word = '') AND word IS NOT NULL`);
+  } catch {}
+  try {
+    await db.execute(`UPDATE user_saved_words SET word = english_word WHERE (word IS NULL OR word = '') AND english_word IS NOT NULL`);
+  } catch {}
+  try {
+    await db.execute(`UPDATE user_saved_words SET level = 'B1' WHERE level IS NULL OR level = ''`);
   } catch {}
 
   try {

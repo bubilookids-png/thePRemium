@@ -125,7 +125,7 @@ export function SettingsView({
             className="h-full"
           >
             <div className="flex flex-col gap-2.5 mt-2">
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 {/* Theme 1: Lime */}
                 <button
                   type="button"
@@ -171,6 +171,30 @@ export function SettingsView({
                   </div>
                   <span className="text-[10px] text-slate-400 font-mono">
                     {language === 'uz' ? 'Elektr fuxsiya & binafsha' : 'Neon Violet & Rose'}
+                  </span>
+                </button>
+
+                {/* Theme 3: Silver */}
+                <button
+                  type="button"
+                  onClick={() => setTheme('brushed-silver')}
+                  className={`p-2.5 rounded-xl border text-left transition-all duration-200 cursor-pointer flex flex-col gap-1.5 ${
+                    theme === 'brushed-silver'
+                      ? 'bg-slate-300/15 border-slate-300/70 shadow-[0_0_15px_rgba(226,232,240,0.25)] text-slate-100'
+                      : 'bg-slate-900/60 border-slate-800 text-slate-300 hover:border-slate-700'
+                  }`}
+                >
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-3.5 h-3.5 rounded-full bg-gradient-to-tr from-slate-500 via-slate-200 to-sky-400 border border-slate-300/60" />
+                    <span className="font-bold text-xs">Brushed Silver</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#e2e8f0]" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#38bdf8]" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#64748b]" />
+                  </div>
+                  <span className="text-[10px] text-slate-400 font-mono">
+                    {language === 'uz' ? 'Metall kumush & muz safir' : 'Silver & Ice Sapphire'}
                   </span>
                 </button>
               </div>
