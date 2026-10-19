@@ -42,7 +42,7 @@ export function WordForm({
 }: WordFormProps) {
   const { t } = useLanguage();
   const { theme } = useTheme();
-  const isViolet = theme === 'cyber-violet';
+  const isEditorial = theme === 'editorial-milk';
   const [isOpen, setIsOpen] = useState(false);
   const buttonBoxRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);

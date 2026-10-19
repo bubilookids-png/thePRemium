@@ -36,17 +36,17 @@ export function SettingsView({
   const { language, setLanguage, t } = useLanguage();
   const { theme, setTheme, bgAnimation, setBgAnimation } = useTheme();
   const { status, wakeServer, message } = useServerStatus();
-  const isViolet = theme === 'cyber-violet';
+  const isEditorial = theme === 'editorial-milk';
 
-  const accentBorder = isViolet ? 'border-fuchsia-400/50' : 'border-lime-400/50';
-  const accentBg = isViolet ? 'bg-fuchsia-500/15' : 'bg-lime-500/15';
-  const accentText = isViolet ? 'text-fuchsia-300' : 'text-lime-300';
-  const accentGlow = isViolet ? 'shadow-[0_0_15px_rgba(236,72,153,0.25)]' : 'shadow-[0_0_15px_rgba(132,204,22,0.25)]';
+  const accentBorder = isEditorial ? 'border-ink-900' : 'border-lime-400/50';
+  const accentBg = isEditorial ? 'bg-lavender-100' : 'bg-lime-500/15';
+  const accentText = isEditorial ? 'text-lavender-700' : 'text-lime-300';
+  const accentGlow = isEditorial ? 'shadow-[3px_3px_0px_#1E2433]' : 'shadow-[0_0_15px_rgba(132,204,22,0.25)]';
 
   return (
     <div ref={settingsRef} className="settings-page w-full flex flex-col gap-5 pb-4 max-w-4xl mx-auto">
       {/* Compact Page Header */}
-      <div className={`flex flex-col gap-1 border-b pb-3 ${isViolet ? 'border-fuchsia-400/20' : 'border-lime-400/15'}`}>
+      <div className={`flex flex-col gap-1 border-b pb-3 ${isEditorial ? 'border-ink-900/20' : 'border-lime-400/15'}`}>
         <div className="flex items-center gap-2">
           <span className="text-base sm:text-lg">⚙️</span>
           <h1 className="text-lg sm:text-xl font-bold text-slate-100 tracking-tight">
@@ -150,27 +150,28 @@ export function SettingsView({
                   </span>
                 </button>
 
-                {/* Theme 2: Violet */}
+                {/* Theme 2: Editorial Milk (Claude & Journal Adventure) */}
                 <button
                   type="button"
-                  onClick={() => setTheme('cyber-violet')}
+                  onClick={() => setTheme('editorial-milk')}
                   className={`p-2.5 rounded-xl border text-left transition-all duration-200 cursor-pointer flex flex-col gap-1.5 ${
-                    theme === 'cyber-violet'
-                      ? 'bg-fuchsia-500/15 border-fuchsia-400/60 shadow-[0_0_15px_rgba(236,72,153,0.3)] text-fuchsia-200'
+                    theme === 'editorial-milk'
+                      ? 'bg-amber-100/90 border-[#1E2433] shadow-[3px_3px_0px_#1E2433] text-ink-900 font-bold'
                       : 'bg-slate-900/60 border-slate-800 text-slate-300 hover:border-slate-700'
                   }`}
                 >
                   <div className="flex items-center gap-1.5">
-                    <div className="w-3.5 h-3.5 rounded-full bg-gradient-to-tr from-purple-800 to-pink-500 border border-pink-300/40" />
-                    <span className="font-bold text-xs">Cyber Violet</span>
+                    <div className="w-3.5 h-3.5 rounded-full bg-gradient-to-tr from-[#DDD6FE] via-[#FAF7F2] to-[#FBCFE8] border-2 border-[#1E2433]" />
+                    <span className="font-serif font-bold text-xs">Editorial Milk</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#c084fc]" />
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#ec4899]" />
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#3b0764]" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#FAF7F2] border border-[#1E2433]" title="Milk Ivory" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#DDD6FE] border border-[#1E2433]" title="Lavender" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#FBCFE8] border border-[#1E2433]" title="Blush" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#1E2433]" title="Ink 900" />
                   </div>
-                  <span className="text-[10px] text-slate-400 font-mono">
-                    {language === 'uz' ? 'Elektr fuxsiya & binafsha' : 'Neon Violet & Rose'}
+                  <span className="text-[10px] font-sans opacity-80">
+                    {language === 'uz' ? 'Klod iliq sut & siyoh' : 'Claude Warm Milk & Ink'}
                   </span>
                 </button>
 
@@ -226,7 +227,7 @@ export function SettingsView({
                 type="button"
                 onClick={() => setBgAnimation(!bgAnimation)}
                 className={`w-10 h-5 rounded-full p-0.5 transition-colors duration-300 cursor-pointer relative ${
-                  bgAnimation ? (isViolet ? 'bg-fuchsia-500' : 'bg-lime-500') : 'bg-slate-800'
+                  bgAnimation ? (isEditorial ? 'bg-lavender-500' : 'bg-lime-500') : 'bg-slate-800'
                 }`}
                 aria-label="Toggle background animation"
               >
@@ -282,8 +283,8 @@ export function SettingsView({
                       ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 cursor-default'
                       : status === 'waking'
                       ? 'bg-blue-500/20 text-blue-300 border border-blue-400/30'
-                      : isViolet
-                      ? 'bg-fuchsia-500 hover:bg-fuchsia-400 text-white font-bold active:scale-95'
+                      : isEditorial
+                      ? 'bg-lavender-200 hover:bg-lavender-300 text-ink-900 border-2 border-ink-900 shadow-[2px_2px_0px_#1E2433] font-bold active:scale-95'
                       : 'bg-lime-400 hover:bg-lime-300 text-slate-950 font-bold active:scale-95'
                   }`}
                 >
@@ -342,7 +343,7 @@ export function SettingsView({
       </div>
 
       {/* FOOTER: Only visible in Settings at the very end when user scrolls down! */}
-      <div className={`w-full mt-6 pt-4 border-t ${isViolet ? 'border-fuchsia-400/20' : 'border-lime-400/15'}`}>
+      <div className={`w-full mt-6 pt-4 border-t ${isEditorial ? 'border-ink-900/20' : 'border-lime-400/15'}`}>
         <Footer
           onOpenLegal={onOpenLegal}
           onOpenCookie={onOpenCookie}

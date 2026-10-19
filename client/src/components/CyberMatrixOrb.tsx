@@ -26,12 +26,12 @@ export function CyberMatrixOrb() {
   const isLive = status === 'live';
   const isWaking = status === 'waking';
   const isSleeping = status === 'sleeping' || status === 'error';
-  const isViolet = theme === 'cyber-violet';
+  const isEditorial = theme === 'editorial-milk';
 
   // Dynamic conic gradient depending on theme & state
   const conicGradient = isLive
-    ? isViolet
-      ? 'conic-gradient(from 0deg, transparent 0 290deg, #581c87 320deg, #ec4899 345deg, #a855f7 360deg)'
+    ? isEditorial
+      ? 'conic-gradient(from 0deg, transparent 0 290deg, #6D28D9 320deg, #DB2777 345deg, #0284C7 360deg)'
       : 'conic-gradient(from 0deg, transparent 0 290deg, #1e3a8a 320deg, #84cc16 345deg, #06b6d4 360deg)'
     : isWaking
     ? 'conic-gradient(from 0deg, transparent 0 260deg, #1d4ed8 300deg, #38bdf8 340deg, #60a5fa 360deg)'
@@ -122,8 +122,8 @@ export function CyberMatrixOrb() {
               <div
                 className={`w-9 h-9 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center font-black text-xs sm:text-sm border transition-all duration-500 ${
                   isLive
-                    ? isViolet
-                      ? 'bg-purple-950/80 border-fuchsia-400/40 text-fuchsia-300 shadow-inner shadow-fuchsia-500/20'
+                    ? isEditorial
+                      ? 'bg-lavender-100 border-2 border-ink-900 text-ink-900 shadow-[2px_2px_0px_#1E2433]'
                       : 'bg-blue-900/70 border-lime-400/35 text-lime-300 shadow-inner shadow-lime-500/20'
                     : isWaking
                     ? 'bg-blue-950/80 border-cyan-400/40 text-cyan-300 animate-pulse'
@@ -136,14 +136,14 @@ export function CyberMatrixOrb() {
               <div>
                 <div className="flex items-center gap-1.5">
                   <span
-                    className={`text-[11px] sm:text-xs font-black font-mono tracking-wider transition-colors duration-300 ${
+                    className={`text-[11px] sm:text-xs font-black tracking-wider transition-colors duration-300 ${
                       isLive
-                        ? isViolet
-                          ? 'text-fuchsia-300'
-                          : 'text-lime-300'
+                        ? isEditorial
+                          ? 'text-ink-900 font-serif font-bold'
+                          : 'text-lime-300 font-mono'
                         : isWaking
-                        ? 'text-cyan-300'
-                        : 'text-slate-400'
+                        ? 'text-cyan-300 font-mono'
+                        : 'text-slate-400 font-mono'
                     }`}
                   >
                     NEURAL MATRIX
@@ -193,17 +193,17 @@ export function CyberMatrixOrb() {
                 <>
                   <span
                     className={`w-1 rounded-full eq-anim-1 ${
-                      isViolet ? 'bg-fuchsia-400' : 'bg-lime-400'
+                      isEditorial ? 'bg-lavender-700' : 'bg-lime-400'
                     }`}
                   />
                   <span
                     className={`w-1 rounded-full eq-anim-2 ${
-                      isViolet ? 'bg-violet-400' : 'bg-cyan-400'
+                      isEditorial ? 'bg-skysoft-600' : 'bg-cyan-400'
                     }`}
                   />
                   <span
                     className={`w-1 rounded-full eq-anim-3 ${
-                      isViolet ? 'bg-pink-400' : 'bg-lime-300'
+                      isEditorial ? 'bg-blush-500' : 'bg-lime-300'
                     }`}
                   />
                 </>

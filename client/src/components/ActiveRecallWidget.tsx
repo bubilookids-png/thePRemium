@@ -21,7 +21,7 @@ export const ActiveRecallWidget: React.FC<ActiveRecallWidgetProps> = ({
   onTryFirstWord
 }) => {
   const { theme } = useTheme();
-  const isViolet = theme === 'cyber-violet';
+  const isEditorial = theme === 'editorial-milk';
   const isSilver = theme === 'brushed-silver';
 
   const [loading, setLoading] = useState(true);

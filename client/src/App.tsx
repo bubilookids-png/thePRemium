@@ -515,9 +515,9 @@ function AppInner() {
       <div className="app-background">
         {bgAnimation ? (
           <GradientWaves
-            horizonColor={theme === 'cyber-violet' ? '#150326' : '#051e3e'}
-            waveColor={theme === 'cyber-violet' ? '#2e0854' : '#0d3b66'}
-            crestColor={theme === 'cyber-violet' ? '#ec4899' : '#84cc16'}
+            horizonColor={theme === 'editorial-milk' ? '#FAF7F2' : '#051e3e'}
+            waveColor={theme === 'editorial-milk' ? '#DDD6FE' : '#0d3b66'}
+            crestColor={theme === 'editorial-milk' ? '#DB2777' : '#84cc16'}
             speed={0.2}
             amplitude={2.1}
             waveScale={0.55}
@@ -542,8 +542,8 @@ function AppInner() {
               className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[700px] h-[350px] rounded-full blur-[140px] pointer-events-none"
               style={{
                 background:
-                  theme === 'cyber-violet'
-                    ? 'radial-gradient(circle, rgba(168,85,247,0.18) 0%, rgba(236,72,153,0.12) 60%, transparent 80%)'
+                  theme === 'editorial-milk'
+                    ? 'radial-gradient(circle, rgba(221,214,254,0.45) 0%, rgba(251,207,232,0.35) 45%, rgba(186,230,253,0.3) 70%, transparent 85%)'
                     : 'radial-gradient(circle, rgba(132,204,22,0.14) 0%, rgba(6,182,212,0.1) 60%, transparent 80%)',
               }}
             />
@@ -637,7 +637,7 @@ function AppInner() {
                           ? `${t.readyToTrain}${currentUser.first_name}.`
                           : t.vocabLabActive
                       }
-                      color={theme === 'cyber-violet' ? '#f472b6' : '#84cc16'}
+                      color={theme === 'editorial-milk' ? '#1E2433' : '#84cc16'}
                       warpStrength={0.08}
                       warpScale={1.7}
                       speed={0.55}

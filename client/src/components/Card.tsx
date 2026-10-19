@@ -17,7 +17,7 @@ export function Card(props: {
   useMotionEntrance(cardRef, true, '.section-head, .section-body');
   const [isHovered, setIsHovered] = useState(false);
   const { theme } = useTheme();
-  const isViolet = theme === 'cyber-violet';
+  const isEditorial = theme === 'editorial-milk';
   const isSilver = theme === 'brushed-silver';
 
   function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
@@ -81,35 +81,44 @@ export function Card(props: {
         className="relative w-full"
       >
         <BorderGlow
-          backgroundColor={isSilver ? '#0b0f14' : '#0f172a'}
+          backgroundColor={isEditorial ? '#FAF7F2' : isSilver ? '#0b0f14' : '#0f172a'}
           borderRadius={24}
           glowRadius={30}
-          glowIntensity={0.8}
+          glowIntensity={isEditorial ? 0.4 : 0.8}
           colors={
-            isViolet
-              ? ['#c084fc', '#ec4899', '#7e22ce']
+            isEditorial
+              ? ['#6D28D9', '#EC4899', '#0284C7']
               : isSilver
               ? ['#38bdf8', '#94a3b8', '#64748b']
               : ['#84cc16', '#1e3a8a', '#06b6d4']
           }
-          glowColor={isViolet ? '280 85 70' : isSilver ? '200 90 60' : '132 204 22'}
+          glowColor={isEditorial ? '260 70 50' : isSilver ? '200 90 60' : '132 204 22'}
           edgeSensitivity={30}
           coneSpread={25}
-          fillOpacity={0.65}
+          fillOpacity={isEditorial ? 0.3 : 0.65}
         >
           <section
-            className={`section-card relative overflow-hidden p-4 sm:p-6 bg-slate-950/80 backdrop-blur-md border ${
-              isViolet ? 'border-fuchsia-400/25' : isSilver ? 'border-sky-400/25' : 'border-lime-400/20'
+            className={`section-card relative overflow-hidden p-4 sm:p-6 backdrop-blur-md ${
+              isEditorial
+                ? 'editorial-card bg-white text-ink-900 border-2 border-ink-900 shadow-[6px_6px_0px_#1E2433] rounded-3xl'
+                : isSilver
+                ? 'bg-slate-950/80 border border-sky-400/25 rounded-3xl'
+                : 'bg-slate-950/80 border border-lime-400/20 rounded-3xl'
             } ${props.className || ''}`}
             onClick={props.onClick}
           >
+            {/* Washi tape accent on editorial card */}
+            {isEditorial && (
+              <div className="washi-tape -top-3.5 right-8 hidden sm:block pointer-events-none" />
+            )}
+
             {/* Mouse glow: only works when hovering over card */}
             <div
               className="hidden sm:block pointer-events-none absolute -inset-px transition-opacity duration-300 z-0"
               style={{
                 opacity: isHovered ? 1 : 0,
-                background: isViolet
-                  ? 'radial-gradient(320px circle at var(--motion-pointer-x, 50%) var(--motion-pointer-y, 50%), rgba(192, 132, 252, 0.22), rgba(236, 72, 153, 0.22), transparent 75%)'
+                background: isEditorial
+                  ? 'radial-gradient(320px circle at var(--motion-pointer-x, 50%) var(--motion-pointer-y, 50%), rgba(221, 214, 254, 0.3), rgba(251, 207, 232, 0.25), transparent 75%)'
                   : isSilver
                   ? 'radial-gradient(320px circle at var(--motion-pointer-x, 50%) var(--motion-pointer-y, 50%), rgba(56, 189, 248, 0.18), rgba(100, 116, 139, 0.22), transparent 75%)'
                   : 'radial-gradient(320px circle at var(--motion-pointer-x, 50%) var(--motion-pointer-y, 50%), rgba(132, 204, 22, 0.15), rgba(30, 58, 138, 0.25), transparent 75%)',
@@ -122,14 +131,20 @@ export function Card(props: {
                   {props.title ? (
                     <h2
                       className={`section-title text-base sm:text-lg font-bold tracking-tight transition-colors duration-300 ${
-                        isViolet ? 'text-fuchsia-300' : isSilver ? 'text-sky-300' : 'text-lime-300'
+                        isEditorial
+                          ? 'font-serif text-ink-900 font-extrabold text-lg sm:text-xl'
+                          : isSilver
+                          ? 'text-sky-300'
+                          : 'text-lime-300'
                       }`}
                     >
                       {props.title}
                     </h2>
                   ) : null}
                   {props.subtitle ? (
-                    <p className="section-kicker text-xs text-slate-400 mt-0.5 font-normal">
+                    <p className={`section-kicker text-xs mt-0.5 font-normal ${
+                      isEditorial ? 'text-ink-700 font-sans' : 'text-slate-400'
+                    }`}>
                       {props.subtitle}
                     </p>
                   ) : null}

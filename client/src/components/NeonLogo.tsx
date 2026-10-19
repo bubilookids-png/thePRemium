@@ -9,10 +9,10 @@ interface NeonLogoProps {
 
 export function NeonLogo({ className = '', size = 26 }: NeonLogoProps) {
   const { theme } = useTheme();
-  const isViolet = theme === 'cyber-violet';
+  const isEditorial = theme === 'editorial-milk';
 
-  const primaryGlow = isViolet ? '#c084fc' : '#84cc16';
-  const accentGlow = isViolet ? '#f472b6' : '#06b6d4';
+  const primaryGlow = isEditorial ? '#6D28D9' : '#84cc16';
+  const accentGlow = isEditorial ? '#DB2777' : '#06b6d4';
 
   return (
     <div
@@ -42,9 +42,9 @@ export function NeonLogo({ className = '', size = 26 }: NeonLogoProps) {
       >
         <defs>
           <linearGradient id="neonVGrad" x1="6" y1="6" x2="26" y2="26" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stopColor={isViolet ? '#f472b6' : '#ecfccb'} />
-            <stop offset="60%" stopColor={isViolet ? '#c084fc' : '#a3e635'} />
-            <stop offset="100%" stopColor={isViolet ? '#a855f7' : '#84cc16'} />
+            <stop offset="0%" stopColor={isEditorial ? '#DDD6FE' : '#ecfccb'} />
+            <stop offset="60%" stopColor={isEditorial ? '#8B5CF6' : '#a3e635'} />
+            <stop offset="100%" stopColor={isEditorial ? '#6D28D9' : '#84cc16'} />
           </linearGradient>
 
           <linearGradient id="neonSlashGrad" x1="18" y1="12" x2="24" y2="15" gradientUnits="userSpaceOnUse">

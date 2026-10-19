@@ -1,7 +1,7 @@
 // client/src/context/ThemeContext.tsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-export type AppTheme = 'neon-lime' | 'cyber-violet' | 'brushed-silver';
+export type AppTheme = 'neon-lime' | 'brushed-silver' | 'editorial-milk';
 
 interface ThemeContextValue {
   theme: AppTheme;
@@ -18,11 +18,15 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<AppTheme>(() => {
     try {
       const saved = localStorage.getItem('vacabbro_theme');
-      if (saved === 'cyber-violet' || saved === 'neon-lime' || saved === 'brushed-silver') {
+      if (saved === 'editorial-milk' || saved === 'neon-lime' || saved === 'brushed-silver') {
         return saved;
       }
+      if (saved === 'cyber-violet') {
+        // Smoothly migrate retired purple theme to editorial milk
+        return 'editorial-milk';
+      }
     } catch {}
-    return 'neon-lime';
+    return 'editorial-milk';
   });
 
   const [bgAnimation, setBgAnimationState] = useState<boolean>(() => {
@@ -40,9 +44,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem('vacabbro_theme', theme);
     } catch {}
 
-    if (theme === 'cyber-violet') {
-      document.documentElement.setAttribute('data-theme', 'violet');
-      document.body.setAttribute('data-theme', 'violet');
+    if (theme === 'editorial-milk') {
+      document.documentElement.setAttribute('data-theme', 'editorial');
+      document.body.setAttribute('data-theme', 'editorial');
     } else if (theme === 'brushed-silver') {
       document.documentElement.setAttribute('data-theme', 'silver');
       document.body.setAttribute('data-theme', 'silver');
@@ -67,7 +71,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   };
 
   const toggleTheme = () => {
-    setThemeState((prev) => (prev === 'neon-lime' ? 'cyber-violet' : 'neon-lime'));
+    setThemeState((prev) => (prev === 'neon-lime' ? 'editorial-milk' : 'neon-lime'));
   };
 
   const toggleBgAnimation = () => {

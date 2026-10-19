@@ -98,7 +98,7 @@ export interface Translations {
   siteTheme: string;
   siteThemeDesc: string;
   themeLime: string;
-  themeViolet: string;
+  themeEditorial: string;
   bgAnimation: string;
   bgAnimationDesc: string;
   stateOn: string;
@@ -212,7 +212,7 @@ const translations: Record<AppLanguage, Translations> = {
     siteTheme: 'Color Theme',
     siteThemeDesc: 'Select your preferred visual aesthetic for the interface.',
     themeLime: 'Neon Lime & Ocean (Classic)',
-    themeViolet: 'Cyber Violet & Electric Rose',
+    themeEditorial: 'Editorial Milk & Claude Journal',
     bgAnimation: 'Background Wave Animation',
     bgAnimationDesc: 'Toggle the interactive WebGL fluid waves simulation on or off to save battery or prefer minimal design.',
     stateOn: 'Enabled',
@@ -324,7 +324,7 @@ const translations: Record<AppLanguage, Translations> = {
     siteTheme: 'Dizayn mavzusi',
     siteThemeDesc: 'Interfeys uchun qulay va chiroyli ranglar uyg\'unligini tanlang.',
     themeLime: 'Neon Lime & Ocean (Klassik)',
-    themeViolet: 'Cyber Violet & Elektr Fuxsiya',
+    themeEditorial: 'Editorial Milk & Klod Jurnali',
     bgAnimation: 'Orqa fon to\'lqin animatsiyasi',
     bgAnimationDesc: 'Batareyani tejash yoki tinch dizayn uchun WebGL to\'lqinlarini yoqing yoki o\'chiring.',
     stateOn: 'Yoqilgan',

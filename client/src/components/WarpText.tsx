@@ -656,24 +656,17 @@ const buildTextCanvas = ({
 };
 
 const getColorTriplets = (color?: string) => {
-  const isViolet =
-    (color && (
-      color.includes('f472b6') ||
-      color.includes('c084fc') ||
-      color.includes('ec4899') ||
-      color.includes('violet') ||
-      color.includes('pink')
-    )) ||
+  const isEditorial =
     (typeof document !== 'undefined' && (
-      document.documentElement.getAttribute('data-theme') === 'violet' ||
-      document.body.getAttribute('data-theme') === 'violet'
+      document.documentElement.getAttribute('data-theme') === 'editorial' ||
+      document.body.getAttribute('data-theme') === 'editorial'
     ));
 
-  if (isViolet) {
+  if (isEditorial) {
     return {
-      light: new Float32Array([0.753, 0.518, 0.988]), // #c084fc neon violet
-      warm: new Float32Array([0.957, 0.447, 0.714]),  // #f472b6 electric rose
-      glow: new Float32Array([0.49, 0.133, 0.8])      // #7e22ce deep purple
+      light: new Float32Array([0.118, 0.141, 0.2]),   // #1E2433 ink-900
+      warm: new Float32Array([0.427, 0.157, 0.85]),   // #6D28D9 lavender-700
+      glow: new Float32Array([0.859, 0.153, 0.467])   // #DB2777 blush-600
     };
   }
 
