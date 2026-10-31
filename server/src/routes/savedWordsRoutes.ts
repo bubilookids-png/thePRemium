@@ -6,7 +6,7 @@ import { logger } from '../utils/logger.js';
 const router = express.Router();
 
 const saveWordSchema = z.object({
-  telegram_id: z.number({ required_error: 'telegram_id is required' }),
+  telegram_id: z.number({ message: 'telegram_id is required' }),
   english_word: z.string().optional(),
   word: z.string().optional(),
   translation: z.string().min(1, 'translation cannot be empty'),

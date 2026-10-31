@@ -340,6 +340,78 @@ export function SettingsView({
             </Card>
           </div>
         )}
+              '        '{/* 6. Privacy & Data Rights (GDPR) */}
+        <div className="settings-card md:col-span-2">
+          <Card
+            title={language === 'uz' ? 'Maxfiylik va Shaxsiy Ma\'lumotlar' : 'Privacy & Data Rights'}
+            subtitle={language === 'uz' ? 'GDPR va shaxsiy ma\'lumotlarni boshqarish (Eksport va O\'chirish)' : 'Manage your stored learning data and account privacy'}
+          >
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-2 p-3 rounded-2xl bg-slate-900/60 border border-slate-800">
+              <div className="flex flex-col">
+                <span className="text-xs font-bold text-slate-100">
+                  {language === 'uz' ? 'Ma\'lumotlarni yuklab olish' : 'Export / Download Data'}
+                </span>
+                <span className="text-[10px] text-slate-400 mt-0.5">
+                  {language === 'uz' ? 'Barcha saqlangan so\'zlar va o\'ldangan ma\'lumotlarni JSON formatida yuklang' : 'Download a copy of your saved vocabulary, history and preferences'}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  try {
+                    const keys = ['vacabbro_user', 'vacabbro_saved_words', 'user_search_history', 'univebooster_cookie_consent_v1'];
+                    const exportData: Record<string, any> = {};
+                    keys.forEach((k) => {
+                      const v = localStorage.getItem(k);
+                      if (v) {
+                        try { exportData[k] = JSON.parse(v); } catch { exportData[k] = v; }
+                      }
+                    });
+                    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'univebooster-data-' + Date.now() + '.json';
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  } catch (e) {
+                    alert('Export xatosi yuz berdi');
+                  }
+                }}
+                className="w-full sm:w-auto px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-mono text-xs font-semibold transition cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                💥 {language === 'uz' ? 'Ma\'lumotlarni yuklab' : 'Export JSON'}
+              </button>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-2.5 p-3 rounded-2xl bg-rose-950/20 border border-rose-500/20">
+              <div className="flex flex-col">
+                <span className="text-xs font-bold text-rose-300">
+                  {language === 'uz' ? 'Hisob va ma\'lumotlarni butunlay o\'chirish' : 'Delete Account & All Data'}
+                </span>
+                <span className="text-[10px] text-rose-200/60 mt-0.5">
+                  {language === 'uz' ? 'Barcha saqlangan so\'zlar va mahalliy sessiya qaytarib bo\'lmas tarzda tozalanadi' : 'Permanently wipe local history, vocabulary, and active session'}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  const confirmMsg = language === 'uz'
+                    ? 'Diqqat! Barcha o\'quv ma\'lumotlaringiz va hisobingiz to\'liq o\'chiriladi. Rozimisiz?'
+                    : 'Warning! All your saved words and session data will be permanently deleted. Continue?';
+                  if (window.confirm(confirmMsg)) {
+                    localStorage.clear();
+                    sessionStorage.clear();
+                    window.location.reload();
+                  }
+                }}
+                className="w-full sm:w-auto px-4 py-2 rounded-xl bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border border-rose-500/30 font-mono text-xs font-semibold transition cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                🗑 {language === 'uz' ? 'O\'chirish' : 'Delete My Data'}
+              </button>
+            </div>
+          </Card>
+        </div>
       </div>
 
       {/* FOOTER: Only visible in Settings at the very end when user scrolls down! */}

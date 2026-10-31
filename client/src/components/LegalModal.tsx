@@ -66,12 +66,11 @@ export function LegalModal({ onClose, initialTab }: LegalModalProps) {
               <h4 className="text-sm font-bold text-lime-300">2. Ma'lumotlardan foydalanish</h4>
               <p>
                 Yig'ilgan ma'lumotlar faqatgina sizning kunlik so'z qidirish limitlaringizni boshqarish, o'quv natijalaringizni saqlash va
-                platforma xizmatlarini yaxshilash uchun ishlatiladi. Ma'lumotlaringiz hech qachon uchinchi shaxslarga berilmaydi.
+                platforma xizmatlarini yaxshilash uchun ishlatiladi. Ma'lumotlaringiz hech qachon uchinchi shaxslarga sotilmaydi yoki noqonuniy berilmaydi.
               </p>
-              <h4 className="text-sm font-bold text-lime-300">3. AI va Tahlil</h4>
+              <h4 className="text-sm font-bold text-lime-300">3. AI va Model O'qitishdan Himoya (Model Training Opt-Out)</h4>
               <p>
-                So'z tahlillari uchun sun'iy intellekt modellari ishlatilishi mumkin. Ushbu modellardan olingan natijalar faqat ta'lim maqsadlari
-                uchun foydalaniladi va shaxsiy ma'lumotlar bilan biriktirilmaydi.
+                So'z tahlillari va ta'limiy mashqlar uchun zamonaviy sun'iy intellekt modellaridan foydalaniladi. Foydalanuvchilar qidirgan shaxsiy so'zlar, o'quv yozuvlari yoki profil ma'lumotlari uchinchi tomon AI modellarini (OpenAI, Google Gemini, Groq) o'qitish (train qilish) uchun ishlatilmaydi.
               </p>
               <h4 className="text-sm font-bold text-lime-300">4. Xavfsizlik va Botdan Himoya (Bot Detection)</h4>
               <p>
@@ -85,10 +84,9 @@ export function LegalModal({ onClose, initialTab }: LegalModalProps) {
                 Barcha ma'lumotlar brauzeringizning localStorage'da saqlanadi va hech qachon shaxsiy parollarni saqlamaymiz. Sizning ma'lumotlaringiz
                 faqat sizning qurilmangizda saqlanadi.
               </p>
-              <h4 className="text-sm font-bold text-lime-300">6. Ma'lumotni o'chirish</h4>
+              <h4 className="text-sm font-bold text-lime-300">6. Ma'lumotlarga kirish va ularni o'chirish (GDPR huquqlari)</h4>
               <p>
-                Siz lokal ma'lumotlaringizni brauzer sozlamalaridan yoki ilovani tozalash orqali o'chirishingiz mumkin. Ilova yangilangach
-                ham, oldin saqlangan ma'lumotlar saqlanib qoladi.
+                Foydalanuvchilar istalgan vaqtda o'z shaxsiy o'quv ma'lumotlarini yuklab olish (Download Data) hamda Sozlamalar (Settings) bo'limi orqali hisob va barcha saqlangan so'zlar tarixini to'liq qaytarib bo'lmas darajada o'chirish (Delete Account & Data) huquqiga ega.
               </p>
               <h4 className="text-sm font-bold text-lime-300">7. Aloqa</h4>
               <p>
@@ -112,25 +110,21 @@ export function LegalModal({ onClose, initialTab }: LegalModalProps) {
                 Har bir foydalanuvchi uchun belgilangan kunlik so'z qidirish limitlari mavjud. Tizimni avtomatlashtirilgan tarzda
                 hakerlik qilish yoki yuklamani sun'iy oshirish taqiqlanadi.
               </p>
-              <h4 className="text-sm font-bold text-lime-300">3. Foydalanuvchi Sorablari</h4>
+              <h4 className="text-sm font-bold text-lime-300">3. Sun'iy Intellekt Mas'uliyati (AI Disclaimer & Liability)</h4>
               <p>
-                Sizning ilovaga kirguningiz va unga xabar yuborishingiz faqat ruxsat berganingizda bo'ladi. Ilova faqat ruxsat berilgan
-                funksiyalarni bajarishi mumkin.
+                Platformadagi so'z tahlillari, CEFR darajalari, misol gaplar va tushuntirishlar sun'iy intellekt (AI) orqali shakllantiriladi. Sun'iy intellekt xato yoki noaniqliklar (hallucinations) keltirib chiqarishi ehtimoli mavjud. Berilgan materiallar faqat ko'makchi ta'lim vositasi bo'lib, UniveBooster yuzaga kelishi mumkin bo'lgan lingvistik yoki mazmuniy noaniqliklar uchun to'liq yuridik javobgarlikni o'z zimmasiga olmaydi.
               </p>
-              <h4 className="text-sm font-bold text-lime-300">4. Mao'qul Mavjudlar</h4>
+              <h4 className="text-sm font-bold text-lime-300">4. Mualliflik Huquqlari</h4>
               <p>
-                Ilovadagi barcha kontent, jumladan matn, rasm, dizayn va kod, UniveBooster ning mulkiyatidir yoki ruxsat berilgan
-                uchinchi tashkilotlar tomonidan taqdim etilgan.
+                Ilovadagi barcha dasturiy kod, interfeys dizaynlari va tuzilma UniveBooster ning mulki hisoblanadi. Ochiq manbali kutubxonalar o'zlarining tegishli litsenziyalari (MIT, Apache va h.k.) doirasida ishlatiladi.
               </p>
-              <h4 className="text-sm font-bold text-lime-300">5. Cheklovlilik va Zarrarlar</h4>
+              <h4 className="text-sm font-bold text-lime-300">5. Kafolatning Cheklanishi</h4>
               <p>
-                Ilova "havola bilan" asosida taqdim etiladi. UniveBooster ilovadan kelib chiqqan yoki ilovadan foydalanish natijasida
-                kelib chiqqan har qanday muddatli yoki ijobiy zarrarlar uchun javobgarmaslikni ta'minlaydi.
+                Ilova "boricha" (as-is) taqdim etiladi. UniveBooster platformadan foydalanish yoki undan foydalana olmaslik tufayli kelib chiqqan bilvosita yoki tasodifiy zararlar uchun qonun ruxsat bergan maksimal darajada javobgarlikdan ozod etiladi.
               </p>
               <h4 className="text-sm font-bold text-lime-300">6. Hisoblarni Bloklash va Bekor Qilish</h4>
               <p>
-                UniveBooster admini hizmatni taklif qilish, hakerlik yoki qoidabuzarlik tufayli hisobni bloklash yoki o'chirish huquqi
-                ega.
+                UniveBooster ma'muriyati xizmat barqarorligini saqlash, qasddan qilingan hujumlar yoki qoidabuzarlik holatlarida hisoblarni ogohlantirishsiz to'xtatish yoki cheklash huquqini saqlab qoladi.
               </p>
               <h4 className="text-sm font-bold text-lime-300">7. Aloqa</h4>
               <p>
@@ -138,8 +132,7 @@ export function LegalModal({ onClose, initialTab }: LegalModalProps) {
               </p>
               <h4 className="text-sm font-bold text-lime-300">8. Shartlar Yangilanishi</h4>
               <p>
-                Ushbu foydalanish shartlari vaqti bilan yangilanishi mumkin. Yangi versiya ilova ichida e'lon qilinadi va foydalanuvchilar
-                yangilardan habarдар qilinadi.
+                Ushbu foydalanish shartlari vaqti bilan yangilanishi mumkin. Yangilangan versiya saytda e'lon qilingan paytdan boshlab kuchga kiradi.
               </p>
             </>
           )}
