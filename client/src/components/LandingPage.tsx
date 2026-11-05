@@ -1,21 +1,16 @@
 // src/components/LandingPage.tsx
 import React, { useState, useRef } from 'react';
 import { useMotionEntrance, useScrollReveal } from '../utils/motion';
+import { useTheme } from '../context/ThemeContext';
 import {
   Zap,
   BookOpen,
   Brain,
   Volume2,
-  CheckCircle2,
   ArrowRight,
-  Database,
   Flame,
   Globe,
-  Award,
   Layers,
-  HelpCircle,
-  Terminal,
-  Clock,
   ShieldCheck,
   Check,
   X
@@ -94,6 +89,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   useMotionEntrance(landingRef, true, '[data-motion-enter]');
   useScrollReveal(landingRef, '[data-motion-reveal]');
 
+  const { theme } = useTheme();
+  const isEditorial = theme === 'editorial-milk';
+
   // Interactive Live Demo Word State
   const [activeWordKey, setActiveWordKey] = useState<string>('pragmatic');
   const activeWord = DEMO_WORDS[activeWordKey];
@@ -113,33 +111,69 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   };
 
   return (
-    <div ref={landingRef} className="relative w-full flex flex-col items-center overflow-hidden font-mono select-none text-slate-200">
-
+    <div
+      ref={landingRef}
+      className={`relative w-full flex flex-col items-center overflow-hidden font-mono select-none transition-colors duration-200 ${
+        isEditorial ? 'text-[#1E2433]' : 'text-slate-200'
+      }`}
+    >
       {/* BACKGROUND AURA */}
-      <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[600px] h-[350px] bg-gradient-to-tr from-lime-500/25 via-emerald-500/15 to-cyan-500/10 blur-[130px] pointer-events-none rounded-full" />
-      <div className="absolute top-[1200px] right-1/4 w-[450px] h-[350px] bg-gradient-to-bl from-cyan-500/15 to-transparent blur-[140px] pointer-events-none rounded-full" />
+      <div
+        className={`absolute top-12 left-1/2 -translate-x-1/2 w-[650px] h-[350px] blur-[120px] pointer-events-none rounded-full ${
+          isEditorial
+            ? 'bg-gradient-to-tr from-purple-200/50 via-pink-100/40 to-blue-100/30'
+            : 'bg-gradient-to-tr from-lime-500/25 via-emerald-500/15 to-cyan-500/10'
+        }`}
+      />
 
       {/* 1. HERO SECTION */}
-      <section className="relative w-full min-h-[72vh] flex flex-col items-center justify-center px-4 pt-12 pb-14 text-center">
-
+      <section className="relative w-full min-h-[70vh] flex flex-col items-center justify-center px-4 pt-10 pb-12 text-center">
         {/* Live System Badge */}
-        <div data-motion-enter className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-lime-400/30 bg-slate-950/70 backdrop-blur-xl mb-7 shadow-[0_0_20px_rgba(132,204,22,0.12)]">
-          <span className="w-2 h-2 rounded-full bg-lime-400 animate-pulse" />
-          <span className="text-xs font-mono font-medium tracking-wide text-lime-300">
+        <div
+          data-motion-enter
+          className={`inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full mb-7 ${
+            isEditorial
+              ? 'border-2 border-[#1E2433] bg-white text-[#1E2433] shadow-[3px_3px_0px_#1E2433]'
+              : 'border border-lime-400/30 bg-slate-950/70 text-lime-300 backdrop-blur-xl shadow-[0_0_20px_rgba(132,204,22,0.12)]'
+          }`}
+        >
+          <span
+            className={`w-2.5 h-2.5 rounded-full ${
+              isEditorial ? 'bg-[#6D28D9] animate-pulse' : 'bg-lime-400 animate-pulse'
+            }`}
+          />
+          <span className="text-xs font-mono font-bold tracking-wide">
             Engineered for IELTS Academic & CEFR Mastery (A1 to C2)
           </span>
         </div>
 
         {/* Main Heading — EXACT PRESERVED REQUIREMENT */}
-        <h1 data-motion-enter className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight leading-[1.08] max-w-4xl mx-auto mb-6">
-          <span className="text-slate-100">AI-Powered English.</span><br />
-          <span className="bg-gradient-to-b from-lime-300 via-lime-400 to-cyan-400 bg-clip-text text-transparent">
+        <h1
+          data-motion-enter
+          className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight leading-[1.08] max-w-4xl mx-auto mb-6"
+        >
+          <span className={isEditorial ? 'text-[#1E2433] font-serif font-black' : 'text-slate-100'}>
+            AI-Powered English.
+          </span>
+          <br />
+          <span
+            className={
+              isEditorial
+                ? 'bg-gradient-to-r from-[#6D28D9] via-[#9333EA] to-[#DB2777] bg-clip-text text-transparent font-serif font-black'
+                : 'bg-gradient-to-b from-lime-300 via-lime-400 to-cyan-400 bg-clip-text text-transparent'
+            }
+          >
             All-in-One Trainer.
           </span>
         </h1>
 
         {/* Precise, Unslopped Subtitle */}
-        <p data-motion-enter className="text-xs sm:text-sm text-slate-300 max-w-2xl mx-auto mb-8 leading-relaxed">
+        <p
+          data-motion-enter
+          className={`text-xs sm:text-sm max-w-2xl mx-auto mb-8 leading-relaxed font-sans font-medium ${
+            isEditorial ? 'text-[#334155]' : 'text-slate-300'
+          }`}
+        >
           Look up any word with zero delay. Get IPA phonetics, CEFR banding, Uzbek & Russian translations, academic collocations, and common pitfalls — locked into permanent memory with automated spaced repetition.
         </p>
 
@@ -148,7 +182,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <button
             type="button"
             onClick={onStart}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-gradient-to-r from-lime-400 via-lime-300 to-cyan-400 text-slate-950 font-bold text-sm hover:shadow-[0_0_35px_rgba(132,204,22,0.5)] active:scale-[0.98] transition-all cursor-pointer group"
+            className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl font-bold text-sm transition-all cursor-pointer group ${
+              isEditorial
+                ? 'bg-[#1E2433] text-white hover:bg-[#6D28D9] border-2 border-[#1E2433] shadow-[4px_4px_0px_#1E2433] active:translate-x-0.5 active:translate-y-0.5'
+                : 'bg-gradient-to-r from-lime-400 via-lime-300 to-cyan-400 text-slate-950 hover:shadow-[0_0_35px_rgba(132,204,22,0.5)] active:scale-[0.98]'
+            }`}
           >
             <span>Open Vocabulary Trainer</span>
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -159,9 +197,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               type="button"
               onClick={onLogin}
               disabled={waitingAuth}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-xl bg-slate-900/80 backdrop-blur-md border border-lime-400/40 text-lime-300 font-medium text-sm hover:bg-slate-800/80 hover:border-lime-300/70 transition-all active:scale-[0.98] cursor-pointer"
+              className={`w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-xl font-bold text-sm transition-all active:scale-[0.98] cursor-pointer ${
+                isEditorial
+                  ? 'bg-white text-[#1E2433] hover:bg-slate-50 border-2 border-[#1E2433] shadow-[3px_3px_0px_#1E2433]'
+                  : 'bg-slate-900/80 backdrop-blur-md border border-lime-400/40 text-lime-300 hover:bg-slate-800/80'
+              }`}
             >
-              <svg className="w-4 h-4 fill-current text-lime-300" viewBox="0 0 24 24">
+              <svg className={`w-4 h-4 fill-current ${isEditorial ? 'text-[#1E2433]' : 'text-lime-300'}`} viewBox="0 0 24 24">
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.75-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z" />
               </svg>
               <span>{waitingAuth ? 'Connecting...' : 'Sync via Telegram'}</span>
@@ -169,39 +211,56 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           )}
         </div>
 
-        {/* Architecture Proof Metrics (No vague fluff) */}
-        <div data-motion-enter className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-3xl w-full mx-auto">
+        {/* Architecture Proof Metrics */}
+        <div data-motion-enter className="grid grid-cols-2 md:grid-cols-4 gap-3.5 max-w-3xl w-full mx-auto">
           {[
             { label: 'Reading Passages', val: '180 articles', sub: 'CEFR A2 through C2' },
             { label: 'Lookup Latency', val: '< 180 ms', sub: 'Local SQLite cache' },
             { label: 'Memory Protocol', val: 'SuperMemo SM-2', sub: 'Dynamic intervals' },
             { label: 'Access Model', val: '100% Free', sub: 'Zero credit card required' }
           ].map((m, i) => (
-            <div key={i} className="p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800 backdrop-blur-md text-left flex flex-col justify-between">
-              <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">{m.label}</span>
-              <span className="text-lg font-bold text-lime-400 font-mono mt-1">{m.val}</span>
-              <span className="text-[10px] text-slate-400 mt-0.5">{m.sub}</span>
+            <div
+              key={i}
+              className={`p-3.5 rounded-2xl text-left flex flex-col justify-between transition-all ${
+                isEditorial
+                  ? 'bg-white border-2 border-[#1E2433] shadow-[4px_4px_0px_#1E2433]'
+                  : 'bg-slate-900/80 border border-slate-800 backdrop-blur-md'
+              }`}
+            >
+              <span className={`text-[10px] uppercase tracking-wider font-extrabold ${isEditorial ? 'text-[#1E2433]' : 'text-slate-400'}`}>
+                {m.label}
+              </span>
+              <span className={`text-lg font-black font-mono mt-1 ${isEditorial ? 'text-[#6D28D9]' : 'text-lime-400'}`}>
+                {m.val}
+              </span>
+              <span className={`text-[11px] font-medium mt-0.5 ${isEditorial ? 'text-[#475569]' : 'text-slate-400'}`}>
+                {m.sub}
+              </span>
             </div>
           ))}
         </div>
       </section>
 
-      {/* 2. LIVE INTERACTIVE DEMO (SEE IT IN ACTION) */}
-      <section className="w-full max-w-5xl mx-auto px-4 pb-24">
+      {/* 2. LIVE INTERACTIVE DEMO */}
+      <section className="w-full max-w-5xl mx-auto px-4 pb-20">
         <div className="text-center mb-8">
-          <span className="text-xs font-mono font-bold text-lime-400 tracking-wider uppercase">
+          <span
+            className={`text-xs font-mono font-bold tracking-wider uppercase ${
+              isEditorial ? 'text-[#6D28D9]' : 'text-lime-400'
+            }`}
+          >
             Live Interactive Preview
           </span>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-100 mt-1">
+          <h2 className="text-2xl sm:text-3xl font-extrabold mt-1">
             See the linguistic breakdown in real-time.
           </h2>
-          <p className="text-xs text-slate-400 mt-2 max-w-lg mx-auto">
+          <p className={`text-xs mt-2 max-w-lg mx-auto font-sans font-medium ${isEditorial ? 'text-[#475569]' : 'text-slate-400'}`}>
             Click any sample word below to inspect how UniveBooster structures grammatical, phonetic, and contextual knowledge.
           </p>
         </div>
 
         {/* Word Switcher Tabs */}
-        <div className="flex items-center justify-center gap-2 mb-6">
+        <div className="flex items-center justify-center gap-2.5 mb-6">
           {Object.keys(DEMO_WORDS).map((key) => {
             const item = DEMO_WORDS[key];
             const isActive = activeWordKey === key;
@@ -210,17 +269,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 key={key}
                 type="button"
                 onClick={() => setActiveWordKey(key)}
-                className={`px-4 py-2 rounded-xl text-xs font-mono transition-all border cursor-pointer flex items-center gap-2 ${
+                className={`px-4 py-2 rounded-xl text-xs font-mono transition-all border-2 cursor-pointer flex items-center gap-2 ${
                   isActive
-                    ? 'bg-lime-400/15 border-lime-400 text-lime-300 shadow-[0_0_20px_rgba(132,204,22,0.25)] font-bold'
-                    : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
+                    ? isEditorial
+                      ? 'bg-[#1E2433] border-[#1E2433] text-white shadow-[4px_4px_0px_#6D28D9] font-bold'
+                      : 'bg-lime-400/20 border-lime-400 text-lime-300 shadow-[0_0_20px_rgba(132,204,22,0.3)] font-bold'
+                    : isEditorial
+                    ? 'bg-white border-[#1E2433] text-[#1E2433] shadow-[2px_2px_0px_#1E2433] hover:bg-slate-50'
+                    : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200'
                 }`}
               >
                 <span>{item.word}</span>
-                <span className={`px-1.5 py-0.5 rounded text-[10px] ${
-                  item.level === 'C2' ? 'bg-purple-500/20 text-purple-300' :
-                  item.level === 'C1' ? 'bg-cyan-500/20 text-cyan-300' : 'bg-emerald-500/20 text-emerald-300'
-                }`}>
+                <span
+                  className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                    item.level === 'C2'
+                      ? 'bg-purple-500/20 text-purple-700 border border-purple-400'
+                      : item.level === 'C1'
+                      ? 'bg-blue-500/20 text-blue-700 border border-blue-400'
+                      : 'bg-emerald-500/20 text-emerald-700 border border-emerald-400'
+                  }`}
+                >
                   {item.level}
                 </span>
               </button>
@@ -229,56 +297,86 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </div>
 
         {/* Interactive Analyzer Card */}
-        <div data-motion-reveal className="relative rounded-3xl bg-slate-900/80 border border-lime-400/30 p-6 sm:p-8 backdrop-blur-xl shadow-[0_0_50px_rgba(0,0,0,0.6)]">
+        <div
+          data-motion-reveal
+          className={`relative rounded-3xl p-6 sm:p-8 transition-all ${
+            isEditorial
+              ? 'bg-white border-2 border-[#1E2433] shadow-[8px_8px_0px_#1E2433] text-[#1E2433]'
+              : 'bg-slate-900/90 border border-lime-400/30 backdrop-blur-xl shadow-[0_0_40px_rgba(0,0,0,0.5)]'
+          }`}
+        >
           {/* Card Header */}
-          <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-slate-800">
+          <div className={`flex flex-wrap items-center justify-between gap-4 pb-6 border-b ${isEditorial ? 'border-[#E2E8F0]' : 'border-slate-800'}`}>
             <div className="flex items-center gap-3">
-              <h3 className="text-2xl sm:text-3xl font-black text-slate-100 font-mono tracking-tight">
+              <h3 className={`text-2xl sm:text-3xl font-black font-mono tracking-tight ${isEditorial ? 'text-[#1E2433]' : 'text-slate-100'}`}>
                 {activeWord.word}
               </h3>
               <button
                 type="button"
                 onClick={() => playPronunciation(activeWord.word)}
                 title="Listen to native pronunciation"
-                className="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-lime-400 hover:bg-slate-700 hover:border-lime-400/50 transition cursor-pointer"
+                className={`w-8 h-8 rounded-lg flex items-center justify-center transition cursor-pointer ${
+                  isEditorial
+                    ? 'bg-purple-100 border-2 border-[#1E2433] text-[#6D28D9] hover:bg-purple-200'
+                    : 'bg-slate-800 border border-slate-700 text-lime-400 hover:bg-slate-700'
+                }`}
               >
                 <Volume2 className="w-4 h-4" />
               </button>
-              <span className="text-xs text-slate-400 font-mono">{activeWord.ipa}</span>
+              <span className={`text-xs font-mono font-bold ${isEditorial ? 'text-[#475569]' : 'text-slate-400'}`}>
+                {activeWord.ipa}
+              </span>
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="px-2.5 py-1 rounded-md text-[11px] font-bold uppercase bg-slate-800 border border-slate-700 text-slate-300">
+              <span className={`px-2.5 py-1 rounded-md text-[11px] font-extrabold uppercase ${
+                isEditorial ? 'bg-slate-100 border border-[#1E2433] text-[#1E2433]' : 'bg-slate-800 border border-slate-700 text-slate-300'
+              }`}>
                 {activeWord.pos}
               </span>
-              <span className={`px-2.5 py-1 rounded-md text-[11px] font-extrabold uppercase ${
-                activeWord.level === 'C2' ? 'bg-purple-500/20 border border-purple-500/40 text-purple-300' :
-                activeWord.level === 'C1' ? 'bg-cyan-500/20 border border-cyan-500/40 text-cyan-300' : 'bg-lime-500/20 border border-lime-500/40 text-lime-300'
+              <span className={`px-2.5 py-1 rounded-md text-[11px] font-extrabold uppercase border ${
+                activeWord.level === 'C2'
+                  ? 'bg-purple-100 border-purple-500 text-purple-900'
+                  : activeWord.level === 'C1'
+                  ? 'bg-blue-100 border-blue-500 text-blue-900'
+                  : 'bg-emerald-100 border-emerald-500 text-emerald-900'
               }`}>
                 CEFR {activeWord.level}
               </span>
-              <span className="hidden sm:inline-block px-2.5 py-1 rounded-md text-[11px] bg-slate-800/80 border border-slate-700 text-slate-400 font-mono">
+              <span className={`hidden sm:inline-block px-2.5 py-1 rounded-md text-[11px] font-mono font-medium ${
+                isEditorial ? 'bg-slate-100 border border-slate-300 text-[#475569]' : 'bg-slate-800 border border-slate-700 text-slate-400'
+              }`}>
                 {activeWord.interval}
               </span>
             </div>
           </div>
 
           {/* Meaning & Translations */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 pb-6 border-b border-slate-800">
+          <div className={`grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 pb-6 border-b ${isEditorial ? 'border-[#E2E8F0]' : 'border-slate-800'}`}>
             <div className="md:col-span-2">
-              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">English Definition</span>
-              <p className="text-sm text-slate-200 mt-1.5 leading-relaxed font-sans font-medium">
+              <span className={`text-[10px] uppercase font-bold tracking-wider ${isEditorial ? 'text-[#1E2433]' : 'text-slate-400'}`}>
+                English Definition
+              </span>
+              <p className={`text-sm mt-1.5 leading-relaxed font-sans font-medium ${isEditorial ? 'text-[#1E2433]' : 'text-slate-200'}`}>
                 {activeWord.en}
               </p>
             </div>
             <div className="flex flex-col gap-3">
               <div>
-                <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">O‘zbekcha tarjima</span>
-                <p className="text-xs text-lime-300 font-semibold mt-1">{activeWord.uz}</p>
+                <span className={`text-[10px] uppercase font-bold tracking-wider ${isEditorial ? 'text-[#1E2433]' : 'text-slate-400'}`}>
+                  O‘zbekcha tarjima
+                </span>
+                <p className={`text-xs font-bold mt-1 ${isEditorial ? 'text-[#6D28D9]' : 'text-lime-300'}`}>
+                  {activeWord.uz}
+                </p>
               </div>
               <div>
-                <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Русский перевод</span>
-                <p className="text-xs text-cyan-300 font-semibold mt-1">{activeWord.ru}</p>
+                <span className={`text-[10px] uppercase font-bold tracking-wider ${isEditorial ? 'text-[#1E2433]' : 'text-slate-400'}`}>
+                  Русский перевод
+                </span>
+                <p className={`text-xs font-bold mt-1 ${isEditorial ? 'text-[#0284C7]' : 'text-cyan-300'}`}>
+                  {activeWord.ru}
+                </p>
               </div>
             </div>
           </div>
@@ -286,42 +384,51 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           {/* Collocations & Common Pitfalls */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
             <div>
-              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider flex items-center gap-1.5">
-                <Layers className="w-3.5 h-3.5 text-lime-400" />
+              <span className={`text-[10px] uppercase font-bold tracking-wider flex items-center gap-1.5 ${isEditorial ? 'text-[#1E2433]' : 'text-slate-400'}`}>
+                <Layers className={`w-3.5 h-3.5 ${isEditorial ? 'text-[#6D28D9]' : 'text-lime-400'}`} />
                 Academic Collocations
               </span>
               <div className="flex flex-wrap gap-2 mt-2.5">
                 {activeWord.collocations.map((c, i) => (
-                  <span key={i} className="px-3 py-1 rounded-lg text-xs bg-slate-800/90 border border-slate-700/80 text-slate-200 font-mono">
+                  <span
+                    key={i}
+                    className={`px-3 py-1 rounded-lg text-xs font-mono font-bold border ${
+                      isEditorial ? 'bg-slate-100 border-[#1E2433] text-[#1E2433]' : 'bg-slate-800 border-slate-700 text-slate-200'
+                    }`}
+                  >
                     {c}
                   </span>
                 ))}
               </div>
-              <p className="text-[11px] text-slate-400 mt-3 leading-relaxed">
-                💡 <span className="font-semibold text-slate-300">IELTS Strategy:</span> {activeWord.ieltsTip}
+              <p className={`text-[11px] mt-3 leading-relaxed font-sans ${isEditorial ? 'text-[#475569]' : 'text-slate-400'}`}>
+                💡 <span className={`font-bold ${isEditorial ? 'text-[#1E2433]' : 'text-slate-200'}`}>IELTS Strategy:</span> {activeWord.ieltsTip}
               </p>
             </div>
 
-            <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/25">
-              <span className="text-[10px] uppercase font-bold text-amber-300 tracking-wider flex items-center gap-1.5">
-                <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
+            <div className={`p-4 rounded-2xl border-2 ${
+              isEditorial ? 'bg-amber-50 border-amber-500/60 text-amber-950' : 'bg-amber-500/10 border-amber-500/25 text-amber-200'
+            }`}>
+              <span className="text-[10px] uppercase font-bold tracking-wider flex items-center gap-1.5">
+                <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
                 Common Candidate Pitfall
               </span>
-              <p className="text-xs text-amber-200/90 mt-2 leading-relaxed">
+              <p className="text-xs mt-2 leading-relaxed font-medium">
                 {activeWord.mistake}
               </p>
             </div>
           </div>
 
           {/* Action Trigger */}
-          <div className="mt-8 pt-5 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <span className="text-xs text-slate-400 font-mono">
+          <div className={`mt-8 pt-5 border-t flex flex-col sm:flex-row items-center justify-between gap-4 ${isEditorial ? 'border-[#E2E8F0]' : 'border-slate-800'}`}>
+            <span className={`text-xs font-mono font-medium ${isEditorial ? 'text-[#475569]' : 'text-slate-400'}`}>
               ⚡ Analyzed in 84ms via local lexicon + context verification
             </span>
             <button
               type="button"
               onClick={onStart}
-              className="inline-flex items-center gap-2 text-xs font-bold text-lime-300 hover:text-lime-200 transition cursor-pointer"
+              className={`inline-flex items-center gap-2 text-xs font-bold transition cursor-pointer ${
+                isEditorial ? 'text-[#6D28D9] hover:underline' : 'text-lime-300 hover:text-lime-200'
+              }`}
             >
               <span>Test with your own word</span>
               <span>→</span>
@@ -330,134 +437,146 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </div>
       </section>
 
-      {/* 3. FOUR CORE PILLARS (THE MEMORY LOOP) */}
-      <section className="w-full max-w-5xl mx-auto px-4 pb-24">
+      {/* 3. FOUR CORE PILLARS */}
+      <section className="w-full max-w-5xl mx-auto px-4 pb-20">
         <div className="text-center mb-12">
-          <span className="text-xs font-mono font-bold text-lime-400 tracking-wider uppercase">
+          <span className={`text-xs font-mono font-bold tracking-wider uppercase ${isEditorial ? 'text-[#6D28D9]' : 'text-lime-400'}`}>
             The Learning Pipeline
           </span>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-100 mt-1">
+          <h2 className="text-2xl sm:text-3xl font-extrabold mt-1">
             Engineered around how human memory retains syntax.
           </h2>
-          <p className="text-xs text-slate-400 mt-2 max-w-lg mx-auto">
+          <p className={`text-xs mt-2 max-w-lg mx-auto font-sans font-medium ${isEditorial ? 'text-[#475569]' : 'text-slate-400'}`}>
             Traditional rote-memorization fails because words are detached from context. UniveBooster closes the retention loop in four steps.
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-          {/* Pillar 01 */}
-          <div data-motion-reveal className="motion-surface p-7 rounded-3xl bg-slate-900/60 border border-slate-800 hover:border-lime-400/40 transition-all flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-10 h-10 rounded-xl bg-lime-400/10 border border-lime-400/25 flex items-center justify-center text-lime-400 font-bold text-sm">
-                  01
+          {[
+            {
+              step: '01',
+              tag: 'Sub-Second Parsing',
+              title: 'Instant Linguistic Dissection',
+              desc: 'Paste any single word or full sentence. Receive immediate CEFR grading, grammatical role, phonetic transcription, and common false friends.',
+              meta: 'Output: IPA • CEFR Level • Uzbek/Russian • Collocations'
+            },
+            {
+              step: '02',
+              tag: 'Context Immersion',
+              title: '180 Graded Retention Articles',
+              desc: 'Read authentic passages written across IELTS domains: astrophysics, behavioural economics, environmental law, and history. Tap any unfamiliar term mid-sentence.',
+              meta: 'A2 to C2 Library • Zero dictionary app switching'
+            },
+            {
+              step: '03',
+              tag: 'Spaced Intervals',
+              title: 'SuperMemo SM-2 Active Recall',
+              desc: 'Quizzes trigger exactly when synaptic retrieval strength begins to dip (1, 3, 7, and 21 days), strengthening neural pathways with up to 4x less study time.',
+              meta: 'Active Recall • Forgetting Curve Interception'
+            },
+            {
+              step: '04',
+              tag: 'Timed Stress Test',
+              title: 'Word Blitz 60-Second Sprint',
+              desc: 'Simulate real exam pressure. Test rapid-fire recognition of high-frequency academic vocabulary in 60-second timed sprints so you never hesitate during IELTS Speaking or Writing.',
+              meta: 'Streak Multipliers • Exam Condition Speed Drill'
+            }
+          ].map((pillar, i) => (
+            <div
+              key={i}
+              data-motion-reveal
+              className={`p-7 rounded-3xl transition-all flex flex-col justify-between ${
+                isEditorial
+                  ? 'bg-white border-2 border-[#1E2433] shadow-[5px_5px_0px_#1E2433]'
+                  : 'bg-slate-900/80 border border-slate-800'
+              }`}
+            >
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <div
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm ${
+                      isEditorial
+                        ? 'bg-purple-100 border-2 border-[#1E2433] text-[#1E2433]'
+                        : 'bg-lime-400/10 border border-lime-400/25 text-lime-400'
+                    }`}
+                  >
+                    {pillar.step}
+                  </div>
+                  <span className={`text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded ${
+                    isEditorial ? 'bg-slate-100 text-[#1E2433] border border-slate-300 font-bold' : 'border border-slate-800 text-slate-400'
+                  }`}>
+                    {pillar.tag}
+                  </span>
                 </div>
-                <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 border border-slate-800 px-2 py-0.5 rounded">Sub-Second Parsing</span>
+                <h3 className={`text-base font-bold mb-2 ${isEditorial ? 'text-[#1E2433]' : 'text-slate-100'}`}>
+                  {pillar.title}
+                </h3>
+                <p className={`text-xs leading-relaxed font-sans font-medium ${isEditorial ? 'text-[#334155]' : 'text-slate-300'}`}>
+                  {pillar.desc}
+                </p>
               </div>
-              <h3 className="text-base font-bold text-slate-100 mb-2">Instant Linguistic Dissection</h3>
-              <p className="text-xs text-slate-300 leading-relaxed font-sans">
-                Paste any single word or full sentence. Receive immediate CEFR grading, grammatical role, phonetic transcription, and common false friends. Never memorize without knowing exact register and context.
-              </p>
-            </div>
-            <div className="mt-5 pt-4 border-t border-slate-800/80 text-[11px] text-lime-400/90 font-mono">
-              Output: IPA • CEFR Level • Uzbek/Russian • Collocations
-            </div>
-          </div>
-
-          {/* Pillar 02 */}
-          <div data-motion-reveal className="motion-surface p-7 rounded-3xl bg-slate-900/60 border border-slate-800 hover:border-lime-400/40 transition-all flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-10 h-10 rounded-xl bg-cyan-400/10 border border-cyan-400/25 flex items-center justify-center text-cyan-400 font-bold text-sm">
-                  02
-                </div>
-                <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 border border-slate-800 px-2 py-0.5 rounded">Context Immersion</span>
+              <div className={`mt-5 pt-4 border-t text-[11px] font-mono font-bold ${
+                isEditorial ? 'border-[#E2E8F0] text-[#6D28D9]' : 'border-slate-800 text-lime-400'
+              }`}>
+                {pillar.meta}
               </div>
-              <h3 className="text-base font-bold text-slate-100 mb-2">180 Graded Retention Articles</h3>
-              <p className="text-xs text-slate-300 leading-relaxed font-sans">
-                Read authentic passages written across IELTS domains: astrophysics, behavioural economics, environmental law, and history. Tap any unfamiliar term mid-sentence to reveal full dictionary breakdown without losing focus.
-              </p>
             </div>
-            <div className="mt-5 pt-4 border-t border-slate-800/80 text-[11px] text-cyan-400/90 font-mono">
-              A2 to C2 Library • Zero dictionary app switching
-            </div>
-          </div>
-
-          {/* Pillar 03 */}
-          <div data-motion-reveal className="motion-surface p-7 rounded-3xl bg-slate-900/60 border border-slate-800 hover:border-lime-400/40 transition-all flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-10 h-10 rounded-xl bg-purple-400/10 border border-purple-400/25 flex items-center justify-center text-purple-400 font-bold text-sm">
-                  03
-                </div>
-                <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 border border-slate-800 px-2 py-0.5 rounded">Spaced Intervals</span>
-              </div>
-              <h3 className="text-base font-bold text-slate-100 mb-2">SuperMemo SM-2 Active Recall</h3>
-              <p className="text-xs text-slate-300 leading-relaxed font-sans">
-                Quizzes trigger exactly when synaptic retrieval strength begins to dip. By timing reviews at 1, 3, 7, and 21 days, neural pathways strengthen with up to 4x less total study time than daily repetitive grinding.
-              </p>
-            </div>
-            <div className="mt-5 pt-4 border-t border-slate-800/80 text-[11px] text-purple-400/90 font-mono">
-              Active Recall • Forgetting Curve Interception
-            </div>
-          </div>
-
-          {/* Pillar 04 */}
-          <div data-motion-reveal className="motion-surface p-7 rounded-3xl bg-slate-900/60 border border-slate-800 hover:border-lime-400/40 transition-all flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-10 h-10 rounded-xl bg-amber-400/10 border border-amber-400/25 flex items-center justify-center text-amber-400 font-bold text-sm">
-                  04
-                </div>
-                <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 border border-slate-800 px-2 py-0.5 rounded">Timed Stress Test</span>
-              </div>
-              <h3 className="text-base font-bold text-slate-100 mb-2">Word Blitz 60-Second Sprint</h3>
-              <p className="text-xs text-slate-300 leading-relaxed font-sans">
-                Simulate real exam pressure. Test rapid-fire recognition of high-frequency academic vocabulary in 60-second timed sprints. Build instant recall so you never hesitate during IELTS Speaking or Writing.
-              </p>
-            </div>
-            <div className="mt-5 pt-4 border-t border-slate-800/80 text-[11px] text-amber-400/90 font-mono">
-              Streak Multipliers • Exam Condition Speed Drill
-            </div>
-          </div>
-
+          ))}
         </div>
       </section>
 
-      {/* 4. INTERACTIVE MINI QUIZ WIDGET (TRY IT NOW) */}
-      <section className="w-full max-w-4xl mx-auto px-4 pb-24">
-        <div className="p-7 sm:p-9 rounded-3xl bg-slate-900/70 border border-lime-400/30 backdrop-blur-xl relative overflow-hidden">
+      {/* 4. INTERACTIVE MINI QUIZ WIDGET */}
+      <section className="w-full max-w-4xl mx-auto px-4 pb-20">
+        <div
+          className={`p-7 sm:p-9 rounded-3xl relative overflow-hidden transition-all ${
+            isEditorial
+              ? 'bg-white border-2 border-[#1E2433] shadow-[8px_8px_0px_#1E2433] text-[#1E2433]'
+              : 'bg-slate-900/90 border border-lime-400/30 backdrop-blur-xl'
+          }`}
+        >
           <div className="flex items-center justify-between gap-4 mb-4">
-            <span className="text-xs font-mono font-bold text-lime-400 tracking-wider uppercase flex items-center gap-1.5">
-              <Brain className="w-4 h-4 text-lime-400" />
+            <span className={`text-xs font-mono font-bold tracking-wider uppercase flex items-center gap-1.5 ${
+              isEditorial ? 'text-[#6D28D9]' : 'text-lime-400'
+            }`}>
+              <Brain className="w-4 h-4" />
               Interactive Active Recall Test
             </span>
-            <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-800 border border-slate-700 text-slate-300">
+            <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold ${
+              isEditorial ? 'bg-purple-100 border border-purple-300 text-purple-900' : 'bg-slate-800 border border-slate-700 text-slate-300'
+            }`}>
               C1 Academic Test
             </span>
           </div>
 
-          <h3 className="text-base sm:text-lg font-bold text-slate-100 mb-2">
+          <h3 className={`text-base sm:text-lg font-bold mb-2 ${isEditorial ? 'text-[#1E2433]' : 'text-slate-100'}`}>
             Select the word that accurately completes the IELTS Task 2 sentence:
           </h3>
-          <p className="text-xs sm:text-sm text-slate-300 italic mb-6 bg-slate-950/60 p-4 rounded-xl border border-slate-800/80 leading-relaxed">
-            &ldquo;Rather than pursuing ideological dogmas, municipal councils must adopt a <span className="text-lime-300 font-bold underline underline-offset-4">_______</span> strategy that allocates municipal funds directly to infrastructure maintenance.&rdquo;
+          <p className={`text-xs sm:text-sm italic mb-6 p-4 rounded-xl border leading-relaxed ${
+            isEditorial ? 'bg-[#F8FAFC] border-[#CBD5E1] text-[#1E2433]' : 'bg-slate-950/60 border-slate-800 text-slate-300'
+          }`}>
+            &ldquo;Rather than pursuing ideological dogmas, municipal councils must adopt a <span className={`font-bold underline underline-offset-4 ${isEditorial ? 'text-[#6D28D9]' : 'text-lime-300'}`}>_______</span> strategy that allocates municipal funds directly to infrastructure maintenance.&rdquo;
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
             {[
-              { id: 0, word: 'superficial', correct: false, note: 'Incorrect: Means shallow or on the surface only.' },
-              { id: 1, word: 'pragmatic', correct: true, note: 'Correct! C1 Adjective: Practical, solution-oriented rather than theoretical.' },
-              { id: 2, word: 'redundant', correct: false, note: 'Incorrect: Means no longer needed or exceeding what is necessary.' },
-              { id: 3, word: 'ambiguous', correct: false, note: 'Incorrect: Means open to more than one interpretation; unclear.' }
+              { id: 0, word: 'superficial', correct: false },
+              { id: 1, word: 'pragmatic', correct: true },
+              { id: 2, word: 'redundant', correct: false },
+              { id: 3, word: 'ambiguous', correct: false }
             ].map((opt) => {
               const isSelected = selectedQuiz === opt.id;
-              let stateStyles = 'bg-slate-950/70 border-slate-800 hover:border-slate-700 text-slate-200';
+              let btnClass = isEditorial
+                ? 'bg-white border-2 border-[#1E2433] text-[#1E2433] shadow-[3px_3px_0px_#1E2433] hover:bg-slate-50'
+                : 'bg-slate-950/70 border-slate-800 text-slate-200 hover:border-slate-700';
+
               if (isSelected) {
-                stateStyles = opt.correct
-                  ? 'bg-emerald-500/15 border-emerald-400 text-emerald-300 shadow-[0_0_15px_rgba(52,211,153,0.3)]'
-                  : 'bg-rose-500/15 border-rose-400 text-rose-300 shadow-[0_0_15px_rgba(244,63,94,0.3)]';
+                btnClass = opt.correct
+                  ? isEditorial
+                    ? 'bg-emerald-100 border-2 border-emerald-700 text-emerald-950 font-bold shadow-[4px_4px_0px_#047857]'
+                    : 'bg-emerald-500/20 border-emerald-400 text-emerald-300'
+                  : isEditorial
+                  ? 'bg-rose-100 border-2 border-rose-700 text-rose-950 font-bold shadow-[4px_4px_0px_#be123c]'
+                  : 'bg-rose-500/20 border-rose-400 text-rose-300';
               }
 
               return (
@@ -465,17 +584,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   key={opt.id}
                   type="button"
                   onClick={() => setSelectedQuiz(opt.id)}
-                  className={`p-3.5 rounded-xl border text-left font-mono text-xs transition-all flex items-center justify-between cursor-pointer ${stateStyles}`}
+                  className={`p-3.5 rounded-xl border text-left font-mono text-xs transition-all flex items-center justify-between cursor-pointer ${btnClass}`}
                 >
                   <div className="flex items-center gap-2.5">
-                    <span className="w-5 h-5 rounded-md bg-slate-900 border border-slate-700 flex items-center justify-center text-[10px] font-bold text-slate-400">
+                    <span className={`w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-bold border ${
+                      isEditorial ? 'bg-slate-100 border-[#1E2433] text-[#1E2433]' : 'bg-slate-900 border-slate-700 text-slate-400'
+                    }`}>
                       {String.fromCharCode(65 + opt.id)}
                     </span>
                     <span className="font-semibold">{opt.word}</span>
                   </div>
                   {isSelected && (
                     <span>
-                      {opt.correct ? <Check className="w-4 h-4 text-emerald-400" /> : <X className="w-4 h-4 text-rose-400" />}
+                      {opt.correct ? <Check className="w-4 h-4 text-emerald-600" /> : <X className="w-4 h-4 text-rose-600" />}
                     </span>
                   )}
                 </button>
@@ -484,13 +605,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
 
           {selectedQuiz !== null && (
-            <div className="p-3.5 rounded-xl bg-slate-950/90 border border-slate-800 text-xs animate-in fade-in duration-200">
+            <div className={`p-3.5 rounded-xl border text-xs font-medium animate-in fade-in duration-200 ${
+              selectedQuiz === 1
+                ? isEditorial ? 'bg-emerald-50 border-emerald-500 text-emerald-950' : 'bg-emerald-950/60 border-emerald-500 text-emerald-300'
+                : isEditorial ? 'bg-rose-50 border-rose-500 text-rose-950' : 'bg-rose-950/60 border-rose-500 text-rose-300'
+            }`}>
               {selectedQuiz === 1 ? (
-                <span className="text-emerald-400 font-medium">
+                <span>
                   ✅ Spot on! &ldquo;Pragmatic&rdquo; fits academic and governance contexts where decisions are based on practical utility.
                 </span>
               ) : (
-                <span className="text-rose-400 font-medium">
+                <span>
                   ❌ Incorrect choice. The sentence requires a word conveying practical feasibility under real-world constraints (&ldquo;pragmatic&rdquo;).
                 </span>
               )}
@@ -498,13 +623,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           )}
 
           <div className="mt-5 flex items-center justify-between">
-            <span className="text-[11px] text-slate-400 font-mono">
+            <span className={`text-[11px] font-mono font-medium ${isEditorial ? 'text-[#475569]' : 'text-slate-400'}`}>
               Spaced Repetition engine auto-schedules missed items for early review.
             </span>
             <button
               type="button"
               onClick={onStart}
-              className="text-xs font-bold text-lime-400 hover:text-lime-300 inline-flex items-center gap-1 cursor-pointer"
+              className={`text-xs font-bold inline-flex items-center gap-1 cursor-pointer ${
+                isEditorial ? 'text-[#6D28D9] hover:underline' : 'text-lime-400 hover:text-lime-300'
+              }`}
             >
               Start full quiz session →
             </button>
@@ -512,141 +639,121 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </div>
       </section>
 
-      {/* 5. FEATURE BENTO GRID (ALL 6 CAPABILITIES) */}
-      <section className="w-full max-w-5xl mx-auto px-4 pb-24">
+      {/* 5. FEATURE BENTO GRID */}
+      <section className="w-full max-w-5xl mx-auto px-4 pb-20">
         <div className="text-center mb-12">
-          <span className="text-xs font-mono font-bold text-lime-400 tracking-wider uppercase">
+          <span className={`text-xs font-mono font-bold tracking-wider uppercase ${isEditorial ? 'text-[#6D28D9]' : 'text-lime-400'}`}>
             Product Architecture
           </span>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-100 mt-1">
+          <h2 className="text-2xl sm:text-3xl font-extrabold mt-1">
             Complete vocabulary toolkit. Zero bloat.
           </h2>
-          <p className="text-xs text-slate-400 mt-2 max-w-lg mx-auto">
+          <p className={`text-xs mt-2 max-w-lg mx-auto font-sans font-medium ${isEditorial ? 'text-[#475569]' : 'text-slate-400'}`}>
             Every feature is purposefully built to replace fragmented tools, paper lists, and clunky dictionary lookups.
           </p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-
-          {/* Feature 1 */}
-          <div data-motion-reveal className="motion-surface p-6 rounded-3xl bg-slate-900/60 border border-slate-800 hover:border-lime-400/30 transition flex flex-col justify-between">
-            <div>
-              <div className="w-10 h-10 rounded-xl bg-lime-400/10 border border-lime-400/20 flex items-center justify-center text-lime-400 mb-4">
-                <Zap className="w-5 h-5" />
+          {[
+            {
+              icon: <Zap className="w-5 h-5" />,
+              title: 'Sub-Second Local Lexicon',
+              desc: 'Backed by local SQLite and Turso Cloud. High-frequency queries resolve in under 180ms with offline fallback.',
+              meta: 'Response time: ~84ms avg'
+            },
+            {
+              icon: <BookOpen className="w-5 h-5" />,
+              title: '180 CEFR Reading Library',
+              desc: 'Curated articles across science, climate, psychology, and arts. Tap any word to view definitions and save to your review bank.',
+              meta: 'Levels: A2, B1, B2, C1, C2'
+            },
+            {
+              icon: <Brain className="w-5 h-5" />,
+              title: 'Spaced Repetition (SRS)',
+              desc: 'Interval calculation based on difficulty score. Easy terms advance to 7+ days; struggling terms recycle within 24 hours.',
+              meta: 'Ebbinghaus curve calibrated'
+            },
+            {
+              icon: <Flame className="w-5 h-5" />,
+              title: 'Word Blitz Sprint Mode',
+              desc: 'Rapid 60-second sessions designed to test lexical retrieval under timed exam stress. Tracks streaks and accuracy.',
+              meta: '60s countdown • Combo multipliers'
+            },
+            {
+              icon: <Globe className="w-5 h-5" />,
+              title: 'Dual-Language Localization',
+              desc: 'Every entry includes tailored Uzbek and Russian academic translations so bilingual learners never miss regional nuances.',
+              meta: 'English • O‘zbek • Русский'
+            },
+            {
+              icon: <ShieldCheck className="w-5 h-5" />,
+              title: 'Telegram One-Tap Auth',
+              desc: 'Sign in with zero passwords or email forms. Your saved words and quiz statistics synchronize instantly across phone and browser.',
+              meta: 'No password • Instant session sync'
+            }
+          ].map((f, i) => (
+            <div
+              key={i}
+              data-motion-reveal
+              className={`p-6 rounded-3xl transition-all flex flex-col justify-between ${
+                isEditorial
+                  ? 'bg-white border-2 border-[#1E2433] shadow-[5px_5px_0px_#1E2433]'
+                  : 'bg-slate-900/80 border border-slate-800 hover:border-lime-400/30'
+              }`}
+            >
+              <div>
+                <div
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center mb-4 ${
+                    isEditorial
+                      ? 'bg-purple-100 border-2 border-[#1E2433] text-[#6D28D9]'
+                      : 'bg-lime-400/10 border border-lime-400/20 text-lime-400'
+                  }`}
+                >
+                  {f.icon}
+                </div>
+                <h3 className={`text-sm font-bold mb-2 ${isEditorial ? 'text-[#1E2433]' : 'text-slate-100'}`}>
+                  {f.title}
+                </h3>
+                <p className={`text-xs leading-relaxed font-sans font-medium ${isEditorial ? 'text-[#334155]' : 'text-slate-400'}`}>
+                  {f.desc}
+                </p>
               </div>
-              <h3 className="text-sm font-bold text-slate-100 mb-2">Sub-Second Local Lexicon</h3>
-              <p className="text-xs text-slate-400 leading-relaxed font-sans">
-                Backed by local SQLite and Turso Cloud. High-frequency queries resolve in under 180ms with offline fallback.
-              </p>
-            </div>
-            <div className="mt-4 pt-3 border-t border-slate-800 text-[10px] text-slate-400 font-mono">
-              Response time: ~84ms avg
-            </div>
-          </div>
-
-          {/* Feature 2 */}
-          <div data-motion-reveal className="motion-surface p-6 rounded-3xl bg-slate-900/60 border border-slate-800 hover:border-lime-400/30 transition flex flex-col justify-between">
-            <div>
-              <div className="w-10 h-10 rounded-xl bg-cyan-400/10 border border-cyan-400/20 flex items-center justify-center text-cyan-400 mb-4">
-                <BookOpen className="w-5 h-5" />
+              <div className={`mt-4 pt-3 border-t text-[10px] font-mono font-bold ${
+                isEditorial ? 'border-[#E2E8F0] text-[#6D28D9]' : 'border-slate-800 text-slate-400'
+              }`}>
+                {f.meta}
               </div>
-              <h3 className="text-sm font-bold text-slate-100 mb-2">180 CEFR Reading Library</h3>
-              <p className="text-xs text-slate-400 leading-relaxed font-sans">
-                Curated articles across science, climate, psychology, and arts. Tap any word to view definitions and save to your review bank.
-              </p>
             </div>
-            <div className="mt-4 pt-3 border-t border-slate-800 text-[10px] text-slate-400 font-mono">
-              Levels: A2, B1, B2, C1, C2
-            </div>
-          </div>
-
-          {/* Feature 3 */}
-          <div data-motion-reveal className="motion-surface p-6 rounded-3xl bg-slate-900/60 border border-slate-800 hover:border-lime-400/30 transition flex flex-col justify-between">
-            <div>
-              <div className="w-10 h-10 rounded-xl bg-purple-400/10 border border-purple-400/20 flex items-center justify-center text-purple-400 mb-4">
-                <Brain className="w-5 h-5" />
-              </div>
-              <h3 className="text-sm font-bold text-slate-100 mb-2">Spaced Repetition (SRS)</h3>
-              <p className="text-xs text-slate-400 leading-relaxed font-sans">
-                Interval calculation based on difficulty score. Easy terms advance to 7+ days; struggling terms recycle within 24 hours.
-              </p>
-            </div>
-            <div className="mt-4 pt-3 border-t border-slate-800 text-[10px] text-slate-400 font-mono">
-              Ebbinghaus curve calibrated
-            </div>
-          </div>
-
-          {/* Feature 4 */}
-          <div data-motion-reveal className="motion-surface p-6 rounded-3xl bg-slate-900/60 border border-slate-800 hover:border-lime-400/30 transition flex flex-col justify-between">
-            <div>
-              <div className="w-10 h-10 rounded-xl bg-amber-400/10 border border-amber-400/20 flex items-center justify-center text-amber-400 mb-4">
-                <Flame className="w-5 h-5" />
-              </div>
-              <h3 className="text-sm font-bold text-slate-100 mb-2">Word Blitz Sprint Mode</h3>
-              <p className="text-xs text-slate-400 leading-relaxed font-sans">
-                Rapid 60-second sessions designed to test lexical retrieval under timed exam stress. Tracks streaks and accuracy.
-              </p>
-            </div>
-            <div className="mt-4 pt-3 border-t border-slate-800 text-[10px] text-slate-400 font-mono">
-              60s countdown • Combo multipliers
-            </div>
-          </div>
-
-          {/* Feature 5 */}
-          <div data-motion-reveal className="motion-surface p-6 rounded-3xl bg-slate-900/60 border border-slate-800 hover:border-lime-400/30 transition flex flex-col justify-between">
-            <div>
-              <div className="w-10 h-10 rounded-xl bg-emerald-400/10 border border-emerald-400/20 flex items-center justify-center text-emerald-400 mb-4">
-                <Globe className="w-5 h-5" />
-              </div>
-              <h3 className="text-sm font-bold text-slate-100 mb-2">Dual-Language Localization</h3>
-              <p className="text-xs text-slate-400 leading-relaxed font-sans">
-                Every entry includes tailored Uzbek and Russian academic translations so bilingual learners never miss regional nuances.
-              </p>
-            </div>
-            <div className="mt-4 pt-3 border-t border-slate-800 text-[10px] text-slate-400 font-mono">
-              English • O‘zbek • Русский
-            </div>
-          </div>
-
-          {/* Feature 6 */}
-          <div data-motion-reveal className="motion-surface p-6 rounded-3xl bg-slate-900/60 border border-slate-800 hover:border-lime-400/30 transition flex flex-col justify-between">
-            <div>
-              <div className="w-10 h-10 rounded-xl bg-blue-400/10 border border-blue-400/20 flex items-center justify-center text-blue-400 mb-4">
-                <ShieldCheck className="w-5 h-5" />
-              </div>
-              <h3 className="text-sm font-bold text-slate-100 mb-2">Telegram One-Tap Auth</h3>
-              <p className="text-xs text-slate-400 leading-relaxed font-sans">
-                Sign in with zero passwords or email forms. Your saved words and quiz statistics synchronize instantly across phone and browser.
-              </p>
-            </div>
-            <div className="mt-4 pt-3 border-t border-slate-800 text-[10px] text-slate-400 font-mono">
-              No password • Instant session sync
-            </div>
-          </div>
-
+          ))}
         </div>
       </section>
 
-      {/* 6. COMPARISON MATRIX (HONEST, ZERO-SLOP TABLE) */}
-      <section className="w-full max-w-5xl mx-auto px-4 pb-24">
+      {/* 6. COMPARISON MATRIX */}
+      <section className="w-full max-w-5xl mx-auto px-4 pb-20">
         <div className="text-center mb-10">
-          <span className="text-xs font-mono font-bold text-lime-400 tracking-wider uppercase">
+          <span className={`text-xs font-mono font-bold tracking-wider uppercase ${isEditorial ? 'text-[#6D28D9]' : 'text-lime-400'}`}>
             Head-to-Head Comparison
           </span>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-100 mt-1">
+          <h2 className="text-2xl sm:text-3xl font-extrabold mt-1">
             Why conventional vocabulary tools fall short.
           </h2>
-          <p className="text-xs text-slate-400 mt-2 max-w-lg mx-auto">
+          <p className={`text-xs mt-2 max-w-lg mx-auto font-sans font-medium ${isEditorial ? 'text-[#475569]' : 'text-slate-400'}`}>
             Comparing UniveBooster against traditional flashcard decks, gamified consumer apps, and static paper dictionaries.
           </p>
         </div>
 
-        <div className="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-900/50 backdrop-blur-md">
+        <div className={`overflow-x-auto rounded-2xl border-2 transition-all ${
+          isEditorial ? 'border-[#1E2433] bg-white shadow-[6px_6px_0px_#1E2433]' : 'border-slate-800 bg-slate-900/60'
+        }`}>
           <table className="w-full text-left text-xs font-mono">
             <thead>
-              <tr className="border-b border-slate-800 bg-slate-950/70 text-slate-400">
+              <tr className={`border-b-2 ${
+                isEditorial ? 'border-[#1E2433] bg-[#F8FAFC] text-[#1E2433]' : 'border-slate-800 bg-slate-950 text-slate-400'
+              }`}>
                 <th className="p-4 font-bold">Capabilities</th>
-                <th className="p-4 font-extrabold text-lime-400 bg-lime-400/10 border-x border-lime-400/20">
+                <th className={`p-4 font-extrabold ${
+                  isEditorial ? 'bg-purple-100 text-[#6D28D9] border-x-2 border-[#1E2433]' : 'bg-lime-400/10 text-lime-400 border-x border-lime-400/20'
+                }`}>
                   UniveBooster
                 </th>
                 <th className="p-4 font-bold">Generic Flashcards (Anki/Quizlet)</th>
@@ -654,48 +761,60 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <th className="p-4 font-bold">Standard Online Lexicon</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60 text-slate-300">
+            <tbody className={`divide-y ${isEditorial ? 'divide-[#E2E8F0] text-[#1E2433]' : 'divide-slate-800 text-slate-300'}`}>
               <tr>
-                <td className="p-4 font-semibold text-slate-200">Sub-second CEFR level & IPA parsing</td>
-                <td className="p-4 font-bold text-lime-400 bg-lime-400/5 border-x border-lime-400/20">Instant (&lt; 180ms)</td>
-                <td className="p-4 text-slate-400">Manual entry required</td>
-                <td className="p-4 text-slate-400">Fixed basic decks</td>
-                <td className="p-4 text-slate-400">Static, slow lookup</td>
+                <td className="p-4 font-bold">Sub-second CEFR level & IPA parsing</td>
+                <td className={`p-4 font-bold ${isEditorial ? 'bg-purple-50 text-[#6D28D9] border-x-2 border-[#1E2433]' : 'bg-lime-400/5 text-lime-400 border-x border-lime-400/20'}`}>
+                  Instant (&lt; 180ms)
+                </td>
+                <td className={`p-4 ${isEditorial ? 'text-[#475569]' : 'text-slate-400'}`}>Manual entry required</td>
+                <td className={`p-4 ${isEditorial ? 'text-[#475569]' : 'text-slate-400'}`}>Fixed basic decks</td>
+                <td className={`p-4 ${isEditorial ? 'text-[#475569]' : 'text-slate-400'}`}>Static, slow lookup</td>
               </tr>
               <tr>
-                <td className="p-4 font-semibold text-slate-200">180 Graded articles with in-text inspection</td>
-                <td className="p-4 font-bold text-lime-400 bg-lime-400/5 border-x border-lime-400/20">Integrated</td>
-                <td className="p-4 text-slate-400">No reading mode</td>
-                <td className="p-4 text-slate-400">Childlike stories</td>
-                <td className="p-4 text-slate-400">No curated passages</td>
+                <td className="p-4 font-bold">180 Graded articles with in-text inspection</td>
+                <td className={`p-4 font-bold ${isEditorial ? 'bg-purple-50 text-[#6D28D9] border-x-2 border-[#1E2433]' : 'bg-lime-400/5 text-lime-400 border-x border-lime-400/20'}`}>
+                  Integrated
+                </td>
+                <td className={`p-4 ${isEditorial ? 'text-[#475569]' : 'text-slate-400'}`}>No reading mode</td>
+                <td className={`p-4 ${isEditorial ? 'text-[#475569]' : 'text-slate-400'}`}>Childlike stories</td>
+                <td className={`p-4 ${isEditorial ? 'text-[#475569]' : 'text-slate-400'}`}>No curated passages</td>
               </tr>
               <tr>
-                <td className="p-4 font-semibold text-slate-200">Academic collocations & mistake alerts</td>
-                <td className="p-4 font-bold text-lime-400 bg-lime-400/5 border-x border-lime-400/20">Automatic for every term</td>
-                <td className="p-4 text-slate-400">User must author</td>
-                <td className="p-4 text-slate-400">Unavailable</td>
-                <td className="p-4 text-slate-400">Buried in text walls</td>
+                <td className="p-4 font-bold">Academic collocations & mistake alerts</td>
+                <td className={`p-4 font-bold ${isEditorial ? 'bg-purple-50 text-[#6D28D9] border-x-2 border-[#1E2433]' : 'bg-lime-400/5 text-lime-400 border-x border-lime-400/20'}`}>
+                  Automatic for every term
+                </td>
+                <td className={`p-4 ${isEditorial ? 'text-[#475569]' : 'text-slate-400'}`}>User must author</td>
+                <td className={`p-4 ${isEditorial ? 'text-[#475569]' : 'text-slate-400'}`}>Unavailable</td>
+                <td className={`p-4 ${isEditorial ? 'text-[#475569]' : 'text-slate-400'}`}>Buried in text walls</td>
               </tr>
               <tr>
-                <td className="p-4 font-semibold text-slate-200">Spaced Repetition scheduling</td>
-                <td className="p-4 font-bold text-lime-400 bg-lime-400/5 border-x border-lime-400/20">SM-2 Automated</td>
-                <td className="p-4 text-slate-300">Manual algorithm setup</td>
-                <td className="p-4 text-slate-400">Arbitrary streak pressure</td>
-                <td className="p-4 text-slate-400">None</td>
+                <td className="p-4 font-bold">Spaced Repetition scheduling</td>
+                <td className={`p-4 font-bold ${isEditorial ? 'bg-purple-50 text-[#6D28D9] border-x-2 border-[#1E2433]' : 'bg-lime-400/5 text-lime-400 border-x border-lime-400/20'}`}>
+                  SM-2 Automated
+                </td>
+                <td className={`p-4 ${isEditorial ? 'text-[#1E2433]' : 'text-slate-300'}`}>Manual algorithm setup</td>
+                <td className={`p-4 ${isEditorial ? 'text-[#475569]' : 'text-slate-400'}`}>Arbitrary streak pressure</td>
+                <td className={`p-4 ${isEditorial ? 'text-[#475569]' : 'text-slate-400'}`}>None</td>
               </tr>
               <tr>
-                <td className="p-4 font-semibold text-slate-200">Bilingual Uzbek & Russian definitions</td>
-                <td className="p-4 font-bold text-lime-400 bg-lime-400/5 border-x border-lime-400/20">Native context included</td>
-                <td className="p-4 text-slate-400">Manual typing</td>
-                <td className="p-4 text-slate-400">Restricted / poor Uz</td>
-                <td className="p-4 text-slate-400">Single language only</td>
+                <td className="p-4 font-bold">Bilingual Uzbek & Russian definitions</td>
+                <td className={`p-4 font-bold ${isEditorial ? 'bg-purple-50 text-[#6D28D9] border-x-2 border-[#1E2433]' : 'bg-lime-400/5 text-lime-400 border-x border-lime-400/20'}`}>
+                  Native context included
+                </td>
+                <td className={`p-4 ${isEditorial ? 'text-[#475569]' : 'text-slate-400'}`}>Manual typing</td>
+                <td className={`p-4 ${isEditorial ? 'text-[#475569]' : 'text-slate-400'}`}>Restricted / poor Uz</td>
+                <td className={`p-4 ${isEditorial ? 'text-[#475569]' : 'text-slate-400'}`}>Single language only</td>
               </tr>
               <tr>
-                <td className="p-4 font-semibold text-slate-200">Paywalls & Credit Card barriers</td>
-                <td className="p-4 font-bold text-lime-400 bg-lime-400/5 border-x border-lime-400/20">Zero paywall</td>
-                <td className="p-4 text-slate-400">Subscriptions / Pro locks</td>
-                <td className="p-4 text-slate-400">Aggressive ads & hearts</td>
-                <td className="p-4 text-slate-400">Banner ads & popups</td>
+                <td className="p-4 font-bold">Paywalls & Credit Card barriers</td>
+                <td className={`p-4 font-bold ${isEditorial ? 'bg-purple-50 text-[#6D28D9] border-x-2 border-[#1E2433]' : 'bg-lime-400/5 text-lime-400 border-x border-lime-400/20'}`}>
+                  Zero paywall
+                </td>
+                <td className={`p-4 ${isEditorial ? 'text-[#475569]' : 'text-slate-400'}`}>Subscriptions / Pro locks</td>
+                <td className={`p-4 ${isEditorial ? 'text-[#475569]' : 'text-slate-400'}`}>Aggressive ads & hearts</td>
+                <td className={`p-4 ${isEditorial ? 'text-[#475569]' : 'text-slate-400'}`}>Banner ads & popups</td>
               </tr>
             </tbody>
           </table>
@@ -703,15 +822,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
       {/* 7. CEFR & IELTS PROFICIENCY TIERS */}
-      <section className="w-full max-w-5xl mx-auto px-4 pb-24">
+      <section className="w-full max-w-5xl mx-auto px-4 pb-20">
         <div className="text-center mb-10">
-          <span className="text-xs font-mono font-bold text-lime-400 tracking-wider uppercase">
+          <span className={`text-xs font-mono font-bold tracking-wider uppercase ${isEditorial ? 'text-[#6D28D9]' : 'text-lime-400'}`}>
             Curriculum Alignment
           </span>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-100 mt-1">
+          <h2 className="text-2xl sm:text-3xl font-extrabold mt-1">
             Calibrated for CEFR standards & IELTS target bands.
           </h2>
-          <p className="text-xs text-slate-400 mt-2 max-w-lg mx-auto">
+          <p className={`text-xs mt-2 max-w-lg mx-auto font-sans font-medium ${isEditorial ? 'text-[#475569]' : 'text-slate-400'}`}>
             Whether preparing for foundation coursework or scoring Band 8.0+ for top universities.
           </p>
         </div>
@@ -743,16 +862,36 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               desc: 'Subtle idiomatic precision, literary register, historical etymologies, and mastery over rare rhetoric.'
             }
           ].map((t, i) => (
-            <div key={i} data-motion-reveal className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 flex flex-col justify-between">
+            <div
+              key={i}
+              data-motion-reveal
+              className={`p-5 rounded-2xl flex flex-col justify-between transition-all ${
+                isEditorial
+                  ? 'bg-white border-2 border-[#1E2433] shadow-[4px_4px_0px_#1E2433]'
+                  : 'bg-slate-900/80 border border-slate-800'
+              }`}
+            >
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-extrabold font-mono text-lime-400">{t.tier}</span>
-                  <span className="text-[10px] font-mono text-slate-400 border border-slate-800 px-2 py-0.5 rounded">{t.ielts}</span>
+                  <span className={`text-sm font-extrabold font-mono ${isEditorial ? 'text-[#6D28D9]' : 'text-lime-400'}`}>
+                    {t.tier}
+                  </span>
+                  <span className={`text-[10px] font-mono px-2 py-0.5 rounded border ${
+                    isEditorial ? 'bg-slate-100 border-[#1E2433] text-[#1E2433] font-bold' : 'border-slate-800 text-slate-400'
+                  }`}>
+                    {t.ielts}
+                  </span>
                 </div>
-                <h4 className="text-xs font-bold text-slate-100 mb-2">{t.focus}</h4>
-                <p className="text-xs text-slate-400 leading-relaxed font-sans">{t.desc}</p>
+                <h4 className={`text-xs font-bold mb-2 ${isEditorial ? 'text-[#1E2433]' : 'text-slate-100'}`}>
+                  {t.focus}
+                </h4>
+                <p className={`text-xs leading-relaxed font-sans font-medium ${isEditorial ? 'text-[#475569]' : 'text-slate-400'}`}>
+                  {t.desc}
+                </p>
               </div>
-              <div className="mt-4 pt-3 border-t border-slate-800/80 text-[10px] text-lime-400/80 font-mono">
+              <div className={`mt-4 pt-3 border-t text-[10px] font-mono font-bold ${
+                isEditorial ? 'border-[#E2E8F0] text-[#6D28D9]' : 'border-slate-800 text-lime-400/80'
+              }`}>
                 Full article & quiz support
               </div>
             </div>
@@ -761,12 +900,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
       {/* 8. NO-FLUFF FAQ */}
-      <section className="w-full max-w-4xl mx-auto px-4 pb-24">
+      <section className="w-full max-w-4xl mx-auto px-4 pb-20">
         <div className="text-center mb-10">
-          <span className="text-xs font-mono font-bold text-lime-400 tracking-wider uppercase">
+          <span className={`text-xs font-mono font-bold tracking-wider uppercase ${isEditorial ? 'text-[#6D28D9]' : 'text-lime-400'}`}>
             Questions & Clarity
           </span>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-100 mt-1">
+          <h2 className="text-2xl sm:text-3xl font-extrabold mt-1">
             Common questions. Straight answers.
           </h2>
         </div>
@@ -790,12 +929,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               a: 'Passwords are friction. With Telegram bot authentication, there are no verification emails, forgotten passwords, or spam. You tap one link, and you are logged in on any browser in 2 seconds.'
             }
           ].map((faq, i) => (
-            <div key={i} data-motion-reveal className="p-5 rounded-2xl bg-slate-900/50 border border-slate-800">
-              <h4 className="text-sm font-bold text-slate-100 mb-2 flex items-start gap-2">
-                <span className="text-lime-400 font-mono">Q:</span>
+            <div
+              key={i}
+              data-motion-reveal
+              className={`p-5 rounded-2xl transition-all ${
+                isEditorial
+                  ? 'bg-white border-2 border-[#1E2433] shadow-[4px_4px_0px_#1E2433] text-[#1E2433]'
+                  : 'bg-slate-900/80 border border-slate-800'
+              }`}
+            >
+              <h4 className={`text-sm font-bold mb-2 flex items-start gap-2 ${isEditorial ? 'text-[#1E2433]' : 'text-slate-100'}`}>
+                <span className={`font-mono font-black ${isEditorial ? 'text-[#6D28D9]' : 'text-lime-400'}`}>Q:</span>
                 <span>{faq.q}</span>
               </h4>
-              <p className="text-xs text-slate-300 leading-relaxed font-sans pl-5">
+              <p className={`text-xs leading-relaxed font-sans font-medium pl-5 ${isEditorial ? 'text-[#334155]' : 'text-slate-300'}`}>
                 {faq.a}
               </p>
             </div>
@@ -803,18 +950,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </div>
       </section>
 
-      {/* 9. BOTTOM CONVERSION STRIP */}
+      {/* 9. BOTTOM CONVERSION STRIP — HIGH CONTRAST DARK BANNER */}
       <section className="w-full max-w-5xl mx-auto px-4 pb-28">
-        <div className="relative rounded-3xl border border-lime-400/30 bg-gradient-to-b from-slate-900/90 to-slate-950 p-10 sm:p-14 text-center overflow-hidden shadow-[0_0_60px_rgba(132,204,22,0.12)]">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-lime-500/10 via-transparent to-transparent pointer-events-none" />
-
-          <span className="text-xs font-mono font-bold text-lime-400 uppercase tracking-wider mb-2 inline-block">
+        <div
+          data-dark-surface="true"
+          className="dark-banner relative rounded-3xl border-2 border-[#1E2433] bg-[#1E2433] p-10 sm:p-14 text-center overflow-hidden shadow-[8px_8px_0px_#6D28D9]"
+        >
+          <span className="text-xs font-mono font-black text-lime-400 uppercase tracking-widest mb-3 inline-block">
             Immediate Access
           </span>
-          <h2 className="text-3xl sm:text-4xl font-black text-slate-100 mb-4 tracking-tight">
+          <h2 className="text-3xl sm:text-4xl font-black text-white mb-4 tracking-tight font-serif">
             Level up your academic English today.
           </h2>
-          <p className="text-xs sm:text-sm text-slate-300 mb-8 max-w-lg mx-auto leading-relaxed">
+          <p className="text-xs sm:text-sm text-slate-200 mb-8 max-w-lg mx-auto leading-relaxed font-sans font-medium">
             No subscription fees. No paywalls. Just a fast, scientifically grounded vocabulary engine built for serious learners.
           </p>
 
@@ -822,7 +970,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <button
               type="button"
               onClick={onStart}
-              className="inline-flex items-center justify-center gap-2.5 px-10 py-4 rounded-xl bg-gradient-to-r from-lime-400 via-lime-300 to-cyan-400 text-slate-950 font-extrabold text-sm hover:shadow-[0_0_35px_rgba(132,204,22,0.4)] active:scale-[0.98] transition-all cursor-pointer"
+              className="inline-flex items-center justify-center gap-2.5 px-10 py-4 rounded-xl bg-gradient-to-r from-lime-400 via-lime-300 to-cyan-400 text-slate-950 font-black text-sm hover:shadow-[0_0_35px_rgba(132,204,22,0.4)] active:scale-[0.98] transition-all cursor-pointer"
             >
               <span>Launch UniveBooster</span>
               <ArrowRight className="w-4 h-4" />
@@ -832,14 +980,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 type="button"
                 onClick={onLogin}
                 disabled={waitingAuth}
-                className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-slate-900/80 border border-slate-700 text-slate-200 hover:border-lime-400/50 hover:text-lime-300 transition text-sm font-medium cursor-pointer"
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-white/10 border-2 border-white/30 text-white hover:bg-white/20 transition text-sm font-bold cursor-pointer"
               >
                 <span>Telegram Quick Sync</span>
               </button>
             )}
           </div>
 
-          <div className="mt-6 flex items-center justify-center gap-4 text-[11px] text-slate-400 font-mono">
+          <div className="mt-8 flex items-center justify-center gap-4 text-[11px] text-slate-300 font-mono font-medium">
             <span>⚡ Instant Launch</span>
             <span>•</span>
             <span>🔒 Zero Data Tracking</span>
@@ -848,7 +996,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
         </div>
       </section>
-
     </div>
   );
 };

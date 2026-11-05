@@ -3189,6 +3189,22 @@ body[data-theme="editorial"] .app-shell {
   color: #1E2433 !important;
 }
 
+/* Explicit Dark Surfaces retain crisp pure white headings & text in editorial */
+[data-theme="editorial"] .dark-banner,
+[data-theme="editorial"] .dark-banner h1,
+[data-theme="editorial"] .dark-banner h2,
+[data-theme="editorial"] .dark-banner h3,
+[data-theme="editorial"] .dark-banner p,
+[data-theme="editorial"] .dark-banner span,
+[data-theme="editorial"] [data-dark-surface="true"],
+[data-theme="editorial"] [data-dark-surface="true"] h1,
+[data-theme="editorial"] [data-dark-surface="true"] h2,
+[data-theme="editorial"] [data-dark-surface="true"] h3,
+[data-theme="editorial"] [data-dark-surface="true"] p,
+[data-theme="editorial"] [data-dark-surface="true"] span {
+  color: #FFFFFF !important;
+}
+
 [data-theme="editorial"] .font-hand {
   font-family: 'Caveat', cursive !important;
 }

@@ -175,7 +175,9 @@ export function WordForm({
         
         {/* 1. Input */}
         <div className="flex-1 relative">
-          <label className="block text-[11px] font-mono font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">
+          <label className={`block text-[11px] font-mono font-bold mb-1.5 uppercase tracking-wider ${
+            isEditorial ? 'text-[#1E2433]' : 'text-slate-400'
+          }`}>
             {t.wordInputLabel}
           </label>
           <input
@@ -184,13 +186,19 @@ export function WordForm({
             onChange={(e) => onWordChange(e.target.value)}
             disabled={disabled}
             placeholder={t.wordInputPlaceholder}
-            className="w-full px-4 py-2.5 rounded-2xl bg-slate-900/70 backdrop-blur-md border border-lime-400/25 focus:border-lime-400/50 text-slate-100 placeholder-slate-400 text-sm focus:outline-none transition-all duration-300 shadow-inner focus:shadow-[0_0_15px_rgba(132,204,22,0.2)]"
+            className={`w-full px-4 py-2.5 rounded-2xl text-sm focus:outline-none transition-all duration-200 ${
+              isEditorial
+                ? 'bg-white border-2 border-[#1E2433] text-[#1E2433] placeholder-[#94A3B8] shadow-[3px_3px_0px_#1E2433] focus:border-[#6D28D9]'
+                : 'bg-slate-900/90 border border-lime-400/30 text-slate-100 placeholder-slate-400 focus:border-lime-400 focus:shadow-[0_0_15px_rgba(132,204,22,0.2)]'
+            }`}
           />
         </div>
 
         {/* 2. Dropdown Trigger Tugmasi */}
         <div ref={buttonBoxRef} className="relative sm:w-44">
-          <label className="block text-[11px] font-mono font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">
+          <label className={`block text-[11px] font-mono font-bold mb-1.5 uppercase tracking-wider ${
+            isEditorial ? 'text-[#1E2433]' : 'text-slate-400'
+          }`}>
             {t.translateIntoLabel}
           </label>
 
@@ -203,14 +211,20 @@ export function WordForm({
               aria-haspopup="listbox"
               aria-expanded={isOpen}
               aria-label={t.translateIntoLabel}
-              className={`relative w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-slate-900/70 backdrop-blur-md border transition-all duration-200 ${
-                isOpen
-                  ? 'border-lime-400/60 text-slate-100 shadow-[0_0_15px_rgba(132,204,22,0.3)]'
-                  : 'border-lime-400/25 hover:border-lime-400/50 text-slate-200'
+              className={`relative w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl border transition-all duration-200 ${
+                isEditorial
+                  ? 'bg-white border-2 border-[#1E2433] text-[#1E2433] shadow-[3px_3px_0px_#1E2433] hover:bg-slate-50'
+                  : isOpen
+                  ? 'bg-slate-900 border-lime-400/60 text-slate-100 shadow-[0_0_15px_rgba(132,204,22,0.3)]'
+                  : 'bg-slate-900 border-lime-400/30 hover:border-lime-400/50 text-slate-200'
               } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
             >
               <div className="flex items-center gap-2">
-                <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-blue-900/70 text-lime-300 border border-lime-400/30">
+                <span className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-bold ${
+                  isEditorial
+                    ? 'bg-purple-100 text-purple-900 border border-purple-300'
+                    : 'bg-blue-900/70 text-lime-300 border border-lime-400/30'
+                }`}>
                   {selectedLang.badge}
                 </span>
                 <span className="text-xs font-semibold tracking-wide">
@@ -219,9 +233,9 @@ export function WordForm({
               </div>
 
               <span
-                className={`text-[9px] text-lime-300 transition-transform duration-300 ${
-                  isOpen ? 'rotate-180' : 'rotate-0'
-                }`}
+                className={`text-[9px] transition-transform duration-300 ${
+                  isEditorial ? 'text-[#1E2433]' : 'text-lime-300'
+                } ${isOpen ? 'rotate-180' : 'rotate-0'}`}
               >
                 ▼
               </span>
@@ -229,13 +243,24 @@ export function WordForm({
           </div>
         </div>
 
-        {/* 3. Liquid Metal Tugmasi */}
+        {/* 3. Action Button */}
         <div className="sm:self-end flex items-center justify-center">
-          <LiquidMetalButton
-            label={disabled ? t.analyzingButton : t.analyzeButton}
-            type="submit"
-            disabled={disabled || !word.trim()}
-          />
+          {isEditorial ? (
+            <button
+              type="submit"
+              disabled={disabled || !word.trim()}
+              className="px-6 py-2.5 rounded-2xl bg-[#1E2433] text-white font-bold text-sm border-2 border-[#1E2433] shadow-[4px_4px_0px_#1E2433] hover:bg-[#6D28D9] hover:shadow-[5px_5px_0px_#1E2433] active:translate-x-0.5 active:translate-y-0.5 transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap min-w-[140px] h-[44px]"
+            >
+              <span>{disabled ? t.analyzingButton : t.analyzeButton}</span>
+              <span>→</span>
+            </button>
+          ) : (
+            <LiquidMetalButton
+              label={disabled ? t.analyzingButton : t.analyzeButton}
+              type="submit"
+              disabled={disabled || !word.trim()}
+            />
+          )}
         </div>
       </div>
 
@@ -245,7 +270,11 @@ export function WordForm({
         createPortal(
           <div
             ref={dropdownRef}
-            className="cyber-portal-dropdown fixed z-[99999] rounded-2xl bg-slate-950/95 backdrop-blur-2xl border border-lime-400/30 p-1.5 shadow-[0_20px_50px_rgba(0,0,0,0.85)] animate-in fade-in zoom-in-95 duration-150 overflow-hidden"
+            className={`cyber-portal-dropdown fixed z-[99999] rounded-2xl p-1.5 animate-in fade-in zoom-in-95 duration-150 overflow-hidden ${
+              isEditorial
+                ? 'bg-white border-2 border-[#1E2433] shadow-[6px_6px_0px_#1E2433] text-[#1E2433]'
+                : 'bg-slate-950/95 backdrop-blur-2xl border border-lime-400/30 shadow-[0_20px_50px_rgba(0,0,0,0.85)]'
+            }`}
             style={{
               top: `${menuCoords.top}px`,
               left: `${menuCoords.left}px`,
@@ -276,7 +305,13 @@ export function WordForm({
                       triggerButtonRef.current?.focus();
                     }}
                     className={`cyber-portal-option group flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-colors duration-150 ${
-                      isSelected
+                      isEditorial
+                        ? isSelected
+                          ? 'bg-purple-100 text-purple-950 font-bold border border-purple-300'
+                          : isFocused
+                          ? 'bg-slate-100 text-[#1E2433]'
+                          : 'text-[#1E2433] hover:bg-slate-100'
+                        : isSelected
                         ? 'bg-lime-500/20 text-lime-200 border border-lime-400/40 shadow-sm shadow-lime-500/20'
                         : isFocused
                         ? 'bg-slate-800/80 text-lime-300 border border-slate-700'
@@ -284,19 +319,25 @@ export function WordForm({
                     }`}
                   >
                     <div className="flex items-center gap-2.5">
-                      <span className="px-1.5 py-0.5 rounded text-[9px] font-mono bg-slate-800/70 text-slate-400">
+                      <span className={`px-1.5 py-0.5 rounded text-[9px] font-mono ${
+                        isEditorial ? 'bg-slate-100 text-[#475569] font-bold' : 'bg-slate-800/70 text-slate-400'
+                      }`}>
                         {lang.badge}
                       </span>
                       <div className="flex flex-col text-left">
                         <span className="font-semibold leading-none">{lang.label}</span>
-                        <span className="text-[10px] text-slate-500 font-mono mt-0.5">
+                        <span className={`text-[10px] font-mono mt-0.5 ${
+                          isEditorial ? 'text-[#64748B]' : 'text-slate-500'
+                        }`}>
                           {lang.native}
                         </span>
                       </div>
                     </div>
 
                     {isSelected && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-lime-400 shadow-[0_0_8px_rgba(132,204,22,0.6)]" />
+                      <span className={`w-1.5 h-1.5 rounded-full ${
+                        isEditorial ? 'bg-[#6D28D9]' : 'bg-lime-400 shadow-[0_0_8px_rgba(132,204,22,0.6)]'
+                      }`} />
                     )}
                   </button>
                 );
