@@ -10,7 +10,8 @@
     "build": "npm --workspace server run build && npm --workspace client run build",
     "start": "npm --workspace server run start",
     "lint": "npm --workspace client run lint || true",
-    "ship": "git add . && git commit -m \"update\" && git push"
+    "ship": "git add . && git commit -m \"update\" && git push",
+    "install": "npm install --ignore-scripts"
   },
   "devDependencies": {
     "concurrently": "^9.0.0"
