@@ -21,22 +21,22 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
   return (
     <div ref={landingRef} className="relative w-full flex flex-col items-center overflow-hidden font-mono select-none">
-      
+
       {/* 1. HERO SECTION */}
       <section className="relative w-full min-h-[75vh] flex flex-col items-center justify-center px-4 pt-10 pb-14 text-center">
-        
+
         {/* Lime Glow Aura */}
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[300px] bg-gradient-to-tr from-lime-500/50 via-blue-500/20 to-transparent blur-3xl pointer-events-none rounded-full" />
 
-        {/* Minimal Badge */}
+        {/* Badge */}
         <div data-motion-enter className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-lime-400/30 bg-slate-950/60 backdrop-blur-lg mb-8">
           <span className="w-2 h-2 rounded-full bg-lime-400 animate-pulse"></span>
           <span className="text-xs font-mono tracking-wide text-lime-300">
-            Next-Gen Learning Architecture
+            Built for IELTS & Academic English
           </span>
         </div>
 
-        {/* Main Heading */}
+        {/* Main Heading — untouched */}
         <h1 data-motion-enter className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight leading-[1.08] max-w-4xl mx-auto mb-6">
           <span className="text-slate-100">AI-Powered English.</span><br />
           <span className="bg-gradient-to-b from-lime-300 via-lime-400 to-cyan-400 bg-clip-text text-transparent">
@@ -45,10 +45,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </h1>
 
         <p data-motion-enter className="text-xs sm:text-sm text-slate-300 max-w-xl mx-auto mb-8 leading-relaxed">
-          IELTS va akademik darajadagi so’zlarni sun’iy intellekt yordamida chuqur tahlil qiling, Active Recall va mini-testlar orqali xotirada saqlang.
+          Paste any word. Get CEFR level, usage examples, and etymology in under a second — then lock it into memory with spaced repetition quizzes.
         </p>
 
-        {/* Main Buttons */}
+        {/* CTA Buttons */}
         <div data-motion-enter className="flex flex-col sm:flex-row items-center gap-4 w-full justify-center max-w-sm">
           <button
             type="button"
@@ -75,58 +75,142 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </div>
       </section>
 
-      {/* 2. WHY UNIVEBOOSTER */}
+      {/* 2. HOW IT WORKS — 3 cards, unslopped */}
       <section className="w-full max-w-5xl mx-auto px-4 pb-20">
         <div className="text-center mb-10">
           <span className="text-xs font-mono font-bold text-lime-400 tracking-wider uppercase">
-            Advantages
+            How it works
           </span>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-100 mt-1">
-            Why UniveBooster?
+            Three steps. Zero fluff.
           </h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-          {/* Reason 1 */}
-          <div data-motion-reveal className="motion-surface p-6 rounded-3xl bg-slate-900/60 backdrop-blur-lg border border-lime-400/20 hover:border-lime-400/40 hover:shadow-[0_0_20px_rgba(132,204,22,0.3)] transition flex flex-col justify-between">
+          {/* Card 1 */}
+          <div data-motion-reveal className="motion-surface p-6 rounded-3xl bg-slate-900/60 backdrop-blur-lg border border-lime-400/20 hover:border-lime-400/40 hover:shadow-[0_0_20px_rgba(132,204,22,0.15)] transition flex flex-col gap-4">
+            <div className="w-10 h-10 rounded-xl bg-slate-800 border border-lime-400/20 flex items-center justify-center text-lime-400 text-base font-bold shrink-0">
+              01
+            </div>
             <div>
-              <div className="w-10 h-10 rounded-xl bg-blue-900/70 border border-lime-400/30 flex items-center justify-center text-lime-400 mb-4 text-lg font-bold">
-                ⚡
-              </div>
-              <h3 className="text-base font-bold text-slate-100">Instant AI Power</h3>
-              <p className="text-xs text-slate-300 mt-2 leading-relaxed">
-                Har qanday so'z yoki iborani kiritishingiz bilan bir soniya ichida to'liq CEFR tahlili va kontekstni taqdim etadi.
+              <h3 className="text-sm font-bold text-slate-100 mb-1">Paste any word</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Type or paste a word. UniveBooster returns CEFR level, pronunciation, 3 usage examples, etymology, and synonyms — in one shot.
               </p>
             </div>
           </div>
 
-          {/* Reason 2 */}
-          <div data-motion-reveal className="motion-surface p-6 rounded-3xl bg-slate-900/60 backdrop-blur-lg border border-lime-400/20 hover:border-lime-400/40 hover:shadow-[0_0_20px_rgba(132,204,22,0.3)] transition flex flex-col justify-between">
+          {/* Card 2 */}
+          <div data-motion-reveal className="motion-surface p-6 rounded-3xl bg-slate-900/60 backdrop-blur-lg border border-lime-400/20 hover:border-lime-400/40 hover:shadow-[0_0_20px_rgba(132,204,22,0.15)] transition flex flex-col gap-4">
+            <div className="w-10 h-10 rounded-xl bg-slate-800 border border-lime-400/20 flex items-center justify-center text-lime-400 text-base font-bold shrink-0">
+              02
+            </div>
             <div>
-              <div className="w-10 h-10 rounded-xl bg-blue-900/70 border border-lime-400/30 flex items-center justify-center text-lime-400 mb-4 text-lg font-bold">
-                🎯
-              </div>
-              <h3 className="text-base font-bold text-slate-100">Active Recall System</h3>
-              <p className="text-xs text-slate-300 mt-2 leading-relaxed">
-                Unutish egri chizig'iga asoslangan aqlli takrorlash mexanizmi orqali so'zlar xotirangizda saqlanib qoladi.
+              <h3 className="text-sm font-bold text-slate-100 mb-1">Save and get tested</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Save words to your personal list. The system schedules spaced-repetition quizzes timed to your forgetting curve — not a fixed schedule.
               </p>
             </div>
           </div>
 
-          {/* Reason 3 */}
-          <div data-motion-reveal className="motion-surface p-6 rounded-3xl bg-slate-900/60 backdrop-blur-lg border border-lime-400/20 hover:border-lime-400/40 hover:shadow-[0_0_20px_rgba(132,204,22,0.3)] transition flex flex-col justify-between">
+          {/* Card 3 */}
+          <div data-motion-reveal className="motion-surface p-6 rounded-3xl bg-slate-900/60 backdrop-blur-lg border border-lime-400/20 hover:border-lime-400/40 hover:shadow-[0_0_20px_rgba(132,204,22,0.15)] transition flex flex-col gap-4">
+            <div className="w-10 h-10 rounded-xl bg-slate-800 border border-lime-400/20 flex items-center justify-center text-lime-400 text-base font-bold shrink-0">
+              03
+            </div>
             <div>
-              <div className="w-10 h-10 rounded-xl bg-blue-900/70 border border-lime-400/30 flex items-center justify-center text-lime-400 mb-4 text-lg font-bold">
-                ☁️
-              </div>
-              <h3 className="text-base font-bold text-slate-100">Turso Cloud Sync</h3>
-              <p className="text-xs text-slate-300 mt-2 leading-relaxed">
-                Barcha o'rgangan so'zlaringiz va statistikalaringiz xavfsiz bulutli bazada sinxronlashib turadi.
+              <h3 className="text-sm font-bold text-slate-100 mb-1">Progress syncs everywhere</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Your word bank, quiz history, and streaks live in Turso Cloud. Open the app on any device — everything's already there.
               </p>
             </div>
           </div>
 
+        </div>
+      </section>
+
+      {/* 3. FEATURES GRID */}
+      <section className="w-full max-w-5xl mx-auto px-4 pb-24">
+        <div className="text-center mb-10">
+          <span className="text-xs font-mono font-bold text-lime-400 tracking-wider uppercase">
+            Features
+          </span>
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-100 mt-1">
+            Everything you actually need.
+          </h2>
+          <p className="text-xs text-slate-400 mt-2 max-w-lg mx-auto">
+            No paywalled flashcard decks. No recycled word lists. Just clean tooling built around how memory works.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+
+          {[
+            {
+              icon: '⚡',
+              title: 'Sub-second AI analysis',
+              desc: 'CEFR level, context, and sentence examples delivered before you finish reading the word.',
+            },
+            {
+              icon: '🎯',
+              title: 'Active Recall quizzes',
+              desc: 'Multiple-choice and fill-in-the-blank tests triggered at the optimal forgetting interval — not daily spam.',
+            },
+            {
+              icon: '📖',
+              title: 'Retention Reading',
+              desc: 'Read curated IELTS-level articles. Tap any unknown word mid-read for an instant breakdown without leaving the page.',
+            },
+            {
+              icon: '🌐',
+              title: 'Word Blitz mode',
+              desc: '60-second word sprints. Build speed recognition for high-frequency academic vocabulary under real exam pressure.',
+            },
+            {
+              icon: '☁️',
+              title: 'Cloud sync',
+              desc: 'Turso-backed storage. Your saved words and stats are intact across every session and device.',
+            },
+            {
+              icon: '🔒',
+              title: 'Telegram auth — no password',
+              desc: 'Sign in with one Telegram message. No forms, no email verification, no forgotten passwords.',
+            },
+          ].map((f, i) => (
+            <div
+              key={i}
+              data-motion-reveal
+              className="motion-surface group p-5 rounded-2xl bg-slate-900/50 border border-slate-700/50 hover:border-lime-400/30 hover:bg-slate-900/70 transition-all duration-200 flex flex-col gap-3"
+            >
+              <div className="w-9 h-9 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-base group-hover:border-lime-400/30 transition">
+                {f.icon}
+              </div>
+              <h3 className="text-sm font-bold text-slate-100 leading-snug">{f.title}</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">{f.desc}</p>
+            </div>
+          ))}
+
+        </div>
+      </section>
+
+      {/* 4. BOTTOM CTA STRIP */}
+      <section className="w-full max-w-5xl mx-auto px-4 pb-28">
+        <div className="relative rounded-3xl border border-lime-400/20 bg-slate-900/60 backdrop-blur-lg p-10 text-center overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-lime-500/5 via-transparent to-cyan-500/5 pointer-events-none" />
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-100 mb-3">
+            Start learning. Right now.
+          </h2>
+          <p className="text-xs text-slate-400 mb-7 max-w-sm mx-auto">
+            No account required to try it. Sign up only when you want your progress saved.
+          </p>
+          <button
+            type="button"
+            onClick={onStart}
+            className="inline-flex items-center justify-center gap-2 px-10 py-3.5 rounded-xl bg-gradient-to-r from-lime-400 to-cyan-400 text-slate-950 font-bold text-sm hover:shadow-[0_0_30px_rgba(132,204,22,0.4)] active:scale-[0.98] transition cursor-pointer"
+          >
+            Open the trainer →
+          </button>
         </div>
       </section>
 
