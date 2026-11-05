@@ -10,14 +10,10 @@
     "build": "npm --workspace server run build && npm --workspace client run build",
     "start": "npm --workspace server run start",
     "lint": "npm --workspace client run lint || true",
-    "ship": "git add . && git commit -m \"update\" && git push",
-    "install": "npm install --ignore-scripts"
-  },
-  "devDependencies": {
-    "concurrently": "^9.0.0"
+    "ship": "git add . && git commit -m \"update\" && git push"
   },
   "dependencies": {
-    "@libsql/client": "^0.18.0",
+    "@libsql/client": "^0.14.0",
     "@paper-design/shaders": "^0.0.80",
     "clsx": "^2.1.1",
     "dotenv": "^18.0.3",
@@ -28,10 +24,5 @@
   },
   "overrides": {
     "postcss-selector-parser": "^7.1.7"
-  },
-  "allowScripts": {
-    "better-sqlite3@13.0.3": true,
-    "esbuild@0.28.2": true,
-    "esbuild@0.25.12": true
   }
 }
