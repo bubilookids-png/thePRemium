@@ -26,7 +26,7 @@ export async function apiFetch<T>(
   const timer = window.setTimeout(() => controller.abort(), timeoutMs);
 
   // Automatically attach cryptographically signed Bearer JWT token if user is signed in
-  const token = typeof window !== 'undefined' ? localStorage.getItem('vacabbro_token') : null;
+  const token = typeof window !== 'undefined' ? (localStorage.getItem('vb_k_s1') || localStorage.getItem('vacabbro_token')) : null;
   const authHeaders: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
 
   try {

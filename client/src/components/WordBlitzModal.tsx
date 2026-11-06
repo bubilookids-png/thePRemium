@@ -53,7 +53,7 @@ export function WordBlitzModal({ onClose }: { onClose: () => void }) {
 
   function getUserWords(): { en: string; uz: string }[] {
     try {
-      const raw = localStorage.getItem('vacabbro_history');
+      const raw = localStorage.getItem('vb_h_s1') || localStorage.getItem('vacabbro_history');
       return raw ? JSON.parse(raw) : [];
     } catch {
       return [];

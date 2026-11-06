@@ -106,7 +106,7 @@ function AppInner() {
 
   const [currentUser, setCurrentUser] = useState<TelegramUser | null>(() => {
     try {
-      const saved = localStorage.getItem('vacabbro_user');
+      const saved = localStorage.getItem('vb_p_s1') || localStorage.getItem('vacabbro_user');
       if (!saved) return null;
       const user = JSON.parse(saved);
       if (typeof user?.id === 'number' && typeof user?.first_name === 'string') {
@@ -114,6 +114,7 @@ function AppInner() {
       }
       return null;
     } catch {
+      localStorage.removeItem('vb_p_s1');
       localStorage.removeItem('vacabbro_user');
       return null;
     }
@@ -124,7 +125,7 @@ function AppInner() {
   const [speechUtterance, setSpeechUtterance] = useState<SpeechSynthesisUtterance | null>(null);
 
   const [showLanding, setShowLanding] = useState<boolean>(() => {
-    return !localStorage.getItem('vacabbro_user');
+    return !(localStorage.getItem('vb_p_s1') || localStorage.getItem('vacabbro_user'));
   });
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -164,7 +165,7 @@ function AppInner() {
   const maxAllowedLimit = isPremium ? 400 : 100;
   const periodDays = isPremium ? 1 : 2;
 
-  const limitStorageKey = 'vacabbro_period_limit_data';
+  const limitStorageKey = 'vb_l_s1';
   const currentPeriodData = useMemo(() => {
     try {
       const saved = localStorage.getItem(limitStorageKey);
@@ -314,9 +315,10 @@ function AppInner() {
         };
 
         if (checkData.authToken) {
-          localStorage.setItem('vacabbro_token', checkData.authToken);
+          localStorage.setItem('vb_k_s1', checkData.authToken);
         }
-        localStorage.setItem('vacabbro_user', JSON.stringify(userData));
+        localStorage.setItem('vb_p_s1', JSON.stringify(userData));
+        localStorage.removeItem('vb_a_s1');
         localStorage.removeItem('vacabbro_pending_auth');
 
         setAuthenticatedUserSuccess(userData);
@@ -356,12 +358,13 @@ function AppInner() {
 
       // Check localStorage for pending session from previous tab/refresh
       try {
-        const pendingRaw = localStorage.getItem('vacabbro_pending_auth');
+        const pendingRaw = localStorage.getItem('vb_a_s1') || localStorage.getItem('vacabbro_pending_auth');
         if (pendingRaw) {
           const pending = JSON.parse(pendingRaw);
           if (pending?.token && Date.now() - pending.createdAt < 5 * 60 * 1000) {
             await verifyAuthToken(pending.token);
           } else {
+            localStorage.removeItem('vb_a_s1');
             localStorage.removeItem('vacabbro_pending_auth');
           }
         }
@@ -394,7 +397,7 @@ function AppInner() {
       setAuthDeepLink(deepLink);
 
       // Save pending auth to localStorage so even if tab reloads or user enters again, it will authenticate!
-      localStorage.setItem('vacabbro_pending_auth', JSON.stringify({ token, createdAt: Date.now() }));
+      localStorage.setItem('vb_a_s1', JSON.stringify({ token, createdAt: Date.now() }));
 
       // Attempt to open Telegram in new tab/app
       window.open(deepLink, '_blank');
@@ -422,8 +425,11 @@ function AppInner() {
   }
 
   function handleLogout() {
+    localStorage.removeItem('vb_p_s1');
     localStorage.removeItem('vacabbro_user');
+    localStorage.removeItem('vb_k_s1');
     localStorage.removeItem('vacabbro_token');
+    localStorage.removeItem('vb_a_s1');
     localStorage.removeItem('vacabbro_pending_auth');
     setCurrentUser(null);
     setShowLanding(true);
@@ -470,13 +476,13 @@ function AppInner() {
       try {
         const translationText = res.analysis?.translation || '';
         if (translationText) {
-          const rawHistory = localStorage.getItem('vacabbro_history');
+          const rawHistory = localStorage.getItem('vb_h_s1') || localStorage.getItem('vacabbro_history');
           const historyList: { en: string; uz: string }[] = rawHistory ? JSON.parse(rawHistory) : [];
 
           const filtered = historyList.filter((item) => item.en.toLowerCase() !== term.toLowerCase());
           filtered.unshift({ en: term, uz: translationText.split(/[,;\.]/)[0].trim() });
 
-          localStorage.setItem('vacabbro_history', JSON.stringify(filtered.slice(0, 50)));
+          localStorage.setItem('vb_h_s1', JSON.stringify(filtered.slice(0, 50)));
         }
       } catch (err) {
         console.warn('History saqlashda xato:', err);
