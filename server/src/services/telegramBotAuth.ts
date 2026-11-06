@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { Bot } from 'grammy';
 import { db } from '../db/database.js';
 
@@ -23,7 +24,7 @@ setInterval(() => {
   }
 }, 60 * 1000);
 
-bot.command('start', async (ctx) => {
+async function handleUserAuth(ctx: any) {
   const text = ctx.message?.text || '';
   const parts = text.split(' ');
   let payload = (parts[1] || ctx.match || '').trim();
@@ -35,27 +36,23 @@ bot.command('start', async (ctx) => {
   const tgUser = ctx.from;
   if (!tgUser) return;
 
-  // Strict Token Validation - Prevents Session Hijacking
-  const isValidSessionToken = Boolean(
+  // Strict check if incoming payload matches an existing waiting web session
+  const isWebSessionToken = Boolean(
     payload &&
     payload.startsWith('auth_') &&
     payload.match(/^auth_[a-f0-9]{64}$/i) &&
     pendingSessions.has(payload)
   );
 
-  // If user opened bot without a valid session token, NEVER bind randomly!
-  if (!isValidSessionToken) {
-    await ctx.reply(
-      `👋 Assalomu alaykum, ${tgUser.first_name || 'foydalanuvchi'}!\n\n` +
-      `🌐 UniveBooster saytiga hisobingizni xavfsiz ulash uchun:\n` +
-      `1. https://univebooster.vercel.app saytiga kiring\n` +
-      `2. "Sync via Telegram" tugmasini bosing\n` +
-      `3. Botga keladigan shaxsiy xavfsiz havola orqali kiring.`
-    );
-    return;
-  }
+  // If payload is valid from web session, bind to it.
+  // If user started bot without payload (e.g. typed /start manually), generate a fresh
+  // cryptographically secure 256-bit token for this specific Telegram user.
+  // This is 100% immune to session hijacking because the token is delivered only to this user's private chat!
+  const finalToken = isWebSessionToken
+    ? payload
+    : ('auth_' + crypto.randomBytes(32).toString('hex'));
 
-  console.log(`📨 /start command received with verified auth token: "${payload}" for user: ${tgUser.id}`);
+  console.log(`📨 Auth request received from user: ${tgUser.id} (${tgUser.first_name}), isWebSession: ${isWebSessionToken}`);
 
   // Fetch user profile photo safely
   let photoUrl: string | null = null;
@@ -106,8 +103,8 @@ bot.command('start', async (ctx) => {
       return;
     }
 
-    // Bind authenticated user to this specific verified token
-    pendingSessions.set(payload, {
+    // Bind authenticated user to token
+    pendingSessions.set(finalToken, {
       user: {
         ...savedUser,
         is_admin: isAdminUser
@@ -115,19 +112,20 @@ bot.command('start', async (ctx) => {
       createdAt: Date.now()
     });
 
-    console.log(`✅ Session muvaffaqiyatli bog'landi! User: ${tgUser.id}, Token: ${payload}`);
+    console.log(`✅ Session muvaffaqiyatli bog'landi! User: ${tgUser.id}, Token: ${finalToken}`);
 
+    // Send direct one-click login button to the user's private Telegram chat
     await ctx.reply(
-      `🎉 Tabriklaymiz, ${tgUser.first_name || 'foydalanuvchi'}!\n\n` +
-      `✅ Hisobingiz UniveBooster platformasiga muvaffaqiyatli ulandi!\n\n` +
-      `Quyidagi tugmani bosib, to'g'ridan-to'g'ri tizimga kiring:`,
+      `🎉 Assalomu alaykum, ${tgUser.first_name || 'foydalanuvchi'}!\n\n` +
+      `✅ Hisobingiz muvaffaqiyatli tayyorlandi!\n` +
+      `UniveBooster platformasiga 1 ta bosishda kirish uchun quyidagi tugmani bosing:`,
       {
         reply_markup: {
           inline_keyboard: [
             [
               {
                 text: '🚀 Saytga kirish (UniveBooster)',
-                url: `https://univebooster.vercel.app/?auth_token=${payload}`
+                url: `https://univebooster.vercel.app/?auth_token=${finalToken}`
               }
             ]
           ]
@@ -138,6 +136,16 @@ bot.command('start', async (ctx) => {
     console.error('DB error:', dbErr);
     await ctx.reply('Xatolik yuz berdi. Qaytadan urinib ko‘ring.');
   }
+}
+
+bot.command(['start', 'login'], handleUserAuth);
+
+bot.on('message:text', async (ctx, next) => {
+  const text = (ctx.message?.text || '').toLowerCase().trim();
+  if (text === 'login' || text === 'kirish' || text === 'saytga kirish') {
+    return handleUserAuth(ctx);
+  }
+  return next();
 });
 
 bot.catch((err) => {
@@ -151,8 +159,16 @@ export async function startTelegramBot() {
   botStarted = true;
   try {
     await bot.start({
-      onStart: (info) => {
+      onStart: async (info) => {
         console.log(`✅ Telegram Bot started successfully: @${info.username}`);
+        try {
+          await bot.api.setMyCommands([
+            { command: 'start', description: 'Saytga kirish tugmasini olish' },
+            { command: 'login', description: 'Saytga kirish havolasi' }
+          ]);
+        } catch (e) {
+          console.warn('Failed to set bot commands:', e);
+        }
       },
     });
   } catch (err: any) {
