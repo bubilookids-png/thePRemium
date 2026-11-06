@@ -19,6 +19,7 @@ import { QuickTranslator } from './components/QuickTranslator';
 import { LegalModal } from './components/LegalModal';
 import { ConsentModal } from './components/ConsentModal';
 import { CookieModal, hasGivenCookieConsent } from './components/CookieModal';
+import { TelegramLoginModal } from './components/TelegramLoginModal';
 import { MySavedWords } from './components/MySavedWords';
 import { SettingsView } from './components/SettingsView';
 import { BotWarningModal } from './components/BotWarningModal';
@@ -146,6 +147,9 @@ function AppInner() {
   const vipPanelRef = useRef<HTMLDivElement>(null);
 
   const [waitingAuth, setWaitingAuth] = useState(false);
+  const [showTelegramModal, setShowTelegramModal] = useState(false);
+  const [authDeepLink, setAuthDeepLink] = useState<string | null>(null);
+  const [authenticatedUserSuccess, setAuthenticatedUserSuccess] = useState<TelegramUser | null>(null);
   const [isCheckingBot, setIsCheckingBot] = useState(false);
   const [botWarning, setBotWarning] = useState<{ isBot: boolean; botKind?: string } | null>(null);
   const [showLimitModal, setShowLimitModal] = useState(false);
@@ -288,12 +292,94 @@ function AppInner() {
     return () => window.removeEventListener('keydown', handleGlobalKeyDown);
   }, [word, showLanding]);
 
+  async function verifyAuthToken(tokenToVerify: string): Promise<boolean> {
+    try {
+      const backendUrl = window.location.hostname === 'localhost'
+        ? 'http://localhost:8787'
+        : 'https://thepremium.onrender.com';
+
+      const checkRes = await fetch(`${backendUrl}/api/auth/check-session/${tokenToVerify}`);
+      const checkData = await checkRes.json();
+
+      if (checkData?.authenticated === true && checkData?.user) {
+        const savedUser = checkData.user;
+        const userData: TelegramUser = {
+          id: savedUser.id || savedUser.telegram_id,
+          first_name: savedUser.first_name,
+          last_name: savedUser.last_name,
+          username: savedUser.username,
+          photo_url: savedUser.photo_url,
+          search_count: savedUser.search_count || 0,
+          is_premium: Boolean(savedUser.is_premium)
+        };
+
+        if (checkData.authToken) {
+          localStorage.setItem('vacabbro_token', checkData.authToken);
+        }
+        localStorage.setItem('vacabbro_user', JSON.stringify(userData));
+        localStorage.removeItem('vacabbro_pending_auth');
+
+        setAuthenticatedUserSuccess(userData);
+        setCurrentUser(userData);
+        setShowLanding(false);
+
+        setTimeout(() => {
+          setShowTelegramModal(false);
+          setAuthenticatedUserSuccess(null);
+        }, 1200);
+
+        return true;
+      }
+    } catch (e) {
+      console.error("Auth verification error:", e);
+    }
+    return false;
+  }
+
+  // Auto-authenticate on page mount if redirected from Telegram (?auth_token=...) OR re-opened with pending session
+  useEffect(() => {
+    async function checkAutoAuth() {
+      if (currentUser) return;
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlToken = urlParams.get('auth_token') || urlParams.get('token');
+
+      if (urlToken && urlToken.startsWith('auth_')) {
+        setShowTelegramModal(true);
+        setWaitingAuth(true);
+        const ok = await verifyAuthToken(urlToken);
+        if (ok) {
+          window.history.replaceState({}, document.title, window.location.pathname);
+          return;
+        }
+      }
+
+      // Check localStorage for pending session from previous tab/refresh
+      try {
+        const pendingRaw = localStorage.getItem('vacabbro_pending_auth');
+        if (pendingRaw) {
+          const pending = JSON.parse(pendingRaw);
+          if (pending?.token && Date.now() - pending.createdAt < 5 * 60 * 1000) {
+            await verifyAuthToken(pending.token);
+          } else {
+            localStorage.removeItem('vacabbro_pending_auth');
+          }
+        }
+      } catch {}
+    }
+
+    checkAutoAuth();
+  }, []);
+
   async function handleTelegramLogin() {
     let interval: NodeJS.Timeout | null = null;
     let timeout: NodeJS.Timeout | null = null;
 
     try {
       setWaitingAuth(true);
+      setShowTelegramModal(true);
+      setAuthenticatedUserSuccess(null);
+
       const backendUrl = window.location.hostname === 'localhost'
         ? 'http://localhost:8787'
         : 'https://thepremium.onrender.com';
@@ -305,47 +391,27 @@ function AppInner() {
       if (!token) throw new Error('Sessiya tokeni olinmadi');
 
       const deepLink = `https://t.me/${BOT_USERNAME}?start=${token}`;
-      sessionStorage.setItem('telegram_auth_token', token);
+      setAuthDeepLink(deepLink);
+
+      // Save pending auth to localStorage so even if tab reloads or user enters again, it will authenticate!
+      localStorage.setItem('vacabbro_pending_auth', JSON.stringify({ token, createdAt: Date.now() }));
+
+      // Attempt to open Telegram in new tab/app
       window.open(deepLink, '_blank');
 
       interval = setInterval(async () => {
-        try {
-          const checkRes = await fetch(`${backendUrl}/api/auth/check-session/${token}`);
-          const checkData = await checkRes.json();
-
-          if (checkData?.authenticated === true && checkData?.user) {
-            if (interval) clearInterval(interval);
-            if (timeout) clearTimeout(timeout);
-            setWaitingAuth(false);
-
-            const savedUser = checkData.user;
-            const userData: TelegramUser = {
-              id: savedUser.id || savedUser.telegram_id,
-              first_name: savedUser.first_name,
-              last_name: savedUser.last_name,
-              username: savedUser.username,
-              photo_url: savedUser.photo_url,
-              search_count: savedUser.search_count || 0,
-              is_premium: Boolean(savedUser.is_premium)
-            };
-
-            // Store cryptographically signed JWT token for all secure API calls
-            if (checkData.authToken) {
-              localStorage.setItem('vacabbro_token', checkData.authToken);
-            }
-            localStorage.setItem('vacabbro_user', JSON.stringify(userData));
-            setCurrentUser(userData);
-            setShowLanding(false);
-          }
-        } catch (e) {
-          console.error("Auth polling error:", e);
+        const ok = await verifyAuthToken(token);
+        if (ok) {
+          if (interval) clearInterval(interval);
+          if (timeout) clearTimeout(timeout);
+          setWaitingAuth(false);
         }
       }, 2000);
 
       timeout = setTimeout(() => {
         if (interval) clearInterval(interval);
         setWaitingAuth(false);
-      }, 60000);
+      }, 120000); // 2 minutes window
 
     } catch (err) {
       console.error(err);
@@ -358,6 +424,7 @@ function AppInner() {
   function handleLogout() {
     localStorage.removeItem('vacabbro_user');
     localStorage.removeItem('vacabbro_token');
+    localStorage.removeItem('vacabbro_pending_auth');
     setCurrentUser(null);
     setShowLanding(true);
   }
@@ -937,6 +1004,19 @@ function AppInner() {
       {showLegalModal && (
         <LegalModal
           onClose={() => setShowLegalModal(false)}
+        />
+      )}
+
+      {showTelegramModal && (
+        <TelegramLoginModal
+          isOpen={showTelegramModal}
+          onClose={() => {
+            setShowTelegramModal(false);
+            setWaitingAuth(false);
+          }}
+          deepLink={authDeepLink}
+          waitingAuth={waitingAuth}
+          authenticatedUser={authenticatedUserSuccess}
         />
       )}
 

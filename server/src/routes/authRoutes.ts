@@ -61,8 +61,14 @@ router.get('/check-session/:token', checkSessionLimiter, (req: Request, res: Res
     // Issue signed JWT token
     const authToken = generateAuthToken(userPayload);
 
-    // One-time consumption: delete immediately to prevent replay attacks
-    pendingSessions.delete(String(token));
+    // Multi-device & redirect grace period: allow 60 seconds before hard deletion
+    // so both tab polling and Telegram redirect links can successfully authenticate
+    if (!session.consumedAt) {
+      session.consumedAt = Date.now();
+    } else if (Date.now() - session.consumedAt > 60000) {
+      pendingSessions.delete(String(token));
+      return res.json({ success: true, authenticated: false, error: 'Session expired' });
+    }
 
     console.log(`✅ Front-end authenticated! User: ${userPayload.telegram_id}, Admin: ${isAdmin}, Premium: ${isPremium}`);
 

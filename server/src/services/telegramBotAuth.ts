@@ -11,13 +11,13 @@ export const bot = new Bot(botToken || 'dummy_token');
 const SESSION_TIMEOUT = 5 * 60 * 1000; // 5 minutes
 
 // In-memory map for one-time pending login sessions
-export const pendingSessions = new Map<string, { user: any | null; createdAt: number }>();
+export const pendingSessions = new Map<string, { user: any | null; createdAt: number; consumedAt?: number }>();
 
 // Periodic cleanup of expired pending sessions (prevents memory leak)
 setInterval(() => {
   const now = Date.now();
   for (const [token, session] of pendingSessions.entries()) {
-    if (now - session.createdAt > SESSION_TIMEOUT) {
+    if (now - session.createdAt > SESSION_TIMEOUT || (session.consumedAt && now - session.consumedAt > 60000)) {
       pendingSessions.delete(token);
     }
   }
@@ -116,7 +116,24 @@ bot.command('start', async (ctx) => {
     });
 
     console.log(`✅ Session muvaffaqiyatli bog'landi! User: ${tgUser.id}, Token: ${payload}`);
-    await ctx.reply(`✅ Muvaffaqiyatli, ${tgUser.first_name}! Hisobingiz saytga ulandi. Endi brauzerga qaytishingiz mumkin.`);
+
+    await ctx.reply(
+      `🎉 Tabriklaymiz, ${tgUser.first_name || 'foydalanuvchi'}!\n\n` +
+      `✅ Hisobingiz UniveBooster platformasiga muvaffaqiyatli ulandi!\n\n` +
+      `Quyidagi tugmani bosib, to'g'ridan-to'g'ri tizimga kiring:`,
+      {
+        reply_markup: {
+          inline_keyboard: [
+            [
+              {
+                text: '🚀 Saytga kirish (UniveBooster)',
+                url: `https://univebooster.vercel.app/?auth_token=${payload}`
+              }
+            ]
+          ]
+        }
+      }
+    );
   } catch (dbErr) {
     console.error('DB error:', dbErr);
     await ctx.reply('Xatolik yuz berdi. Qaytadan urinib ko‘ring.');
