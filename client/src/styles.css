@@ -3319,10 +3319,23 @@ body[data-theme="editorial"] .app-shell {
 /* Text Colors */
 [data-theme="editorial"] .text-lime-100,
 [data-theme="editorial"] .text-lime-200,
-[data-theme="editorial"] .text-slate-100,
-[data-theme="editorial"] .text-slate-200,
-[data-theme="editorial"] .text-white {
+[data-theme="editorial"] .text-slate-100 {
   color: #1E2433 !important;
+}
+
+/* White text must ALWAYS remain pure crisp white on dark buttons and surfaces */
+[data-theme="editorial"] .text-white,
+[data-theme="editorial"] .btn-dark,
+[data-theme="editorial"] .btn-dark *,
+[data-theme="editorial"] .dark-banner,
+[data-theme="editorial"] .dark-banner h1,
+[data-theme="editorial"] .dark-banner h2,
+[data-theme="editorial"] .dark-banner h3,
+[data-theme="editorial"] .dark-banner p,
+[data-theme="editorial"] .dark-banner span,
+[data-theme="editorial"] [data-dark-surface="true"],
+[data-theme="editorial"] [data-dark-surface="true"] * {
+  color: #FFFFFF !important;
 }
 
 [data-theme="editorial"] .text-lime-300,

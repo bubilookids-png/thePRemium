@@ -182,14 +182,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <button
             type="button"
             onClick={onStart}
-            className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl font-bold text-sm transition-all cursor-pointer group ${
+            style={isEditorial ? { backgroundColor: '#1E2433', color: '#FFFFFF' } : undefined}
+            className={`btn-dark w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-xl font-bold text-sm transition-all cursor-pointer group ${
               isEditorial
-                ? 'bg-[#1E2433] text-white hover:bg-[#6D28D9] border-2 border-[#1E2433] shadow-[4px_4px_0px_#1E2433] active:translate-x-0.5 active:translate-y-0.5'
+                ? 'border-2 border-[#1E2433] shadow-[4px_4px_0px_#6D28D9] hover:bg-[#6D28D9] active:translate-x-0.5 active:translate-y-0.5'
                 : 'bg-gradient-to-r from-lime-400 via-lime-300 to-cyan-400 text-slate-950 hover:shadow-[0_0_35px_rgba(132,204,22,0.5)] active:scale-[0.98]'
             }`}
           >
-            <span>Open Vocabulary Trainer</span>
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            <span style={{ color: '#FFFFFF' }} className="font-extrabold">Open Vocabulary Trainer</span>
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform shrink-0" style={{ color: '#FFFFFF' }} />
           </button>
 
           {!isLoggedIn && (
@@ -197,14 +198,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               type="button"
               onClick={onLogin}
               disabled={waitingAuth}
+              style={isEditorial ? { backgroundColor: '#FFFFFF', color: '#1E2433' } : undefined}
               className={`w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-xl font-bold text-sm transition-all active:scale-[0.98] cursor-pointer ${
                 isEditorial
-                  ? 'bg-white text-[#1E2433] hover:bg-slate-50 border-2 border-[#1E2433] shadow-[3px_3px_0px_#1E2433]'
+                  ? 'border-2 border-[#1E2433] shadow-[3px_3px_0px_#1E2433] hover:bg-slate-50 text-[#1E2433]'
                   : 'bg-slate-900/80 backdrop-blur-md border border-lime-400/40 text-lime-300 hover:bg-slate-800/80'
               }`}
             >
-              <svg className={`w-4 h-4 fill-current ${isEditorial ? 'text-[#1E2433]' : 'text-lime-300'}`} viewBox="0 0 24 24">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.75-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z" />
+              <svg className="w-4 h-4 fill-[#229ED9] shrink-0" viewBox="0 0 24 24">
+                <path d="M12 0C5.37 0 0 5.37 0 12s5.37 12 12 12 12-5.37 12-12S18.63 0 12 0zm5.56 8.16l-1.92 9.06c-.14.65-.53.81-1.07.5l-2.97-2.19-1.43 1.38c-.16.16-.29.29-.6.29l.21-3.03 5.52-4.99c.24-.21-.05-.33-.37-.12l-6.82 4.3-2.94-.92c-.64-.2-.65-.64.13-.95l11.5-4.43c.53-.2 1 .12.89.98z" />
               </svg>
               <span>{waitingAuth ? 'Connecting...' : 'Sync via Telegram'}</span>
             </button>
@@ -269,17 +271,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 key={key}
                 type="button"
                 onClick={() => setActiveWordKey(key)}
-                className={`px-4 py-2 rounded-xl text-xs font-mono transition-all border-2 cursor-pointer flex items-center gap-2 ${
+                style={isActive && isEditorial ? { backgroundColor: '#1E2433', color: '#FFFFFF' } : undefined}
+                className={`btn-dark px-4 py-2 rounded-xl text-xs font-mono transition-all border-2 cursor-pointer flex items-center gap-2 ${
                   isActive
                     ? isEditorial
-                      ? 'bg-[#1E2433] border-[#1E2433] text-white shadow-[4px_4px_0px_#6D28D9] font-bold'
+                      ? 'border-[#1E2433] text-white shadow-[4px_4px_0px_#6D28D9] font-bold'
                       : 'bg-lime-400/20 border-lime-400 text-lime-300 shadow-[0_0_20px_rgba(132,204,22,0.3)] font-bold'
                     : isEditorial
                     ? 'bg-white border-[#1E2433] text-[#1E2433] shadow-[2px_2px_0px_#1E2433] hover:bg-slate-50'
                     : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200'
                 }`}
               >
-                <span>{item.word}</span>
+                <span style={isActive && isEditorial ? { color: '#FFFFFF' } : undefined} className="font-bold">{item.word}</span>
                 <span
                   className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
                     item.level === 'C2'
@@ -954,15 +957,25 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       <section className="w-full max-w-5xl mx-auto px-4 pb-28">
         <div
           data-dark-surface="true"
-          className="dark-banner relative rounded-3xl border-2 border-[#1E2433] bg-[#1E2433] p-10 sm:p-14 text-center overflow-hidden shadow-[8px_8px_0px_#6D28D9]"
+          style={{ backgroundColor: '#1E2433', color: '#FFFFFF' }}
+          className="btn-dark dark-banner relative rounded-3xl border-2 border-[#1E2433] bg-[#1E2433] p-10 sm:p-14 text-center overflow-hidden shadow-[8px_8px_0px_#6D28D9]"
         >
-          <span className="text-xs font-mono font-black text-lime-400 uppercase tracking-widest mb-3 inline-block">
+          <span
+            className="text-xs font-mono font-black uppercase tracking-widest mb-3 inline-block"
+            style={{ color: '#A3E635' }}
+          >
             Immediate Access
           </span>
-          <h2 className="text-3xl sm:text-4xl font-black text-white mb-4 tracking-tight font-serif">
+          <h2
+            className="text-3xl sm:text-4xl font-black mb-4 tracking-tight font-serif"
+            style={{ color: '#FFFFFF' }}
+          >
             Level up your academic English today.
           </h2>
-          <p className="text-xs sm:text-sm text-slate-200 mb-8 max-w-lg mx-auto leading-relaxed font-sans font-medium">
+          <p
+            className="text-xs sm:text-sm mb-8 max-w-lg mx-auto leading-relaxed font-sans font-medium"
+            style={{ color: '#E2E8F0' }}
+          >
             No subscription fees. No paywalls. Just a fast, scientifically grounded vocabulary engine built for serious learners.
           </p>
 
@@ -972,22 +985,23 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               onClick={onStart}
               className="inline-flex items-center justify-center gap-2.5 px-10 py-4 rounded-xl bg-gradient-to-r from-lime-400 via-lime-300 to-cyan-400 text-slate-950 font-black text-sm hover:shadow-[0_0_35px_rgba(132,204,22,0.4)] active:scale-[0.98] transition-all cursor-pointer"
             >
-              <span>Launch UniveBooster</span>
-              <ArrowRight className="w-4 h-4" />
+              <span className="text-slate-950 font-black">Launch UniveBooster</span>
+              <ArrowRight className="w-4 h-4 text-slate-950" />
             </button>
             {!isLoggedIn && (
               <button
                 type="button"
                 onClick={onLogin}
                 disabled={waitingAuth}
-                className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-white/10 border-2 border-white/30 text-white hover:bg-white/20 transition text-sm font-bold cursor-pointer"
+                style={{ backgroundColor: 'rgba(255,255,255,0.12)', color: '#FFFFFF' }}
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl border-2 border-white/40 hover:bg-white/20 transition text-sm font-bold cursor-pointer"
               >
-                <span>Telegram Quick Sync</span>
+                <span style={{ color: '#FFFFFF' }}>Telegram Quick Sync</span>
               </button>
             )}
           </div>
 
-          <div className="mt-8 flex items-center justify-center gap-4 text-[11px] text-slate-300 font-mono font-medium">
+          <div className="mt-8 flex items-center justify-center gap-4 text-[11px] font-mono font-medium" style={{ color: '#94A3B8' }}>
             <span>⚡ Instant Launch</span>
             <span>•</span>
             <span>🔒 Zero Data Tracking</span>
