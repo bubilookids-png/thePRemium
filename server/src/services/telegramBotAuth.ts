@@ -1,4 +1,4 @@
-import { Bot, InlineKeyboard } from 'grammy';
+import { Bot } from 'grammy';
 import { db } from '../db/database.js';
 
 const ADMIN_ID = process.env.ADMIN_TELEGRAM_ID
@@ -10,9 +10,10 @@ export const bot = new Bot(botToken || 'dummy_token');
 
 const SESSION_TIMEOUT = 5 * 60 * 1000; // 5 minutes
 
-// Bu Map endi barcha fayllar uchun global ishlaydi
+// In-memory map for one-time pending login sessions
 export const pendingSessions = new Map<string, { user: any | null; createdAt: number }>();
 
+// Periodic cleanup of expired pending sessions (prevents memory leak)
 setInterval(() => {
   const now = Date.now();
   for (const [token, session] of pendingSessions.entries()) {
@@ -25,37 +26,38 @@ setInterval(() => {
 bot.command('start', async (ctx) => {
   const text = ctx.message?.text || '';
   const parts = text.split(' ');
-  let payload = parts[1] || ctx.match || '';
+  let payload = (parts[1] || ctx.match || '').trim();
 
   if (!payload && Array.isArray((ctx as any).args) && (ctx as any).args.length > 0) {
-    payload = (ctx as any).args[0];
+    payload = String((ctx as any).args[0]).trim();
   }
-
-  // 🔥 100% ISHLAYDIGAN FALLBACK
-  // Agar payload bo'sh bo'lsa, biz pendingSessions dagi "kutayotgan" (user: null) tokenni majburlab olamiz.
-  if (!payload) {
-    let fallbackToken = null;
-    let latestTime = 0;
-    
-    for (const [token, session] of pendingSessions.entries()) {
-      if (session.user === null && session.createdAt > latestTime) {
-        fallbackToken = token;
-        latestTime = session.createdAt;
-      }
-    }
-    
-    if (fallbackToken) {
-      payload = fallbackToken;
-      console.log(`♻️ Havola tokensiz keldi! Lekin kutayotgan eng yangi tokenni ushladik: ${payload}`);
-    }
-  }
-
-  console.log(`📨 /start command received. Resolved Payload: "${payload}"`);
 
   const tgUser = ctx.from;
   if (!tgUser) return;
 
-  // DB ga saqlash jarayoni (bunda hech narsa o'zgarmaydi)
+  // Strict Token Validation - Prevents Session Hijacking
+  const isValidSessionToken = Boolean(
+    payload &&
+    payload.startsWith('auth_') &&
+    payload.match(/^auth_[a-f0-9]{64}$/i) &&
+    pendingSessions.has(payload)
+  );
+
+  // If user opened bot without a valid session token, NEVER bind randomly!
+  if (!isValidSessionToken) {
+    await ctx.reply(
+      `👋 Assalomu alaykum, ${tgUser.first_name || 'foydalanuvchi'}!\n\n` +
+      `🌐 UniveBooster saytiga hisobingizni xavfsiz ulash uchun:\n` +
+      `1. https://univebooster.vercel.app saytiga kiring\n` +
+      `2. "Sync via Telegram" tugmasini bosing\n` +
+      `3. Botga keladigan shaxsiy xavfsiz havola orqali kiring.`
+    );
+    return;
+  }
+
+  console.log(`📨 /start command received with verified auth token: "${payload}" for user: ${tgUser.id}`);
+
+  // Fetch user profile photo safely
   let photoUrl: string | null = null;
   try {
     const photos = await ctx.getUserProfilePhotos({ limit: 1 });
@@ -71,6 +73,8 @@ bot.command('start', async (ctx) => {
   }
 
   try {
+    const isAdminUser = ADMIN_ID !== null && tgUser.id === ADMIN_ID;
+
     await db.execute({
       sql: `
         INSERT INTO users (telegram_id, first_name, last_name, username, photo_url, last_active)
@@ -102,19 +106,17 @@ bot.command('start', async (ctx) => {
       return;
     }
 
-    // 🔥 Yakuniy bog'lash (Success Point!)
-    if (payload) {
-      pendingSessions.set(payload, {
-        user: savedUser,
-        createdAt: Date.now()
-      });
-      console.log(`✅ Session muvaffaqiyatli bog'landi va tayyor! Token: ${payload}`);
-      await ctx.reply(`Muvaffaqiyatli, ${tgUser.first_name}! Siz tizimga kirdingiz. Endi brauzerga qaytishingiz mumkin.`);
-    } else {
-      console.log(`❌ Token baribir topilmadi. Sababi server frontend'dan hali /session chaqiruvini olmagan.`);
-      await ctx.reply(`Iltimos, avval brauzerdan "Login with Telegram" tugmasini bosing!`);
-    }
+    // Bind authenticated user to this specific verified token
+    pendingSessions.set(payload, {
+      user: {
+        ...savedUser,
+        is_admin: isAdminUser
+      },
+      createdAt: Date.now()
+    });
 
+    console.log(`✅ Session muvaffaqiyatli bog'landi! User: ${tgUser.id}, Token: ${payload}`);
+    await ctx.reply(`✅ Muvaffaqiyatli, ${tgUser.first_name}! Hisobingiz saytga ulandi. Endi brauzerga qaytishingiz mumkin.`);
   } catch (dbErr) {
     console.error('DB error:', dbErr);
     await ctx.reply('Xatolik yuz berdi. Qaytadan urinib ko‘ring.');

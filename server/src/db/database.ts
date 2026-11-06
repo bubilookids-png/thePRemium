@@ -152,6 +152,10 @@ export async function initDatabase() {
   } catch {}
 
   try {
+    await db.execute(`ALTER TABLE users ADD COLUMN is_premium INTEGER DEFAULT 0`);
+  } catch {}
+
+  try {
     await db.execute(`ALTER TABLE words ADD COLUMN usage TEXT`);
   } catch {}
 

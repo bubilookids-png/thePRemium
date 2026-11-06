@@ -153,7 +153,7 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
   const [isEvaluating, setIsEvaluating] = useState(false);
 
   // Interaction State
-  const [showTooltip, setShowTooltip] = useState<{ word: string; x: number; y: number } | null>(null);
+  const [showTooltip, setShowTooltip] = useState<{ word: string; left: number; top?: number; bottom?: number } | null>(null);
   const [translation, setTranslation] = useState<string | null>(null);
   const [translating, setTranslating] = useState(false);
   const [wordSaved, setWordSaved] = useState(false);
@@ -400,8 +400,23 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
         setShowTooltip(null);
       }
     };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowTooltip(null);
+      }
+    };
+    const handleScroll = () => {
+      setShowTooltip(null);
+    };
+
     window.addEventListener('click', handleGlobalClick);
-    return () => window.removeEventListener('click', handleGlobalClick);
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('click', handleGlobalClick);
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('scroll', handleScroll);
+    };
   }, [showTooltip]);
 
   // Word Interaction - Accessible in BOTH Reading and Review phases
@@ -416,25 +431,33 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
     const target = e.target as HTMLElement;
     const rect = target.getBoundingClientRect();
 
-    const POPUP_WIDTH = 280;
-    const POPUP_HEIGHT = 160;
+    const POPUP_WIDTH = Math.min(290, window.innerWidth - 32);
+    const ESTIMATED_HEIGHT = 185;
 
-    // Viewport-relative coordinates (guaranteed zero container drift!)
-    let x = rect.left + rect.width / 2 - POPUP_WIDTH / 2;
-    let y = rect.bottom + 8;
-
-    // Strict clamping within viewport with safe 16px margins
-    if (x + POPUP_WIDTH > window.innerWidth - 16) {
-      x = window.innerWidth - POPUP_WIDTH - 16;
+    // Viewport-relative horizontal positioning
+    let left = rect.left + rect.width / 2 - POPUP_WIDTH / 2;
+    // Strict horizontal clamping with 16px viewport padding
+    if (left + POPUP_WIDTH > window.innerWidth - 16) {
+      left = window.innerWidth - POPUP_WIDTH - 16;
     }
-    if (x < 16) x = 16;
+    if (left < 16) left = 16;
 
-    // If popup would overflow bottom edge of viewport, flip it above the word
-    if (y + POPUP_HEIGHT > window.innerHeight - 16) {
-      y = Math.max(16, rect.top - POPUP_HEIGHT - 8);
+    // Vertical positioning: decide whether to place above or below the clicked word
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceAbove = rect.top;
+
+    let top: number | undefined;
+    let bottom: number | undefined;
+
+    // If space below has sufficient room, place below
+    if (spaceBelow >= ESTIMATED_HEIGHT || spaceBelow >= spaceAbove) {
+      top = Math.max(12, Math.min(rect.bottom + 8, window.innerHeight - ESTIMATED_HEIGHT - 12));
+    } else {
+      // Place above using bottom anchoring so content expansion grows upwards away from viewport edge!
+      bottom = Math.max(12, window.innerHeight - rect.top + 8);
     }
 
-    setShowTooltip({ word: cleanWord, x, y });
+    setShowTooltip({ word: cleanWord, left, top, bottom });
     setTranslation(null);
     setTranslating(true);
     setWordSaved(false);
@@ -1739,12 +1762,17 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
       {showTooltip && (
         <div
           data-word-tooltip
-          className={`fixed z-[99999] rounded-2xl p-4 shadow-2xl flex flex-col gap-3 w-[280px] transition-all animate-in fade-in zoom-in-95 duration-150 ${
+          className={`fixed z-[99999] rounded-2xl p-4 shadow-2xl flex flex-col gap-3 w-[min(290px,calc(100vw-32px))] transition-all animate-in fade-in zoom-in-95 duration-150 ${
             isEditorial
-              ? 'bg-white border-2 border-[#1E2433] shadow-[8px_8px_0px_#1E2433] text-[#1E2433]'
+              ? 'bg-[#FFFDF9] border-2 border-[#1E2433] shadow-[6px_6px_0px_#1E2433] text-[#1E2433]'
               : 'bg-slate-950/95 border border-slate-800 text-slate-100 backdrop-blur-md'
           }`}
-          style={{ top: `${showTooltip.y}px`, left: `${showTooltip.x}px` }}
+          style={{
+            left: `${showTooltip.left}px`,
+            top: showTooltip.top !== undefined ? `${showTooltip.top}px` : undefined,
+            bottom: showTooltip.bottom !== undefined ? `${showTooltip.bottom}px` : undefined,
+            maxHeight: 'min(280px, calc(100vh - 32px))',
+          }}
           onClick={(e) => e.stopPropagation()}
         >
           <div

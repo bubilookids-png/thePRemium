@@ -3068,12 +3068,11 @@ input[type="radio"] {
   background: #FFFFFF;
   border: 2px solid #1E2433;
   box-shadow: 6px 6px 0px #1E2433;
-  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .editorial-card:hover {
-  transform: translate(-3px, -3px);
-  box-shadow: 9px 9px 0px #1E2433;
+  box-shadow: 8px 8px 0px #1E2433;
 }
 
 .editorial-card-soft {

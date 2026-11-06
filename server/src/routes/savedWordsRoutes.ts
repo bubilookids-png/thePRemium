@@ -2,11 +2,12 @@ import express from 'express';
 import { db } from '../db/database.js';
 import { z } from 'zod';
 import { logger } from '../utils/logger.js';
+import { requireAuth, type AuthenticatedRequest } from '../utils/auth.js';
 
 const router = express.Router();
 
 const saveWordSchema = z.object({
-  telegram_id: z.number({ message: 'telegram_id is required' }),
+  telegram_id: z.number().optional(), // Kept optional for backward compatibility; server uses req.user.telegram_id
   english_word: z.string().optional(),
   word: z.string().optional(),
   translation: z.string().min(1, 'translation cannot be empty'),
@@ -16,18 +17,10 @@ const saveWordSchema = z.object({
   message: 'Word is required'
 });
 
-// GET /api/saved-words?telegram_id=12345
-router.get('/', async (req, res) => {
+// GET /api/saved-words (Scoped strictly to authenticated user)
+router.get('/', requireAuth, async (req: AuthenticatedRequest, res) => {
   try {
-    const telegramIdStr = req.query.telegram_id as string;
-    if (!telegramIdStr) {
-      return res.status(400).json({ error: 'telegram_id query parameter is required' });
-    }
-
-    const telegramId = Number(telegramIdStr);
-    if (!Number.isFinite(telegramId) || isNaN(telegramId)) {
-      return res.status(400).json({ error: 'Invalid telegram_id' });
-    }
+    const telegramId = req.user!.telegram_id;
 
     const result = await db.execute({
       sql: `
@@ -60,29 +53,30 @@ router.get('/', async (req, res) => {
   }
 });
 
-// POST /api/saved-words
-router.post('/', async (req, res) => {
+// POST /api/saved-words (Scoped strictly to authenticated user)
+router.post('/', requireAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const data = saveWordSchema.parse(req.body);
     const cleanWord = (data.english_word || data.word || '').trim();
     const cleanTrans = data.translation.trim();
     const cleanLevel = (data.level || 'B1').trim() || 'B1';
+    const telegramId = req.user!.telegram_id;
 
     if (!cleanWord || !cleanTrans) {
       return res.status(400).json({ error: 'Word and translation cannot be empty' });
     }
 
-    // Check if word already saved for this specific user
+    // Check if word already saved for this authenticated user
     const existing = await db.execute({
       sql: `SELECT id FROM user_saved_words WHERE telegram_id = ? AND LOWER(COALESCE(english_word, word)) = LOWER(?)`,
-      args: [data.telegram_id, cleanWord]
+      args: [telegramId, cleanWord]
     });
 
     if (existing.rows.length > 0) {
       // Update existing record
       await db.execute({
         sql: `UPDATE user_saved_words SET word = ?, english_word = ?, translation = ?, level = ?, source_feature = ?, created_at = CURRENT_TIMESTAMP WHERE telegram_id = ? AND LOWER(COALESCE(english_word, word)) = LOWER(?)`,
-        args: [cleanWord, cleanWord, cleanTrans, cleanLevel, data.source_feature, data.telegram_id, cleanWord]
+        args: [cleanWord, cleanWord, cleanTrans, cleanLevel, data.source_feature, telegramId, cleanWord]
       });
       return res.json({ success: true, updated: true, message: 'Word translation updated in saved vocabulary' });
     }
@@ -90,7 +84,7 @@ router.post('/', async (req, res) => {
     // Set both word and english_word and level for Turso schema compatibility
     const result = await db.execute({
       sql: `INSERT INTO user_saved_words (telegram_id, word, english_word, translation, level, source_feature) VALUES (?, ?, ?, ?, ?, ?)`,
-      args: [data.telegram_id, cleanWord, cleanWord, cleanTrans, cleanLevel, data.source_feature]
+      args: [telegramId, cleanWord, cleanWord, cleanTrans, cleanLevel, data.source_feature]
     });
 
     res.json({
@@ -104,26 +98,17 @@ router.post('/', async (req, res) => {
   }
 });
 
-// DELETE /api/saved-words/:id?telegram_id=12345 or POST /api/saved-words/:id/delete
-const handleDeleteWord = async (req: express.Request, res: express.Response) => {
+// DELETE /api/saved-words/:id (Scoped strictly to authenticated user)
+const handleDeleteWord = async (req: AuthenticatedRequest, res: express.Response) => {
   try {
     const wordId = Number(req.params.id || req.body?.id);
-    const rawTelegramId = req.query.telegram_id ?? req.body?.telegram_id;
+    const telegramId = req.user!.telegram_id;
 
     if (!wordId || isNaN(wordId)) {
       return res.status(400).json({ error: 'Invalid or missing word id' });
     }
 
-    if (rawTelegramId === undefined || rawTelegramId === null || rawTelegramId === '') {
-      return res.status(400).json({ error: 'telegram_id is required for deletion' });
-    }
-
-    const telegramId = Number(rawTelegramId);
-    if (!Number.isFinite(telegramId) || isNaN(telegramId)) {
-      return res.status(400).json({ error: 'Invalid telegram_id' });
-    }
-
-    // Strict ownership enforcement: DELETE scoped strictly by both id AND telegram_id
+    // Strict ownership enforcement: DELETE scoped strictly by both id AND authenticated telegram_id
     const result = await db.execute({
       sql: `DELETE FROM user_saved_words WHERE id = ? AND telegram_id = ?`,
       args: [wordId, telegramId]
@@ -147,8 +132,8 @@ const handleDeleteWord = async (req: express.Request, res: express.Response) => 
   }
 };
 
-router.delete('/:id', handleDeleteWord);
-router.post('/:id/delete', handleDeleteWord);
-router.post('/delete/:id', handleDeleteWord);
+router.delete('/:id', requireAuth, handleDeleteWord);
+router.post('/:id/delete', requireAuth, handleDeleteWord);
+router.post('/delete/:id', requireAuth, handleDeleteWord);
 
 export const savedWordsRouter = router;

@@ -3,39 +3,35 @@ import crypto from 'crypto';
 import rateLimit from 'express-rate-limit';
 import { pendingSessions } from '../services/telegramBotAuth.js';
 import { getTopUsers } from '../services/telegramAuthService.js';
+import { generateAuthToken, requireAuth, type AuthenticatedRequest } from '../utils/auth.js';
 
 const router = Router();
 
 const checkSessionLimiter = rateLimit({
-  windowMs: 60 * 1000, 
-  limit: 90, 
+  windowMs: 60 * 1000,
+  limit: 90,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { success: false, error: 'Too many status check requests. Please slow down.' },
-  keyGenerator: (req) => (req.headers['x-forwarded-for'] || req.ip || req.socket.remoteAddress || 'unknown') as string
+  message: { success: false, error: 'Too many status check requests. Please slow down.' }
 });
 
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, 
-  limit: 20, 
+  windowMs: 15 * 60 * 1000,
+  limit: 30,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { success: false, error: 'Too many authentication attempts. Please try again later.' },
-  keyGenerator: (req) => (req.headers['x-forwarded-for'] || req.ip || req.socket.remoteAddress || 'unknown') as string
+  message: { success: false, error: 'Too many authentication attempts. Please try again later.' }
 });
 
-// Session endpoint
+// GET /api/auth/session - Generate a cryptographically secure random session token
 router.get('/session', authLimiter, (_req: Request, res: Response) => {
   const token = 'auth_' + crypto.randomBytes(32).toString('hex');
-  
-  // 🔥 BEVOSITA BAZAGA YOZAMIZ (Hech qanday funksiya orqali emas!)
   pendingSessions.set(token, { user: null, createdAt: Date.now() });
-  
-  console.log(`🔑 New auth session token generated and saved: ${token}`);
+
   return res.json({ success: true, token });
 });
 
-// Check session endpoint
+// GET /api/auth/check-session/:token - Verify login and issue cryptographically signed JWT
 router.get('/check-session/:token', checkSessionLimiter, (req: Request, res: Response) => {
   const { token } = req.params;
 
@@ -43,29 +39,69 @@ router.get('/check-session/:token', checkSessionLimiter, (req: Request, res: Res
     return res.status(400).json({ success: false, authenticated: false, error: 'Invalid token format' });
   }
 
-  // 🔥 BEVOSITA BAZADAN O'QIYMIZ
   const session = pendingSessions.get(String(token));
-  
+
   if (session && session.user) {
-    console.log(`✅ Front-end recognized the session! Logged in user: ${session.user.telegram_id}`);
-    
-    // Foydalanuvchi tasdiqlangach, xavfsizlik uchun tokenni o'chirib yuborish (optional)
-    // pendingSessions.delete(String(token)); 
-    
-    return res.json({ success: true, authenticated: true, user: session.user });
+    const rawUser = session.user;
+    const adminTelegramId = process.env.ADMIN_TELEGRAM_ID
+      ? Number(process.env.ADMIN_TELEGRAM_ID)
+      : 7462228079;
+
+    const isAdmin = Number(rawUser.telegram_id) === adminTelegramId || Boolean(rawUser.is_admin);
+    const isPremium = isAdmin || Boolean(rawUser.is_premium);
+
+    const userPayload = {
+      telegram_id: Number(rawUser.telegram_id),
+      first_name: String(rawUser.first_name || 'User'),
+      username: rawUser.username ? String(rawUser.username) : null,
+      is_admin: isAdmin,
+      is_premium: isPremium
+    };
+
+    // Issue signed JWT token
+    const authToken = generateAuthToken(userPayload);
+
+    // One-time consumption: delete immediately to prevent replay attacks
+    pendingSessions.delete(String(token));
+
+    console.log(`✅ Front-end authenticated! User: ${userPayload.telegram_id}, Admin: ${isAdmin}, Premium: ${isPremium}`);
+
+    return res.json({
+      success: true,
+      authenticated: true,
+      authToken,
+      user: {
+        id: userPayload.telegram_id,
+        first_name: userPayload.first_name,
+        last_name: rawUser.last_name || null,
+        username: userPayload.username,
+        photo_url: rawUser.photo_url || null,
+        is_admin: userPayload.is_admin,
+        is_premium: userPayload.is_premium
+      }
+    });
   }
 
   return res.json({ success: true, authenticated: false });
 });
 
+// GET /api/auth/me - Verify current session token on client startup
+router.get('/me', requireAuth, (req: AuthenticatedRequest, res: Response) => {
+  res.json({
+    success: true,
+    user: req.user
+  });
+});
+
+// GET /api/auth/leaderboard
 router.get('/leaderboard', rateLimit({
   windowMs: 60 * 1000,
   limit: 30,
   standardHeaders: true,
   legacyHeaders: false
-}), (_req: Request, res: Response) => {
+}), async (_req: Request, res: Response) => {
   try {
-    const leaders = getTopUsers(10);
+    const leaders = await getTopUsers(10);
     return res.json({ success: true, leaders });
   } catch (error: any) {
     console.error('Leaderboard error:', error);

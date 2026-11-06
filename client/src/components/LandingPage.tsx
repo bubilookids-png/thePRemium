@@ -183,18 +183,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             type="button"
             onClick={onStart}
             style={isEditorial ? { backgroundColor: '#6D28D9', color: '#FFFFFF' } : undefined}
-            className={`w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-xl font-bold text-sm transition-all cursor-pointer group ${
+            className={`btn-dark w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-xl font-bold text-sm transition-all cursor-pointer group ${
               isEditorial
                 ? 'bg-[#6D28D9] text-white border-2 border-[#1E2433] shadow-[4px_4px_0px_#1E2433] hover:bg-[#5B21B6] active:translate-x-0.5 active:translate-y-0.5'
                 : 'bg-gradient-to-r from-lime-400 via-lime-300 to-cyan-400 text-slate-950 hover:shadow-[0_0_35px_rgba(132,204,22,0.5)] active:scale-[0.98]'
             }`}
           >
-            <span style={isEditorial ? { color: '#FFFFFF' } : undefined} className="font-extrabold text-white">
+            <span className="font-extrabold text-white" style={{ color: '#FFFFFF' }}>
               Open Vocabulary Trainer
             </span>
             <ArrowRight
-              className="w-4 h-4 group-hover:translate-x-1 transition-transform shrink-0"
-              style={isEditorial ? { color: '#FFFFFF' } : undefined}
+              className="w-4 h-4 group-hover:translate-x-1 transition-transform shrink-0 text-white"
+              style={{ color: '#FFFFFF' }}
             />
           </button>
 
@@ -996,7 +996,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               type="button"
               onClick={onStart}
               style={isEditorial ? { backgroundColor: '#6D28D9', color: '#FFFFFF' } : undefined}
-              className={`inline-flex items-center justify-center gap-2.5 px-10 py-4 rounded-xl font-black text-sm transition-all cursor-pointer ${
+              className={`btn-dark inline-flex items-center justify-center gap-2.5 px-10 py-4 rounded-xl font-black text-sm transition-all cursor-pointer ${
                 isEditorial
                   ? 'bg-[#6D28D9] text-white border-2 border-[#1E2433] shadow-[4px_4px_0px_#1E2433] hover:bg-[#5B21B6] active:translate-x-0.5 active:translate-y-0.5'
                   : 'bg-gradient-to-r from-lime-400 via-lime-300 to-cyan-400 text-slate-950 hover:shadow-[0_0_35px_rgba(132,204,22,0.4)] active:scale-[0.98]'

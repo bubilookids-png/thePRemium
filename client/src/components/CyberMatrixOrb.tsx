@@ -62,8 +62,7 @@ export function CyberMatrixOrb() {
             }
           }}
           style={{
-            transform: hovered ? 'translateY(-2px)' : 'translateY(0px)',
-            transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+            transition: 'box-shadow 0.2s ease, border-color 0.2s ease',
           }}
           className={`relative rounded-2xl sm:rounded-3xl p-3 sm:p-4 border transition-all duration-200 flex items-center justify-between gap-3 ${
             isEditorial
@@ -180,9 +179,9 @@ export function CyberMatrixOrb() {
               </>
             ) : isWaking ? (
               <>
-                <span className="w-1 bg-cyan-400 rounded-full eq-anim-waking" style={{ animationDelay: '0ms' }} />
-                <span className="w-1 bg-blue-400 rounded-full eq-anim-waking" style={{ animationDelay: '150ms' }} />
-                <span className="w-1 bg-cyan-300 rounded-full eq-anim-waking" style={{ animationDelay: '300ms' }} />
+                <span className={`w-1 rounded-full eq-anim-waking ${isEditorial ? 'bg-[#8B5CF6]' : 'bg-cyan-400'}`} style={{ animationDelay: '0ms' }} />
+                <span className={`w-1 rounded-full eq-anim-waking ${isEditorial ? 'bg-[#A78BFA]' : 'bg-blue-400'}`} style={{ animationDelay: '150ms' }} />
+                <span className={`w-1 rounded-full eq-anim-waking ${isEditorial ? 'bg-[#C4B5FD]' : 'bg-cyan-300'}`} style={{ animationDelay: '300ms' }} />
               </>
             ) : (
               <>

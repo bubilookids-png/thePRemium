@@ -2,26 +2,31 @@ import express from 'express';
 import { db } from '../db/database.js';
 import { z } from 'zod';
 import { logger } from '../utils/logger.js';
+import { optionalAuth, type AuthenticatedRequest } from '../utils/auth.js';
+import { ALL_180_ARTICLES } from '../db/readingArticlesData.js';
 
 const router = express.Router();
-
-import { ALL_180_ARTICLES } from '../db/readingArticlesData.js';
 
 const articlesCache = new Map<string, any[]>();
 
 const saveSessionSchema = z.object({
-  telegram_id: z.number(),
+  telegram_id: z.number().optional(),
   level: z.string(),
   score: z.number(),
   words_recalled: z.number()
 });
 
-router.post('/session', async (req, res) => {
+router.post('/session', optionalAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const data = saveSessionSchema.parse(req.body);
+    const telegramId = req.user?.telegram_id ?? data.telegram_id;
+    if (!telegramId) {
+      return res.status(400).json({ error: 'telegram_id is required' });
+    }
+
     await db.execute({
       sql: `INSERT INTO reading_sessions (telegram_id, level, score, words_recalled) VALUES (?, ?, ?, ?)`,
-      args: [data.telegram_id, data.level, data.score, data.words_recalled]
+      args: [telegramId, data.level, data.score, data.words_recalled]
     });
     res.json({ success: true });
   } catch (error) {
@@ -31,7 +36,7 @@ router.post('/session', async (req, res) => {
 });
 
 const saveWordSchema = z.object({
-  telegram_id: z.number(),
+  telegram_id: z.number().optional(),
   word: z.string().optional(),
   english_word: z.string().optional(),
   translation: z.string(),
@@ -39,9 +44,14 @@ const saveWordSchema = z.object({
   level: z.string().optional()
 });
 
-router.post('/save-word', async (req, res) => {
+router.post('/save-word', optionalAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const data = saveWordSchema.parse(req.body);
+    const telegramId = req.user?.telegram_id ?? data.telegram_id;
+    if (!telegramId) {
+      return res.status(400).json({ error: 'telegram_id is required' });
+    }
+
     const englishWord = (data.english_word || data.word || '').trim();
     if (!englishWord) {
       return res.status(400).json({ error: 'Word is required' });
@@ -51,7 +61,7 @@ router.post('/save-word', async (req, res) => {
 
     await db.execute({
       sql: `INSERT INTO user_saved_words (telegram_id, word, english_word, translation, level, source_feature) VALUES (?, ?, ?, ?, ?, ?)`,
-      args: [data.telegram_id, englishWord, englishWord, data.translation.trim(), cleanLevel, sourceFeature]
+      args: [telegramId, englishWord, englishWord, data.translation.trim(), cleanLevel, sourceFeature]
     });
     res.json({ success: true });
   } catch (error) {
@@ -106,7 +116,6 @@ router.get('/articles', async (req, res) => {
     res.json({ articles });
   } catch (error) {
     logger.error('Error fetching articles', { error });
-    // Safe fallback from in-memory articles data if DB times out
     const level = (req.query.level as string || '').trim().toUpperCase();
     const fallbackArticles = ALL_180_ARTICLES
       .filter(a => a.level.toUpperCase() === level)
@@ -153,4 +162,3 @@ router.get('/translate', async (req, res) => {
 });
 
 export const readingRouter = router;
-

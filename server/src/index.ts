@@ -146,12 +146,7 @@ app.use(
 
     legacyHeaders: false,
 
-    message: 'Too many requests from this IP, please try again later.',
-
-    keyGenerator: (req) => {
-      // Use X-Forwarded-For header if behind proxy
-      return (req.headers['x-forwarded-for'] || req.ip || req.socket.remoteAddress || 'unknown') as string;
-    }
+    message: 'Too many requests from this IP, please try again later.'
   })
 );
 

@@ -29,10 +29,7 @@ export function Card(props: {
         <section
           onClick={props.onClick}
           style={{
-            transform: isHovered ? 'translateY(-2px)' : 'translateY(0px)',
-            transition: 'transform 0.2s cubic-bezier(0.2, 0.75, 0.25, 1), box-shadow 0.2s ease, border-color 0.2s ease',
-            backfaceVisibility: 'hidden',
-            WebkitFontSmoothing: 'antialiased',
+            transition: 'box-shadow 0.2s ease, border-color 0.2s ease',
           }}
           className={`section-card relative overflow-hidden p-4 sm:p-6 ${
             isEditorial

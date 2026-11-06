@@ -97,6 +97,8 @@ const HUD_STYLES = `
   }
 `;
 
+const BOT_USERNAME = 'Givacabbro_bot';
+
 function AppInner() {
   const { theme, bgAnimation } = useTheme();
   const { language, t } = useLanguage();
@@ -302,8 +304,7 @@ function AppInner() {
 
       if (!token) throw new Error('Sessiya tokeni olinmadi');
 
-      const botUsername = 'Givacabbro_bot';
-      const deepLink = `https://t.me/${botUsername}?start=${token}`;
+      const deepLink = `https://t.me/${BOT_USERNAME}?start=${token}`;
       sessionStorage.setItem('telegram_auth_token', token);
       window.open(deepLink, '_blank');
 
@@ -319,14 +320,19 @@ function AppInner() {
 
             const savedUser = checkData.user;
             const userData: TelegramUser = {
-              id: savedUser.telegram_id,
+              id: savedUser.id || savedUser.telegram_id,
               first_name: savedUser.first_name,
               last_name: savedUser.last_name,
               username: savedUser.username,
               photo_url: savedUser.photo_url,
               search_count: savedUser.search_count || 0,
-              is_premium: savedUser.is_premium || false
+              is_premium: Boolean(savedUser.is_premium)
             };
+
+            // Store cryptographically signed JWT token for all secure API calls
+            if (checkData.authToken) {
+              localStorage.setItem('vacabbro_token', checkData.authToken);
+            }
             localStorage.setItem('vacabbro_user', JSON.stringify(userData));
             setCurrentUser(userData);
             setShowLanding(false);
@@ -351,6 +357,7 @@ function AppInner() {
 
   function handleLogout() {
     localStorage.removeItem('vacabbro_user');
+    localStorage.removeItem('vacabbro_token');
     setCurrentUser(null);
     setShowLanding(true);
   }
@@ -1009,18 +1016,13 @@ function AppInner() {
 
             <button
               onClick={() => {
-                if (currentUser) {
-                  const updated = { ...currentUser, is_premium: true };
-                  setCurrentUser(updated);
-                  localStorage.setItem('vacabbro_user', JSON.stringify(updated));
-                }
                 setShowGetMoreModal(false);
-                alert('🎉 Premium muvaffaqiyatli faollashtirildi!');
-                window.location.reload();
+                window.open(`https://t.me/${BOT_USERNAME}`, '_blank');
               }}
               className="w-full py-3.5 px-6 rounded-xl bg-lime-400 hover:bg-lime-300 text-slate-950 font-semibold text-sm shadow-lg transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer active:scale-95"
             >
-              Activate VIP
+              <span>Get VIP via Telegram Bot</span>
+              <span>→</span>
             </button>
           </div>
         </div>
