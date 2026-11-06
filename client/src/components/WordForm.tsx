@@ -249,10 +249,18 @@ export function WordForm({
             <button
               type="submit"
               disabled={disabled || !word.trim()}
-              className="px-6 py-2.5 rounded-2xl bg-[#1E2433] text-white font-bold text-sm border-2 border-[#1E2433] shadow-[4px_4px_0px_#1E2433] hover:bg-[#6D28D9] hover:shadow-[5px_5px_0px_#1E2433] active:translate-x-0.5 active:translate-y-0.5 transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap min-w-[140px] h-[44px]"
+              style={{
+                backgroundColor: disabled || !word.trim() ? '#EDE9FE' : '#6D28D9',
+                color: disabled || !word.trim() ? '#6D28D9' : '#FFFFFF',
+              }}
+              className={`px-6 py-2.5 rounded-2xl font-bold text-sm border-2 border-[#1E2433] transition-all flex items-center justify-center gap-2 whitespace-nowrap min-w-[140px] h-[44px] ${
+                disabled || !word.trim()
+                  ? 'shadow-[2px_2px_0px_#1E2433] opacity-90 cursor-not-allowed'
+                  : 'shadow-[4px_4px_0px_#1E2433] hover:bg-[#5B21B6] hover:shadow-[5px_5px_0px_#1E2433] active:translate-x-0.5 active:translate-y-0.5 cursor-pointer'
+              }`}
             >
               <span>{disabled ? t.analyzingButton : t.analyzeButton}</span>
-              <span>→</span>
+              <span className="font-black">→</span>
             </button>
           ) : (
             <LiquidMetalButton

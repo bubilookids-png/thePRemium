@@ -79,7 +79,7 @@ export function Header({ currentUser, onLogout, onToggleSidebar, onLogoClick }: 
         }
       `}</style>
 
-      <header className="sticky top-2 sm:top-3 z-30 w-full px-3 sm:px-6 flex justify-center select-none">
+      <header className="app-header sticky top-2 sm:top-3 z-30 w-full px-3 sm:px-6 flex justify-center select-none">
         <div
           ref={headerRef}
           onMouseMove={handleMouseMove}

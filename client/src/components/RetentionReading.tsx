@@ -3,6 +3,7 @@ import { useAnimatedDismiss, useMotionEntrance } from '../utils/motion';
 import { Card } from './Card';
 import { apiFetch } from '../services/apiClient';
 import { translateText } from '../services/translatorApi';
+import { useTheme } from '../context/ThemeContext';
 
 // --- Types ---
 type Level = 'A2' | 'B1' | 'B2';
@@ -131,6 +132,8 @@ function IconRotate({ className = "w-4 h-4" }: { className?: string }) {
 }
 
 export function RetentionReading({ currentUser, onExit }: RetentionReadingProps) {
+  const { theme } = useTheme();
+  const isEditorial = theme === 'editorial-milk';
   const readingRef = useRef<HTMLDivElement>(null);
   const [phase, setPhase] = useState<Phase>('selection');
   const [level, setLevel] = useState<Level | null>(null);
@@ -388,9 +391,22 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
     }
   };
 
-  // Word Interaction
+  // Dismiss tooltip when clicking anywhere outside
+  useEffect(() => {
+    if (!showTooltip) return;
+    const handleGlobalClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('[data-word-tooltip]')) {
+        setShowTooltip(null);
+      }
+    };
+    window.addEventListener('click', handleGlobalClick);
+    return () => window.removeEventListener('click', handleGlobalClick);
+  }, [showTooltip]);
+
+  // Word Interaction - Accessible in BOTH Reading and Review phases
   const handleWordClick = async (word: string, e: React.MouseEvent) => {
-    if (phase !== 'review') return;
+    if (phase !== 'reading' && phase !== 'review') return;
 
     const cleanWord = word.replace(/[.,!?;:"()]/g, '').toLowerCase();
     if (!cleanWord) return;
@@ -400,19 +416,22 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
     const target = e.target as HTMLElement;
     const rect = target.getBoundingClientRect();
 
-    const POPUP_WIDTH = 260;
-    const POPUP_HEIGHT = 140;
+    const POPUP_WIDTH = 280;
+    const POPUP_HEIGHT = 160;
 
-    let x = rect.left + window.scrollX;
-    let y = rect.bottom + window.scrollY + 8;
+    // Viewport-relative coordinates (guaranteed zero container drift!)
+    let x = rect.left + rect.width / 2 - POPUP_WIDTH / 2;
+    let y = rect.bottom + 8;
 
+    // Strict clamping within viewport with safe 16px margins
     if (x + POPUP_WIDTH > window.innerWidth - 16) {
       x = window.innerWidth - POPUP_WIDTH - 16;
     }
     if (x < 16) x = 16;
 
-    if (rect.bottom + POPUP_HEIGHT > window.innerHeight) {
-      y = rect.top + window.scrollY - POPUP_HEIGHT - 8;
+    // If popup would overflow bottom edge of viewport, flip it above the word
+    if (y + POPUP_HEIGHT > window.innerHeight - 16) {
+      y = Math.max(16, rect.top - POPUP_HEIGHT - 8);
     }
 
     setShowTooltip({ word: cleanWord, x, y });
@@ -540,62 +559,106 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
         }
       `}</style>
 
-      {/* --- Global Top Navigation Header (Shown in all phases except Selection) --- */}
+      {/* --- Global Top Navigation Sub-Bar (Shown in all phases except Selection) --- */}
       {phase !== 'selection' && (
-        <header className="mb-6 flex items-center justify-between border-b border-slate-800/80 pb-4">
+        <div
+          className={`retention-subnav mb-6 flex items-center justify-between border-b pb-4 ${
+            isEditorial ? 'border-[#1E2433]/15' : 'border-slate-800/80'
+          }`}
+        >
           <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-lime-400/10 border border-lime-400/30 text-lime-400 shadow-sm">
+            <div
+              className={`flex items-center justify-center w-8 h-8 rounded-lg shadow-sm ${
+                isEditorial
+                  ? 'bg-purple-100 border-2 border-[#1E2433] text-[#6D28D9]'
+                  : 'bg-lime-400/10 border border-lime-400/30 text-lime-400'
+              }`}
+            >
               <IconBrain className="w-4 h-4" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold tracking-wider uppercase text-lime-400">Retention Studio</span>
+                <span
+                  className={`text-xs font-black tracking-wider uppercase ${
+                    isEditorial ? 'text-[#6D28D9]' : 'text-lime-400'
+                  }`}
+                >
+                  Retention Studio
+                </span>
                 {level && (
-                  <span className="px-1.5 py-0.5 text-[10px] font-mono font-bold bg-slate-800 text-slate-300 border border-slate-700 rounded">
+                  <span
+                    className={`px-1.5 py-0.5 text-[10px] font-mono font-bold rounded ${
+                      isEditorial
+                        ? 'bg-purple-100 text-[#6D28D9] border border-[#1E2433]'
+                        : 'bg-slate-800 text-slate-300 border border-slate-700'
+                    }`}
+                  >
                     {level}
                   </span>
                 )}
               </div>
-              <p className="text-xs text-slate-400 font-medium truncate max-w-[200px] sm:max-w-xs">
+              <p
+                className={`text-xs font-medium truncate max-w-[200px] sm:max-w-xs ${
+                  isEditorial ? 'text-[#475569]' : 'text-slate-400'
+                }`}
+              >
                 {currentText?.title || 'Active Recall Exercise'}
               </p>
             </div>
           </div>
 
           {/* Stepper Indicator */}
-          <div className="hidden md:flex items-center gap-2 text-xs font-medium text-slate-500">
-            <span className={phase === 'setup' ? 'text-lime-400 font-semibold' : 'text-slate-400'}>Brief</span>
+          <div
+            className={`hidden md:flex items-center gap-2 text-xs font-bold ${
+              isEditorial ? 'text-[#64748B]' : 'text-slate-500'
+            }`}
+          >
+            <span className={phase === 'setup' ? (isEditorial ? 'text-[#6D28D9] font-black' : 'text-lime-400 font-semibold') : ''}>Brief</span>
             <span>&rarr;</span>
-            <span className={phase === 'reading' ? 'text-lime-400 font-semibold' : 'text-slate-400'}>Read</span>
+            <span className={phase === 'reading' ? (isEditorial ? 'text-[#6D28D9] font-black' : 'text-lime-400 font-semibold') : ''}>Read</span>
             <span>&rarr;</span>
-            <span className={phase === 'recall' ? 'text-lime-400 font-semibold' : 'text-slate-400'}>Recall</span>
+            <span className={phase === 'recall' ? (isEditorial ? 'text-[#6D28D9] font-black' : 'text-lime-400 font-semibold') : ''}>Recall</span>
             <span>&rarr;</span>
-            <span className={phase === 'evaluation' || phase === 'review' ? 'text-lime-400 font-semibold' : ''}>Evaluate</span>
+            <span className={phase === 'evaluation' || phase === 'review' ? (isEditorial ? 'text-[#6D28D9] font-black' : 'text-lime-400 font-semibold') : ''}>Evaluate</span>
           </div>
 
           {/* Leave Session Button */}
           <button
             onClick={handleTriggerExit}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-700/80 bg-slate-900/60 text-slate-300 hover:text-rose-400 hover:border-rose-500/40 hover:bg-rose-500/10 text-xs font-semibold transition-all duration-200"
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer ${
+              isEditorial
+                ? 'bg-white border-2 border-[#1E2433] text-[#1E2433] shadow-[2px_2px_0px_#1E2433] hover:bg-rose-50 hover:text-rose-600 hover:border-rose-600'
+                : 'border border-slate-700/80 bg-slate-900/60 text-slate-300 hover:text-rose-400 hover:border-rose-500/40 hover:bg-rose-500/10'
+            }`}
             title="Leave session"
           >
             <IconLogOut className="w-3.5 h-3.5" />
             <span>Leave</span>
           </button>
-        </header>
+        </div>
       )}
 
       {/* --- Phase 1: LEVEL SELECTION --- */}
       {phase === 'selection' && (
         <section data-retention-phase className="max-w-3xl mx-auto space-y-8">
           <div className="text-center space-y-2 pt-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-lime-400/10 border border-lime-400/20 text-lime-400 text-xs font-semibold uppercase tracking-wider mb-2">
+            <div
+              className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-2 ${
+                isEditorial
+                  ? 'bg-purple-100 border-2 border-[#1E2433] text-[#6D28D9]'
+                  : 'bg-lime-400/10 border border-lime-400/20 text-lime-400'
+              }`}
+            >
               <IconSparkles className="w-3.5 h-3.5" /> Active Retention Method
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+            <h1
+              className={`text-2xl sm:text-3xl font-black tracking-tight ${
+                isEditorial ? 'text-[#1E2433] font-serif' : 'text-white font-extrabold'
+              }`}
+            >
               Select Reading Difficulty
             </h1>
-            <p className="text-sm text-slate-400 max-w-md mx-auto">
+            <p className={`text-sm max-w-md mx-auto ${isEditorial ? 'text-[#475569]' : 'text-slate-400'}`}>
               Strengthen reading comprehension and cognitive retrieval through timed retention training.
             </p>
           </div>
@@ -636,8 +699,14 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
                 <div
                   key={lvl.id}
                   onClick={() => !loadingArticle && handleSelectLevel(lvl.id)}
-                  className={`group relative rounded-xl p-5 cursor-pointer transition-all duration-200 flex flex-col justify-between ${
-                    isSelected
+                  className={`group relative rounded-2xl p-5 cursor-pointer transition-all duration-200 flex flex-col justify-between ${
+                    isEditorial
+                      ? isSelected
+                        ? 'bg-white border-2 border-[#1E2433] ring-2 ring-[#6D28D9] shadow-[8px_8px_0px_#1E2433] -translate-y-0.5'
+                        : isAnyLoading
+                        ? 'bg-slate-100 border-2 border-slate-300 opacity-50 pointer-events-none'
+                        : 'bg-white hover:bg-[#FAF7F2] border-2 border-[#1E2433] shadow-[4px_4px_0px_#1E2433] hover:shadow-[6px_6px_0px_#1E2433] hover:-translate-y-0.5'
+                      : isSelected
                       ? 'bg-slate-900 border border-lime-400 ring-2 ring-lime-400/30 shadow-[0_0_30px_rgba(163,230,53,0.2)] -translate-y-0.5'
                       : isAnyLoading
                       ? 'bg-slate-900/30 border border-slate-800 opacity-50 pointer-events-none'
@@ -646,24 +715,44 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
                 >
                   <div>
                     <div className="flex items-center justify-between mb-3">
-                      <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-slate-800 text-lime-400 border border-lime-400/20">
+                      <span
+                        className={`font-mono text-xs font-bold px-2 py-0.5 rounded border ${
+                          isEditorial
+                            ? 'bg-purple-100 text-[#6D28D9] border-[#1E2433]'
+                            : 'bg-slate-800 text-lime-400 border-lime-400/20'
+                        }`}
+                      >
                         Level {lvl.id}
                       </span>
-                      <span className="text-[11px] font-mono text-slate-500">
+                      <span className={`text-[11px] font-mono ${isEditorial ? 'text-[#64748B]' : 'text-slate-500'}`}>
                         {lvl.tag}
                       </span>
                     </div>
-                    <h2 className="text-base font-bold text-slate-100 group-hover:text-lime-300 transition-colors">
+                    <h2
+                      className={`text-base font-bold transition-colors ${
+                        isEditorial
+                          ? 'text-[#1E2433] font-serif font-black group-hover:text-[#6D28D9]'
+                          : 'text-slate-100 group-hover:text-lime-300'
+                      }`}
+                    >
                       {lvl.title}
                     </h2>
-                    <p className="mt-2 text-xs text-slate-400 leading-relaxed min-h-[48px]">
+                    <p className={`mt-2 text-xs leading-relaxed min-h-[48px] ${isEditorial ? 'text-[#475569]' : 'text-slate-400'}`}>
                       {lvl.desc}
                     </p>
                   </div>
 
-                  <div className="mt-5 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs">
-                    <span className="text-slate-500 font-mono">{lvl.words}</span>
-                    <span className="flex items-center gap-1 font-semibold text-lime-400 group-hover:translate-x-1 transition-transform">
+                  <div
+                    className={`mt-5 pt-3 border-t flex items-center justify-between text-xs ${
+                      isEditorial ? 'border-[#1E2433]/15' : 'border-slate-800/80'
+                    }`}
+                  >
+                    <span className={`font-mono ${isEditorial ? 'text-[#64748B]' : 'text-slate-500'}`}>{lvl.words}</span>
+                    <span
+                      className={`flex items-center gap-1 font-semibold group-hover:translate-x-1 transition-transform ${
+                        isEditorial ? 'text-[#6D28D9] font-bold' : 'text-lime-400'
+                      }`}
+                    >
                       {isSelected ? (
                         <>
                           <span className="inline-block animate-spin text-xs">⟳</span>
@@ -681,12 +770,25 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
             })}
           </div>
 
-          <div className="p-4 rounded-xl bg-slate-900/40 border border-slate-800 text-xs text-slate-400 flex items-start gap-3">
-            <div className="p-1 rounded bg-slate-800 text-cyan-400 mt-0.5">
+          <div
+            className={`p-4 rounded-2xl text-xs flex items-start gap-3 ${
+              isEditorial
+                ? 'bg-white border-2 border-[#1E2433] shadow-[4px_4px_0px_#1E2433] text-[#334155]'
+                : 'bg-slate-900/40 border border-slate-800 text-slate-400'
+            }`}
+          >
+            <div
+              className={`p-1.5 rounded-lg mt-0.5 ${
+                isEditorial ? 'bg-purple-100 text-[#6D28D9] border border-[#1E2433]' : 'bg-slate-800 text-cyan-400'
+              }`}
+            >
               <IconBook className="w-3.5 h-3.5" />
             </div>
             <div>
-              <span className="font-semibold text-slate-300">How Retention Works:</span> You read without taking notes for 3 minutes. When the text hides, you actively write all concepts you recall from memory.
+              <span className={`font-bold ${isEditorial ? 'text-[#1E2433]' : 'text-slate-300'}`}>
+                How Retention Works:
+              </span>{' '}
+              You read without taking notes for 3 minutes. When the text hides, you actively write all concepts you recall from memory.
             </div>
           </div>
         </section>
@@ -695,33 +797,57 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
       {/* --- Phase 2: SETUP / BRIEFING --- */}
       {phase === 'setup' && currentText && (
         <section data-retention-phase className="max-w-xl mx-auto space-y-6 pt-4">
-          <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 shadow-lg backdrop-blur-sm space-y-6">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+          <div
+            className={`rounded-2xl p-6 transition-all space-y-6 ${
+              isEditorial
+                ? 'bg-white border-2 border-[#1E2433] shadow-[6px_6px_0px_#1E2433] text-[#1E2433]'
+                : 'bg-slate-900/60 border border-slate-800 shadow-lg backdrop-blur-sm'
+            }`}
+          >
+            <div className={`flex items-center justify-between pb-4 border-b ${isEditorial ? 'border-[#1E2433]/15' : 'border-slate-800'}`}>
               <div className="flex items-center gap-2">
-                <span className="px-2.5 py-1 text-xs font-mono font-bold bg-lime-400/10 border border-lime-400/30 text-lime-400 rounded-md">
+                <span
+                  className={`px-2.5 py-1 text-xs font-mono font-bold rounded-md ${
+                    isEditorial
+                      ? 'bg-purple-100 text-[#6D28D9] border-2 border-[#1E2433]'
+                      : 'bg-lime-400/10 border border-lime-400/30 text-lime-400'
+                  }`}
+                >
                   {currentText.level}
                 </span>
-                <span className="text-xs text-slate-400 font-medium">Session Protocol</span>
+                <span className={`text-xs font-medium ${isEditorial ? 'text-[#475569]' : 'text-slate-400'}`}>
+                  Session Protocol
+                </span>
               </div>
-              <span className="text-xs font-mono text-slate-500">
+              <span className={`text-xs font-mono ${isEditorial ? 'text-[#64748B]' : 'text-slate-500'}`}>
                 {currentText.content.split(/\s+/).length} words
               </span>
             </div>
 
             <div>
-              <h2 className="text-xl font-bold text-white mb-2">
+              <h2
+                className={`text-xl font-bold mb-2 ${
+                  isEditorial ? 'text-[#1E2433] font-serif font-black' : 'text-white'
+                }`}
+              >
                 {currentText.title}
               </h2>
-              <p className="text-xs text-slate-400 leading-relaxed">
+              <p className={`text-xs leading-relaxed ${isEditorial ? 'text-[#475569]' : 'text-slate-400'}`}>
                 You will be given uninterrupted time to read and comprehend the text. Focus on facts, mechanisms, and names.
               </p>
             </div>
 
             {/* Topic Selector / Shuffle Bar */}
             {availableArticles.length > 1 && (
-              <div className="p-3.5 bg-slate-950/80 rounded-xl border border-lime-400/20 space-y-2">
-                <div className="flex items-center justify-between text-[11px] text-slate-400">
-                  <span className="font-mono font-bold text-lime-400">
+              <div
+                className={`p-3.5 rounded-xl space-y-2 ${
+                  isEditorial
+                    ? 'bg-[#FAF7F2] border-2 border-[#1E2433]'
+                    : 'bg-slate-950/80 border border-lime-400/20'
+                }`}
+              >
+                <div className={`flex items-center justify-between text-[11px] ${isEditorial ? 'text-[#475569]' : 'text-slate-400'}`}>
+                  <span className={`font-mono font-bold ${isEditorial ? 'text-[#6D28D9]' : 'text-lime-400'}`}>
                     ARTICLE {(availableArticles.findIndex((a) => a.id === currentText.id) + 1)} OF {availableArticles.length}
                   </span>
                   <button
@@ -731,7 +857,9 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
                       const nextIdx = (curIdx + 1) % availableArticles.length;
                       setCurrentText(availableArticles[nextIdx]);
                     }}
-                    className="text-xs text-lime-400 hover:text-lime-300 font-bold cursor-pointer flex items-center gap-1 transition"
+                    className={`text-xs font-bold cursor-pointer flex items-center gap-1 transition ${
+                      isEditorial ? 'text-[#6D28D9] hover:underline' : 'text-lime-400 hover:text-lime-300'
+                    }`}
                   >
                     <span>🔀 Next Article</span>
                   </button>
@@ -742,7 +870,11 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
                     const found = availableArticles.find((a) => a.id === e.target.value);
                     if (found) setCurrentText(found);
                   }}
-                  className="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-2 text-xs text-lime-300 font-medium focus:outline-none focus:border-lime-400/60 cursor-pointer"
+                  className={`w-full rounded-lg px-2.5 py-2 text-xs font-medium focus:outline-none cursor-pointer ${
+                    isEditorial
+                      ? 'bg-white border-2 border-[#1E2433] text-[#1E2433] focus:border-[#6D28D9]'
+                      : 'bg-slate-900 border border-slate-700/80 text-lime-300 focus:border-lime-400/60'
+                  }`}
                 >
                   {availableArticles.map((art, idx) => (
                     <option key={art.id} value={art.id}>
@@ -753,40 +885,55 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
               </div>
             )}
 
-            <div className="space-y-3 bg-slate-950/60 p-4 rounded-xl border border-slate-800/80 text-xs text-slate-300">
+            <div
+              className={`space-y-3 p-4 rounded-xl text-xs ${
+                isEditorial
+                  ? 'bg-[#FAF7F2] border-2 border-[#1E2433] text-[#334155]'
+                  : 'bg-slate-950/60 border border-slate-800/80 text-slate-300'
+              }`}
+            >
               <div className="flex items-center justify-between">
-                <span className="flex items-center gap-2 text-slate-400">
-                  <IconClock className="w-3.5 h-3.5 text-lime-400" /> Reading Duration
+                <span className={`flex items-center gap-2 ${isEditorial ? 'text-[#475569]' : 'text-slate-400'}`}>
+                  <IconClock className={`w-3.5 h-3.5 ${isEditorial ? 'text-[#6D28D9]' : 'text-lime-400'}`} /> Reading Duration
                 </span>
-                <span className="font-mono font-bold text-slate-200">3 minutes</span>
+                <span className={`font-mono font-bold ${isEditorial ? 'text-[#1E2433]' : 'text-slate-200'}`}>3 minutes</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="flex items-center gap-2 text-slate-400">
-                  <IconBrain className="w-3.5 h-3.5 text-cyan-400" /> Recall Duration
+                <span className={`flex items-center gap-2 ${isEditorial ? 'text-[#475569]' : 'text-slate-400'}`}>
+                  <IconBrain className={`w-3.5 h-3.5 ${isEditorial ? 'text-[#6D28D9]' : 'text-cyan-400'}`} /> Recall Duration
                 </span>
-                <span className="font-mono font-bold text-slate-200">4 minutes</span>
+                <span className={`font-mono font-bold ${isEditorial ? 'text-[#1E2433]' : 'text-slate-200'}`}>4 minutes</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="flex items-center gap-2 text-slate-400">
-                  <IconSparkles className="w-3.5 h-3.5 text-lime-400" /> Target Key Points
+                <span className={`flex items-center gap-2 ${isEditorial ? 'text-[#475569]' : 'text-slate-400'}`}>
+                  <IconSparkles className={`w-3.5 h-3.5 ${isEditorial ? 'text-[#6D28D9]' : 'text-lime-400'}`} /> Target Key Points
                 </span>
-                <span className="font-mono font-bold text-slate-200">{currentText.keyConcepts.length} concepts</span>
+                <span className={`font-mono font-bold ${isEditorial ? 'text-[#1E2433]' : 'text-slate-200'}`}>{currentText.keyConcepts.length} concepts</span>
               </div>
             </div>
 
             <div className="flex items-center gap-3 pt-2">
               <button
                 onClick={() => setPhase('selection')}
-                className="w-1/3 py-2.5 rounded-xl border border-slate-700 bg-slate-800/60 hover:bg-slate-800 text-slate-300 text-xs font-semibold transition"
+                className={`w-1/3 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                  isEditorial
+                    ? 'border-2 border-[#1E2433] bg-[#FAF7F2] text-[#1E2433] hover:bg-slate-100 shadow-[2px_2px_0px_#1E2433]'
+                    : 'border border-slate-700 bg-slate-800/60 hover:bg-slate-800 text-slate-300'
+                }`}
               >
                 Change Level
               </button>
               <button
                 onClick={handleStartReading}
-                className="w-2/3 py-2.5 rounded-xl bg-gradient-to-r from-lime-400 to-cyan-400 text-slate-950 text-xs font-extrabold shadow-[0_0_20px_rgba(163,230,53,0.3)] hover:shadow-[0_0_25px_rgba(163,230,53,0.45)] hover:opacity-95 transition flex items-center justify-center gap-2"
+                style={isEditorial ? { backgroundColor: '#6D28D9', color: '#FFFFFF' } : undefined}
+                className={`w-2/3 py-2.5 rounded-xl text-xs font-black transition flex items-center justify-center gap-2 cursor-pointer ${
+                  isEditorial
+                    ? 'bg-[#6D28D9] text-white border-2 border-[#1E2433] shadow-[4px_4px_0px_#1E2433] hover:bg-[#5B21B6]'
+                    : 'bg-gradient-to-r from-lime-400 to-cyan-400 text-slate-950 shadow-[0_0_20px_rgba(163,230,53,0.3)] hover:shadow-[0_0_25px_rgba(163,230,53,0.45)]'
+                }`}
               >
-                <span>Begin Reading</span>
-                <IconArrowRight className="w-3.5 h-3.5" />
+                <span className={isEditorial ? 'text-white' : undefined}>Begin Reading</span>
+                <IconArrowRight className={`w-3.5 h-3.5 ${isEditorial ? 'text-white' : ''}`} />
               </button>
             </div>
           </div>
@@ -797,23 +944,55 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
       {phase === 'reading' && currentText && (
         <section data-retention-phase className="max-w-2xl mx-auto space-y-4">
           {/* Reader HUD */}
-          <div className="sticky top-3 z-30 bg-slate-900/90 backdrop-blur-md border border-slate-800 rounded-xl p-3 shadow-md">
+          <div
+            className={`sticky top-3 z-30 rounded-xl p-3 shadow-md transition-all ${
+              isEditorial
+                ? 'bg-white border-2 border-[#1E2433] shadow-[4px_4px_0px_#1E2433] text-[#1E2433]'
+                : 'bg-slate-900/90 backdrop-blur-md border border-slate-800'
+            }`}
+          >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-slate-800 text-lime-400 border border-lime-400/20">
+                <span
+                  className={`px-2 py-0.5 rounded text-[11px] font-mono font-bold ${
+                    isEditorial
+                      ? 'bg-purple-100 text-[#6D28D9] border-2 border-[#1E2433]'
+                      : 'bg-slate-800 text-lime-400 border border-lime-400/20'
+                  }`}
+                >
                   {currentText.level}
                 </span>
-                <div className="flex items-center gap-1 border-l border-slate-800 pl-2">
+                <div
+                  className={`flex items-center gap-1 border-l pl-2 ${
+                    isEditorial ? 'border-[#1E2433]/20' : 'border-slate-800'
+                  }`}
+                >
                   <button
                     onClick={() => setFontSizeOffset((p) => Math.max(p - 1, -1))}
-                    className={`px-1.5 py-0.5 text-[11px] font-mono rounded ${fontSizeOffset === -1 ? 'bg-slate-800 text-lime-400' : 'text-slate-400 hover:text-slate-200'}`}
+                    className={`px-1.5 py-0.5 text-[11px] font-mono rounded transition cursor-pointer ${
+                      fontSizeOffset === -1
+                        ? isEditorial
+                          ? 'bg-[#1E2433] text-white font-bold'
+                          : 'bg-slate-800 text-lime-400'
+                        : isEditorial
+                        ? 'text-[#475569] hover:bg-slate-100'
+                        : 'text-slate-400 hover:text-slate-200'
+                    }`}
                     title="Smaller text"
                   >
                     A-
                   </button>
                   <button
                     onClick={() => setFontSizeOffset((p) => Math.min(p + 1, 1))}
-                    className={`px-1.5 py-0.5 text-[11px] font-mono rounded ${fontSizeOffset === 1 ? 'bg-slate-800 text-lime-400' : 'text-slate-400 hover:text-slate-200'}`}
+                    className={`px-1.5 py-0.5 text-[11px] font-mono rounded transition cursor-pointer ${
+                      fontSizeOffset === 1
+                        ? isEditorial
+                          ? 'bg-[#1E2433] text-white font-bold'
+                          : 'bg-slate-800 text-lime-400'
+                        : isEditorial
+                        ? 'text-[#475569] hover:bg-slate-100'
+                        : 'text-slate-400 hover:text-slate-200'
+                    }`}
                     title="Larger text"
                   >
                     A+
@@ -826,17 +1005,25 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
                 {extensions < 1 && timeLeft < 60 && (
                   <button
                     onClick={handleExtendReading}
-                    className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-cyan-400/30 text-[11px] font-mono font-semibold transition"
+                    className={`px-2.5 py-1 rounded text-[11px] font-mono font-semibold transition cursor-pointer ${
+                      isEditorial
+                        ? 'bg-purple-100 hover:bg-purple-200 text-[#6D28D9] border-2 border-[#1E2433]'
+                        : 'bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-cyan-400/30'
+                    }`}
                   >
                     +2m
                   </button>
                 )}
 
-                <div className={`flex items-center gap-1.5 px-3 py-1 rounded-lg font-mono font-bold text-sm ${
-                  isWarningTime
-                    ? 'bg-rose-500/10 text-rose-400 border border-rose-500/30 urgent-timer-glow'
-                    : 'bg-slate-950 text-lime-400 border border-slate-800'
-                }`}>
+                <div
+                  className={`flex items-center gap-1.5 px-3 py-1 rounded-lg font-mono font-bold text-sm ${
+                    isWarningTime
+                      ? 'bg-rose-500/10 text-rose-500 border-2 border-rose-500/40 urgent-timer-glow'
+                      : isEditorial
+                      ? 'bg-[#FAF7F2] text-[#6D28D9] border-2 border-[#1E2433] shadow-[2px_2px_0px_#1E2433]'
+                      : 'bg-slate-950 text-lime-400 border border-slate-800'
+                  }`}
+                >
                   <IconClock className="w-3.5 h-3.5" />
                   <span>{formatTime(timeLeft)}</span>
                 </div>
@@ -844,10 +1031,18 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
             </div>
 
             {/* Glowing Linear Progress Bar */}
-            <div className="w-full bg-slate-950 h-1 rounded-full overflow-hidden mt-3">
+            <div
+              className={`w-full h-1.5 rounded-full overflow-hidden mt-3 ${
+                isEditorial ? 'bg-slate-100 border border-[#1E2433]/30' : 'bg-slate-950'
+              }`}
+            >
               <div
                 className={`h-full transition-all duration-1000 ease-linear ${
-                  isWarningTime ? 'bg-rose-500' : 'bg-gradient-to-r from-lime-400 to-cyan-400'
+                  isWarningTime
+                    ? 'bg-rose-500'
+                    : isEditorial
+                    ? 'bg-[#6D28D9]'
+                    : 'bg-gradient-to-r from-lime-400 to-cyan-400'
                 }`}
                 style={{ width: getProgressWidth() }}
               />
@@ -855,24 +1050,64 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
           </div>
 
           {/* Reading Card */}
-          <div className="bg-slate-900/40 border border-slate-800/80 rounded-2xl p-6 sm:p-8 backdrop-blur-sm min-h-[360px] flex flex-col justify-between">
+          <div
+            className={`rounded-2xl p-6 sm:p-8 min-h-[360px] flex flex-col justify-between transition-all ${
+              isEditorial
+                ? 'bg-white border-2 border-[#1E2433] shadow-[6px_6px_0px_#1E2433] text-[#1E2433]'
+                : 'bg-slate-900/40 border border-slate-800/80 backdrop-blur-sm text-slate-200'
+            }`}
+          >
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-white mb-6 tracking-tight">
+              <h1
+                className={`text-xl sm:text-2xl font-black mb-6 tracking-tight ${
+                  isEditorial ? 'text-[#1E2433] font-serif' : 'text-white'
+                }`}
+              >
                 {currentText.title}
               </h1>
-              <div className={`text-slate-200 select-text ${readerFontClass}`}>
-                {currentText.content}
+              <div
+                className={`select-text leading-relaxed ${readerFontClass} ${
+                  isEditorial ? 'text-[#1E2433]' : 'text-slate-200'
+                }`}
+              >
+                {currentText.content.split(' ').map((word, i) => (
+                  <span
+                    key={i}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleWordClick(word, e);
+                    }}
+                    className={`inline-block mr-1.5 cursor-pointer rounded px-0.5 transition-colors ${
+                      isEditorial
+                        ? 'hover:bg-purple-100 hover:text-[#6D28D9]'
+                        : 'hover:bg-cyan-500/10 hover:text-cyan-300'
+                    }`}
+                  >
+                    {word}
+                  </span>
+                ))}
               </div>
             </div>
 
-            <div className="mt-8 pt-4 border-t border-slate-800/60 flex items-center justify-between text-xs text-slate-500">
+            <div
+              className={`mt-8 pt-4 border-t flex items-center justify-between text-xs ${
+                isEditorial
+                  ? 'border-[#1E2433]/15 text-[#64748B]'
+                  : 'border-slate-800/60 text-slate-500'
+              }`}
+            >
               <span className="font-mono">{currentText.keyConcepts.length} core concepts embedded</span>
               <button
                 onClick={handleReadyToRecall}
-                className="px-5 py-2.5 rounded-xl bg-lime-400 text-slate-950 font-bold hover:bg-lime-300 transition-all flex items-center gap-2 shadow-[0_0_15px_rgba(163,230,53,0.25)]"
+                style={isEditorial ? { backgroundColor: '#6D28D9', color: '#FFFFFF' } : undefined}
+                className={`px-5 py-2.5 rounded-xl font-bold transition-all flex items-center gap-2 cursor-pointer ${
+                  isEditorial
+                    ? 'bg-[#6D28D9] text-white border-2 border-[#1E2433] shadow-[3px_3px_0px_#1E2433] hover:bg-[#5B21B6]'
+                    : 'bg-lime-400 text-slate-950 hover:bg-lime-300 shadow-[0_0_15px_rgba(163,230,53,0.25)]'
+                }`}
               >
-                <span>Ready to Recall</span>
-                <IconArrowRight className="w-3.5 h-3.5" />
+                <span className={isEditorial ? 'text-white' : undefined}>Ready to Recall</span>
+                <IconArrowRight className={`w-3.5 h-3.5 ${isEditorial ? 'text-white' : ''}`} />
               </button>
             </div>
           </div>
@@ -883,22 +1118,42 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
       {phase === 'recall' && (
         <section data-retention-phase className="max-w-2xl mx-auto space-y-4">
           {/* Header */}
-          <div className="flex items-center justify-between bg-slate-900/90 border border-slate-800 p-3 rounded-xl backdrop-blur-md">
+          <div
+            className={`flex items-center justify-between p-3 rounded-xl transition-all ${
+              isEditorial
+                ? 'bg-white border-2 border-[#1E2433] shadow-[4px_4px_0px_#1E2433] text-[#1E2433]'
+                : 'bg-slate-900/90 border border-slate-800 backdrop-blur-md'
+            }`}
+          >
             <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-md bg-cyan-400/10 text-cyan-400 border border-cyan-400/20">
+              <div
+                className={`p-1.5 rounded-md ${
+                  isEditorial
+                    ? 'bg-purple-100 text-[#6D28D9] border-2 border-[#1E2433]'
+                    : 'bg-cyan-400/10 text-cyan-400 border border-cyan-400/20'
+                }`}
+              >
                 <IconBrain className="w-4 h-4" />
               </div>
               <div>
-                <span className="text-xs font-bold text-white block">Active Recall Reconstruction</span>
-                <span className="text-[11px] text-slate-400">Type everything you remember from the text</span>
+                <span className={`text-xs font-bold block ${isEditorial ? 'text-[#1E2433]' : 'text-white'}`}>
+                  Active Recall Reconstruction
+                </span>
+                <span className={`text-[11px] ${isEditorial ? 'text-[#475569]' : 'text-slate-400'}`}>
+                  Type everything you remember from the text
+                </span>
               </div>
             </div>
 
-            <div className={`flex items-center gap-1.5 px-3 py-1 rounded-lg font-mono font-bold text-sm ${
-              isWarningTime
-                ? 'bg-rose-500/10 text-rose-400 border border-rose-500/30 urgent-timer-glow'
-                : 'bg-slate-950 text-cyan-400 border border-slate-800'
-            }`}>
+            <div
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg font-mono font-bold text-sm ${
+                isWarningTime
+                  ? 'bg-rose-500/10 text-rose-500 border border-rose-500/30 urgent-timer-glow'
+                  : isEditorial
+                  ? 'bg-[#FAF7F2] text-[#6D28D9] border-2 border-[#1E2433]'
+                  : 'bg-slate-950 text-cyan-400 border border-slate-800'
+              }`}
+            >
               <IconClock className="w-3.5 h-3.5" />
               <span>{formatTime(timeLeft)}</span>
             </div>
@@ -912,11 +1167,21 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
               disabled={isEvaluating}
               rows={10}
               placeholder="Start recalling facts, names, numbers, and relationships..."
-              className="w-full bg-slate-900/50 border border-slate-800 rounded-xl p-5 text-sm sm:text-base text-slate-100 placeholder-slate-600 focus:outline-none focus:border-lime-400/50 focus:ring-1 focus:ring-lime-400/30 resize-none transition-all leading-relaxed"
+              className={`w-full rounded-2xl p-5 text-sm sm:text-base resize-none transition-all leading-relaxed ${
+                isEditorial
+                  ? 'bg-white border-2 border-[#1E2433] shadow-[4px_4px_0px_#1E2433] text-[#1E2433] placeholder-[#94A3B8] focus:border-[#6D28D9] focus:outline-none'
+                  : 'bg-slate-900/50 border border-slate-800 text-slate-100 placeholder-slate-600 focus:outline-none focus:border-lime-400/50 focus:ring-1 focus:ring-lime-400/30'
+              }`}
               autoFocus
             />
 
-            <div className="absolute bottom-3 right-4 flex items-center gap-3 text-xs font-mono text-slate-500 bg-slate-950/70 px-2.5 py-1 rounded-md border border-slate-800 backdrop-blur-sm">
+            <div
+              className={`absolute bottom-3 right-4 flex items-center gap-3 text-xs font-mono px-2.5 py-1 rounded-md border ${
+                isEditorial
+                  ? 'bg-[#FAF7F2] text-[#475569] border-[#1E2433]/30'
+                  : 'bg-slate-950/70 text-slate-500 border-slate-800 backdrop-blur-sm'
+              }`}
+            >
               <span>{recallText.trim() === '' ? 0 : recallText.trim().split(/\s+/).length} words</span>
               <span>{recallText.length} chars</span>
             </div>
@@ -926,7 +1191,12 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
             <button
               onClick={handleSubmitRecall}
               disabled={isEvaluating || recallText.trim().length === 0}
-              className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-lime-400 to-cyan-400 text-slate-950 text-xs font-extrabold shadow-[0_0_20px_rgba(163,230,53,0.25)] hover:shadow-[0_0_25px_rgba(163,230,53,0.4)] disabled:opacity-50 transition flex items-center justify-center gap-2"
+              style={isEditorial ? { backgroundColor: '#6D28D9', color: '#FFFFFF' } : undefined}
+              className={`w-full sm:w-auto px-6 py-2.5 rounded-xl text-xs font-extrabold transition flex items-center justify-center gap-2 cursor-pointer ${
+                isEditorial
+                  ? 'bg-[#6D28D9] text-white border-2 border-[#1E2433] shadow-[4px_4px_0px_#1E2433] hover:bg-[#5B21B6] disabled:opacity-50'
+                  : 'bg-gradient-to-r from-lime-400 to-cyan-400 text-slate-950 shadow-[0_0_20px_rgba(163,230,53,0.25)] hover:shadow-[0_0_25px_rgba(163,230,53,0.4)] disabled:opacity-50'
+              }`}
             >
               {isEvaluating ? (
                 <>
@@ -935,8 +1205,8 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
                 </>
               ) : (
                 <>
-                  <span>Submit Recall for Evaluation</span>
-                  <IconArrowRight className="w-3.5 h-3.5" />
+                  <span className={isEditorial ? 'text-white' : undefined}>Submit Recall for Evaluation</span>
+                  <IconArrowRight className={`w-3.5 h-3.5 ${isEditorial ? 'text-white' : ''}`} />
                 </>
               )}
             </button>
@@ -1368,22 +1638,35 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
       {phase === 'review' && currentText && (
         <section
           data-retention-phase
-          className="max-w-2xl mx-auto space-y-4 relative"
-          onClick={() => showTooltip && setShowTooltip(null)}
+          className="max-w-2xl mx-auto space-y-4"
         >
           {/* Review Action Bar */}
-          <div className="flex items-center justify-between bg-slate-900/90 border border-slate-800 p-3 rounded-xl backdrop-blur-md">
+          <div
+            className={`flex items-center justify-between p-3 rounded-xl transition-all ${
+              isEditorial
+                ? 'bg-white border-2 border-[#1E2433] shadow-[4px_4px_0px_#1E2433] text-[#1E2433]'
+                : 'bg-slate-900/90 border border-slate-800 backdrop-blur-md'
+            }`}
+          >
             <div>
-              <span className="text-xs font-bold text-white block">Analytical Text Review</span>
-              <span className="text-[11px] text-slate-400">Click any word to translate to Uzbek</span>
+              <span className={`text-xs font-bold block ${isEditorial ? 'text-[#1E2433]' : 'text-white'}`}>
+                Analytical Text Review
+              </span>
+              <span className={`text-[11px] ${isEditorial ? 'text-[#475569]' : 'text-slate-400'}`}>
+                Click any word to translate to Uzbek
+              </span>
             </div>
 
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setHighlightConceptsInReview(!highlightConceptsInReview)}
-                className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition ${
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold border transition cursor-pointer ${
                   highlightConceptsInReview
-                    ? 'bg-lime-400/10 text-lime-300 border-lime-400/40'
+                    ? isEditorial
+                      ? 'bg-purple-100 text-[#6D28D9] border-2 border-[#1E2433]'
+                      : 'bg-lime-400/10 text-lime-300 border-lime-400/40'
+                    : isEditorial
+                    ? 'bg-[#FAF7F2] text-[#475569] border border-[#1E2433]/30 hover:text-[#1E2433]'
                     : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-slate-200'
                 }`}
               >
@@ -1391,7 +1674,11 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
               </button>
               <button
                 onClick={() => setPhase('evaluation')}
-                className="px-3 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-200 text-xs font-semibold hover:bg-slate-700 transition"
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
+                  isEditorial
+                    ? 'bg-white border-2 border-[#1E2433] text-[#1E2433] shadow-[2px_2px_0px_#1E2433] hover:bg-slate-50'
+                    : 'bg-slate-800 border border-slate-700 text-slate-200 hover:bg-slate-700'
+                }`}
               >
                 Back to Score
               </button>
@@ -1399,9 +1686,25 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
           </div>
 
           {/* Interactive Text Display */}
-          <div className="bg-slate-900/40 border border-slate-800 rounded-2xl p-6 sm:p-8 backdrop-blur-sm">
-            <h2 className="text-lg font-bold text-white mb-4">{currentText.title}</h2>
-            <div className="text-base sm:text-lg leading-[2] text-slate-200">
+          <div
+            className={`rounded-2xl p-6 sm:p-8 transition-all ${
+              isEditorial
+                ? 'bg-white border-2 border-[#1E2433] shadow-[6px_6px_0px_#1E2433] text-[#1E2433]'
+                : 'bg-slate-900/40 border border-slate-800 backdrop-blur-sm'
+            }`}
+          >
+            <h2
+              className={`text-lg font-bold mb-4 ${
+                isEditorial ? 'text-[#1E2433] font-serif font-black' : 'text-white'
+              }`}
+            >
+              {currentText.title}
+            </h2>
+            <div
+              className={`text-base sm:text-lg leading-[2] ${
+                isEditorial ? 'text-[#1E2433]' : 'text-slate-200'
+              }`}
+            >
               {currentText.content.split(' ').map((word, i) => {
                 const clean = word.toLowerCase().replace(/[.,!?;:"()]/g, '');
                 const isKeyConcept = currentText.keyConcepts.some((c) => c.toLowerCase().includes(clean) && clean.length > 2);
@@ -1415,7 +1718,11 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
                     }}
                     className={`inline-block mr-1.5 cursor-pointer rounded px-0.5 transition-colors ${
                       highlightConceptsInReview && isKeyConcept
-                        ? 'text-lime-300 underline decoration-lime-400/60 decoration-2 font-medium bg-lime-400/10'
+                        ? isEditorial
+                          ? 'bg-purple-100 text-[#6D28D9] underline decoration-[#6D28D9] decoration-2 font-black'
+                          : 'text-lime-300 underline decoration-lime-400/60 decoration-2 font-medium bg-lime-400/10'
+                        : isEditorial
+                        ? 'hover:bg-purple-100 hover:text-[#6D28D9]'
                         : 'hover:bg-cyan-500/10 hover:text-cyan-300'
                     }`}
                   >
@@ -1425,81 +1732,149 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
               })}
             </div>
           </div>
+        </section>
+      )}
 
-          {/* Clean Floating Translation Popover */}
-          {showTooltip && (
-            <div
-              data-word-tooltip
-              className="absolute z-50 bg-slate-950/95 border border-slate-800 rounded-xl p-3.5 shadow-2xl backdrop-blur-md flex flex-col gap-2.5 w-60"
-              style={{ top: showTooltip.y, left: showTooltip.x }}
-              onClick={(e) => e.stopPropagation()}
+      {/* --- Viewport-Anchored Fixed Translation Popover (Available across Reading & Review phases) --- */}
+      {showTooltip && (
+        <div
+          data-word-tooltip
+          className={`fixed z-[99999] rounded-2xl p-4 shadow-2xl flex flex-col gap-3 w-[280px] transition-all animate-in fade-in zoom-in-95 duration-150 ${
+            isEditorial
+              ? 'bg-white border-2 border-[#1E2433] shadow-[8px_8px_0px_#1E2433] text-[#1E2433]'
+              : 'bg-slate-950/95 border border-slate-800 text-slate-100 backdrop-blur-md'
+          }`}
+          style={{ top: `${showTooltip.y}px`, left: `${showTooltip.x}px` }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div
+            className={`flex items-center justify-between pb-2.5 border-b ${
+              isEditorial ? 'border-[#1E2433]/15' : 'border-slate-800/80'
+            }`}
+          >
+            <span
+              className={`font-black text-base truncate pr-2 capitalize ${
+                isEditorial ? 'text-[#1E2433] font-serif' : 'text-white'
+              }`}
             >
-              <div className="flex items-center justify-between pb-2 border-b border-slate-800/80">
-                <span className="font-bold text-white text-sm truncate pr-2 capitalize">
-                  {showTooltip.word}
-                </span>
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => playAudio(showTooltip.word)}
-                    className="p-1 rounded text-slate-400 hover:text-cyan-300 hover:bg-slate-900 transition"
-                    title="Listen pronunciation"
-                  >
-                    <IconVolume className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    onClick={() => setShowTooltip(null)}
-                    className="p-1 rounded text-slate-500 hover:text-slate-300 transition"
-                  >
-                    <IconX className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
-
-              <div className="text-xs text-slate-300 min-h-[22px] flex items-center">
-                {translating ? (
-                  <span className="text-slate-500 font-mono animate-pulse">Translating...</span>
-                ) : (
-                  <span className="font-medium text-lime-300">{translation}</span>
-                )}
-              </div>
-
+              {showTooltip.word}
+            </span>
+            <div className="flex items-center gap-1.5">
               <button
-                onClick={saveWord}
-                disabled={wordSaved || !translation || translating}
-                className={`w-full py-1.5 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
-                  wordSaved
-                    ? 'bg-lime-500/10 text-lime-400 border border-lime-400/30'
-                    : 'bg-slate-800 text-slate-200 hover:bg-slate-700 border border-slate-700'
+                type="button"
+                onClick={() => playAudio(showTooltip.word)}
+                className={`p-1.5 rounded-lg transition cursor-pointer ${
+                  isEditorial
+                    ? 'text-[#1E2433] hover:bg-purple-100 border border-[#1E2433]/20'
+                    : 'text-slate-400 hover:text-cyan-300 hover:bg-slate-900'
                 }`}
+                title="Listen pronunciation"
               >
-                {wordSaved ? (
-                  <>
-                    <IconCheck className="w-3.5 h-3.5 text-lime-400" />
-                    <span>Saved to Vocab</span>
-                  </>
-                ) : (
-                  <>
-                    <IconBookmark className="w-3.5 h-3.5 text-cyan-400" />
-                    <span>Save Word</span>
-                  </>
-                )}
+                <IconVolume className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowTooltip(null)}
+                className={`p-1.5 rounded-lg transition cursor-pointer ${
+                  isEditorial
+                    ? 'text-[#64748B] hover:text-[#1E2433] hover:bg-slate-100'
+                    : 'text-slate-500 hover:text-slate-300'
+                }`}
+                title="Close"
+              >
+                <IconX className="w-3.5 h-3.5" />
               </button>
             </div>
-          )}
-        </section>
+          </div>
+
+          <div className="text-sm min-h-[26px] flex items-center font-medium">
+            {translating ? (
+              <span
+                className={`font-mono text-xs animate-pulse ${
+                  isEditorial ? 'text-[#6D28D9]' : 'text-slate-500'
+                }`}
+              >
+                Translating...
+              </span>
+            ) : (
+              <span
+                className={`font-bold ${
+                  isEditorial ? 'text-[#6D28D9]' : 'text-lime-300'
+                }`}
+              >
+                {translation}
+              </span>
+            )}
+          </div>
+
+          <button
+            type="button"
+            onClick={saveWord}
+            disabled={wordSaved || !translation || translating}
+            style={
+              isEditorial
+                ? {
+                    backgroundColor: wordSaved ? '#D1FAE5' : '#6D28D9',
+                    color: wordSaved ? '#065F46' : '#FFFFFF',
+                  }
+                : undefined
+            }
+            className={`w-full py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+              wordSaved
+                ? isEditorial
+                  ? 'border-2 border-emerald-600'
+                  : 'bg-lime-500/10 text-lime-400 border border-lime-400/30'
+                : isEditorial
+                ? 'border-2 border-[#1E2433] shadow-[3px_3px_0px_#1E2433] hover:bg-[#5B21B6] active:translate-x-0.5 active:translate-y-0.5'
+                : 'bg-slate-800 text-slate-200 hover:bg-slate-700 border border-slate-700'
+            }`}
+          >
+            {wordSaved ? (
+              <>
+                <IconCheck className={`w-3.5 h-3.5 ${isEditorial ? 'text-emerald-700' : 'text-lime-400'}`} />
+                <span>Saved to Vocab</span>
+              </>
+            ) : (
+              <>
+                <IconBookmark className={`w-3.5 h-3.5 ${isEditorial ? 'text-white' : 'text-cyan-400'}`} />
+                <span style={isEditorial ? { color: '#FFFFFF' } : undefined}>Save Word</span>
+              </>
+            )}
+          </button>
+        </div>
       )}
 
       {/* --- Safe Exit Confirmation Modal --- */}
       {showExitModal && (
-        <div ref={exitOverlayRef} className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div ref={exitPanelRef} className="bg-slate-900 border border-slate-800 rounded-2xl p-6 max-w-sm w-full shadow-2xl space-y-4">
-            <div className="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20 flex items-center justify-center">
+        <div
+          ref={exitOverlayRef}
+          className={`fixed inset-0 z-50 backdrop-blur-sm flex items-center justify-center p-4 ${
+            isEditorial ? 'bg-[#1E2433]/60' : 'bg-slate-950/80'
+          }`}
+        >
+          <div
+            ref={exitPanelRef}
+            className={`rounded-2xl p-6 max-w-sm w-full space-y-4 ${
+              isEditorial
+                ? 'bg-white border-2 border-[#1E2433] shadow-[8px_8px_0px_#1E2433] text-[#1E2433]'
+                : 'bg-slate-900 border border-slate-800 shadow-2xl'
+            }`}
+          >
+            <div
+              className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                isEditorial
+                  ? 'bg-rose-100 text-rose-600 border-2 border-rose-300'
+                  : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+              }`}
+            >
               <IconLogOut className="w-5 h-5" />
             </div>
 
             <div>
-              <h3 className="text-base font-bold text-white">Leave Active Session?</h3>
-              <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+              <h3 className={`text-base font-bold ${isEditorial ? 'text-[#1E2433] font-serif font-black' : 'text-white'}`}>
+                Leave Active Session?
+              </h3>
+              <p className={`text-xs mt-1 leading-relaxed ${isEditorial ? 'text-[#475569]' : 'text-slate-400'}`}>
                 If you leave now, your current timed reading and recall progress will not be saved.
               </p>
             </div>
@@ -1507,13 +1882,17 @@ export function RetentionReading({ currentUser, onExit }: RetentionReadingProps)
             <div className="flex items-center gap-2 pt-2">
               <button
                 onClick={() => dismissExit()}
-                className="flex-1 py-2 px-3 rounded-lg border border-slate-700 bg-slate-800 text-slate-200 text-xs font-semibold hover:bg-slate-700 transition"
+                className={`flex-1 py-2 px-3 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                  isEditorial
+                    ? 'border-2 border-[#1E2433] bg-[#FAF7F2] text-[#1E2433] hover:bg-slate-100'
+                    : 'border border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700'
+                }`}
               >
                 Stay
               </button>
               <button
                 onClick={() => dismissExit(executeExit)}
-                className="flex-1 py-2 px-3 rounded-lg bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold transition shadow-sm"
+                className="flex-1 py-2 px-3 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition shadow-sm cursor-pointer"
               >
                 Exit Session
               </button>

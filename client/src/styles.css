@@ -3224,24 +3224,55 @@ body[data-theme="editorial"] .app-shell {
   box-shadow: 8px 8px 0px #1E2433 !important;
 }
 
+[data-theme="editorial"] .bg-slate-900\/40,
+[data-theme="editorial"] .bg-slate-900\/50,
 [data-theme="editorial"] .bg-slate-900\/60,
 [data-theme="editorial"] .bg-slate-900\/70,
 [data-theme="editorial"] .bg-slate-900\/80,
+[data-theme="editorial"] .bg-slate-900\/90,
 [data-theme="editorial"] .bg-slate-900,
 [data-theme="editorial"] .bg-slate-950,
+[data-theme="editorial"] .bg-slate-950\/70,
 [data-theme="editorial"] .bg-slate-950\/80,
 [data-theme="editorial"] .bg-slate-950\/85,
-[data-theme="editorial"] .bg-slate-950\/90 {
-  background-color: #FAF5EC !important;
+[data-theme="editorial"] .bg-slate-950\/90,
+[data-theme="editorial"] .bg-slate-950\/95 {
+  background-color: #FFFFFF !important;
   border-color: #1E2433 !important;
   color: #1E2433 !important;
 }
 
-/* Header & Navigation Bar in Editorial Theme */
-[data-theme="editorial"] header > div {
+/* Header & Navigation Bar in Editorial Theme - targeted strictly to main header */
+[data-theme="editorial"] .app-header > div,
+[data-theme="editorial"] header.app-header > div {
   background: rgba(255, 253, 249, 0.95) !important;
   border: 2px solid #1E2433 !important;
   box-shadow: 4px 4px 0px #1E2433 !important;
+}
+
+/* ServerStatus Pill in Editorial Theme */
+[data-theme="editorial"] .server-status {
+  background: #FFFFFF !important;
+  border: 2px solid #1E2433 !important;
+  color: #1E2433 !important;
+  box-shadow: 2px 2px 0px #1E2433 !important;
+}
+[data-theme="editorial"] .server-status-label {
+  color: #6D28D9 !important;
+  font-weight: 800 !important;
+}
+[data-theme="editorial"] .server-status-message {
+  color: #1E2433 !important;
+  font-weight: 700 !important;
+}
+[data-theme="editorial"] .server-status-icon {
+  background: #EDE9FE !important;
+  border: 1.5px solid #1E2433 !important;
+  color: #6D28D9 !important;
+}
+[data-theme="editorial"] .server-status:hover {
+  background: #FAF7F2 !important;
+  box-shadow: 3px 3px 0px #1E2433 !important;
 }
 
 /* Sidebar in Editorial Theme */

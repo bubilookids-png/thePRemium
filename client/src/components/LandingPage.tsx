@@ -182,15 +182,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <button
             type="button"
             onClick={onStart}
-            style={isEditorial ? { backgroundColor: '#1E2433', color: '#FFFFFF' } : undefined}
-            className={`btn-dark w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-xl font-bold text-sm transition-all cursor-pointer group ${
+            style={isEditorial ? { backgroundColor: '#6D28D9', color: '#FFFFFF' } : undefined}
+            className={`w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-xl font-bold text-sm transition-all cursor-pointer group ${
               isEditorial
-                ? 'border-2 border-[#1E2433] shadow-[4px_4px_0px_#6D28D9] hover:bg-[#6D28D9] active:translate-x-0.5 active:translate-y-0.5'
+                ? 'bg-[#6D28D9] text-white border-2 border-[#1E2433] shadow-[4px_4px_0px_#1E2433] hover:bg-[#5B21B6] active:translate-x-0.5 active:translate-y-0.5'
                 : 'bg-gradient-to-r from-lime-400 via-lime-300 to-cyan-400 text-slate-950 hover:shadow-[0_0_35px_rgba(132,204,22,0.5)] active:scale-[0.98]'
             }`}
           >
-            <span style={{ color: '#FFFFFF' }} className="font-extrabold">Open Vocabulary Trainer</span>
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform shrink-0" style={{ color: '#FFFFFF' }} />
+            <span style={isEditorial ? { color: '#FFFFFF' } : undefined} className="font-extrabold text-white">
+              Open Vocabulary Trainer
+            </span>
+            <ArrowRight
+              className="w-4 h-4 group-hover:translate-x-1 transition-transform shrink-0"
+              style={isEditorial ? { color: '#FFFFFF' } : undefined}
+            />
           </button>
 
           {!isLoggedIn && (
@@ -953,28 +958,35 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </div>
       </section>
 
-      {/* 9. BOTTOM CONVERSION STRIP — HIGH CONTRAST DARK BANNER */}
+      {/* 9. BOTTOM CONVERSION STRIP — EDITORIAL BRUTALIST */}
       <section className="w-full max-w-5xl mx-auto px-4 pb-28">
         <div
-          data-dark-surface="true"
-          style={{ backgroundColor: '#1E2433', color: '#FFFFFF' }}
-          className="btn-dark dark-banner relative rounded-3xl border-2 border-[#1E2433] bg-[#1E2433] p-10 sm:p-14 text-center overflow-hidden shadow-[8px_8px_0px_#6D28D9]"
+          className={`relative rounded-3xl p-10 sm:p-14 text-center overflow-hidden transition-all ${
+            isEditorial
+              ? 'bg-white border-2 border-[#1E2433] shadow-[8px_8px_0px_#1E2433] text-[#1E2433]'
+              : 'border-2 border-slate-800 bg-[#0f172a] text-white shadow-2xl'
+          }`}
         >
           <span
-            className="text-xs font-mono font-black uppercase tracking-widest mb-3 inline-block"
-            style={{ color: '#A3E635' }}
+            className={`text-xs font-mono font-black uppercase tracking-widest mb-3 inline-block px-3 py-1 rounded-full ${
+              isEditorial
+                ? 'bg-purple-100 text-[#6D28D9] border-2 border-[#1E2433]'
+                : 'text-lime-400 bg-lime-400/10'
+            }`}
           >
             Immediate Access
           </span>
           <h2
-            className="text-3xl sm:text-4xl font-black mb-4 tracking-tight font-serif"
-            style={{ color: '#FFFFFF' }}
+            className={`text-3xl sm:text-4xl font-black mb-4 tracking-tight font-serif ${
+              isEditorial ? 'text-[#1E2433]' : 'text-white'
+            }`}
           >
             Level up your academic English today.
           </h2>
           <p
-            className="text-xs sm:text-sm mb-8 max-w-lg mx-auto leading-relaxed font-sans font-medium"
-            style={{ color: '#E2E8F0' }}
+            className={`text-xs sm:text-sm mb-8 max-w-lg mx-auto leading-relaxed font-sans font-medium ${
+              isEditorial ? 'text-[#475569]' : 'text-slate-300'
+            }`}
           >
             No subscription fees. No paywalls. Just a fast, scientifically grounded vocabulary engine built for serious learners.
           </p>
@@ -983,25 +995,45 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <button
               type="button"
               onClick={onStart}
-              className="inline-flex items-center justify-center gap-2.5 px-10 py-4 rounded-xl bg-gradient-to-r from-lime-400 via-lime-300 to-cyan-400 text-slate-950 font-black text-sm hover:shadow-[0_0_35px_rgba(132,204,22,0.4)] active:scale-[0.98] transition-all cursor-pointer"
+              style={isEditorial ? { backgroundColor: '#6D28D9', color: '#FFFFFF' } : undefined}
+              className={`inline-flex items-center justify-center gap-2.5 px-10 py-4 rounded-xl font-black text-sm transition-all cursor-pointer ${
+                isEditorial
+                  ? 'bg-[#6D28D9] text-white border-2 border-[#1E2433] shadow-[4px_4px_0px_#1E2433] hover:bg-[#5B21B6] active:translate-x-0.5 active:translate-y-0.5'
+                  : 'bg-gradient-to-r from-lime-400 via-lime-300 to-cyan-400 text-slate-950 hover:shadow-[0_0_35px_rgba(132,204,22,0.4)] active:scale-[0.98]'
+              }`}
             >
-              <span className="text-slate-950 font-black">Launch UniveBooster</span>
-              <ArrowRight className="w-4 h-4 text-slate-950" />
+              <span
+                style={isEditorial ? { color: '#FFFFFF' } : undefined}
+                className={isEditorial ? 'text-white font-black' : 'text-slate-950 font-black'}
+              >
+                Launch UniveBooster
+              </span>
+              <ArrowRight
+                className={`w-4 h-4 ${isEditorial ? 'text-white' : 'text-slate-950'}`}
+                style={isEditorial ? { color: '#FFFFFF' } : undefined}
+              />
             </button>
             {!isLoggedIn && (
               <button
                 type="button"
                 onClick={onLogin}
                 disabled={waitingAuth}
-                style={{ backgroundColor: 'rgba(255,255,255,0.12)', color: '#FFFFFF' }}
-                className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl border-2 border-white/40 hover:bg-white/20 transition text-sm font-bold cursor-pointer"
+                className={`inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl transition text-sm font-bold cursor-pointer ${
+                  isEditorial
+                    ? 'bg-[#FAF7F2] text-[#1E2433] border-2 border-[#1E2433] shadow-[3px_3px_0px_#1E2433] hover:bg-[#F3EDE4]'
+                    : 'bg-white/10 text-white border-2 border-white/40 hover:bg-white/20'
+                }`}
               >
-                <span style={{ color: '#FFFFFF' }}>Telegram Quick Sync</span>
+                <span className={isEditorial ? 'text-[#1E2433]' : 'text-white'}>Telegram Quick Sync</span>
               </button>
             )}
           </div>
 
-          <div className="mt-8 flex items-center justify-center gap-4 text-[11px] font-mono font-medium" style={{ color: '#94A3B8' }}>
+          <div
+            className={`mt-8 flex items-center justify-center gap-4 text-[11px] font-mono font-medium ${
+              isEditorial ? 'text-[#64748B]' : 'text-slate-400'
+            }`}
+          >
             <span>⚡ Instant Launch</span>
             <span>•</span>
             <span>🔒 Zero Data Tracking</span>
